@@ -1,11 +1,11 @@
 /*
   UTFT_Buttons.h - Add-on Library for UTFT: Buttons
   Copyright (C)2016 Rinky-Dink Electronics, Henning Karlsen. All right reserved
-  
+
   This library adds simple but easy to use buttons to extend the use
   of the UTFT and URTouch libraries.
 
-  You can find the latest version of the library at 
+  You can find the latest version of the library at
   http://www.RinkyDinkElectronics.com/
 
   This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
   will allow commercial use. This includes using the library,
   modified or not, as a tool to sell products.
 
-  The license applies to all part of the library including the 
+  The license applies to all part of the library including the
   examples and tools supplied with the library.
 */
 
@@ -39,7 +39,7 @@
 	#error : You will need UTFT v2.41 or higher to use this add-on library...
 #endif
 
-#define MAX_BUTTONS	20	// Maximum number of buttons available at one time
+#define MAX_BUTTONS	32	// Maximum number of buttons available at one time
 
 // Define presets for button status
 #define BUTTON_DISABLED			0x0001
@@ -49,11 +49,10 @@
 #define BUTTON_NO_BORDER		0x0010
 #define BUTTON_UNUSED			0x8000
 
-typedef struct
-{
+typedef struct {
   uint16_t			pos_x, pos_y, width, height;
   uint16_t			flags;
-  char				*label;
+  const char		*label;
   bitmapdatatype	data;
 } button_type;
 
@@ -61,13 +60,15 @@ class UTFT_Buttons {
 	public:
 		UTFT_Buttons(UTFT *ptrUTFT, ITDB02_Touch *ptrURTouch);
 
-		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, char *label, uint16_t flags=0);
-		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, bitmapdatatype data, uint16_t flags=0);
+		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
+                          const char *label, uint16_t flags=0);
+		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
+                          bitmapdatatype data, uint16_t flags=0);
 		void	drawButtons();
 		void	drawButton(int buttonID);
 		void	enableButton(int buttonID, boolean redraw=false);
 		void	disableButton(int buttonID, boolean redraw=false);
-		void	relabelButton(int buttonID, char *label, boolean redraw=false);
+		void	relabelButton(int buttonID, const char *label, boolean redraw=false);
 		boolean	buttonEnabled(int buttonID);
 		void	deleteButton(int buttonID);
 		void	deleteAllButtons();

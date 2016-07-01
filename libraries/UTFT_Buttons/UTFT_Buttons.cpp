@@ -1,11 +1,11 @@
 /*
   UTFT_Buttons.cpp - Add-on Library for UTFT: Buttons
   Copyright (C)2016 Rinky-Dink Electronics, Henning Karlsen. All right reserved
-  
+
   This library adds simple but easy to use buttons to extend the use
   of the UTFT and URTouch libraries.
 
-  You can find the latest version of the library at 
+  You can find the latest version of the library at
   http://www.RinkyDinkElectronics.com/
 
   This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
   will allow commercial use. This includes using the library,
   modified or not, as a tool to sell products.
 
-  The license applies to all part of the library including the 
+  The license applies to all part of the library including the
   examples and tools supplied with the library.
 */
 
@@ -37,7 +37,8 @@ UTFT_Buttons::UTFT_Buttons(UTFT *ptrUTFT, ITDB02_Touch *ptrURTouch) {
 	_font_symbol			= NULL;
 }
 
-int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, char *label, uint16_t flags) {
+int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width,
+                            uint16_t height, const char *label, uint16_t flags) {
 	int btcnt = 0;
 
 	while (((buttons[btcnt].flags & BUTTON_UNUSED) == 0) and (btcnt<MAX_BUTTONS))
@@ -45,8 +46,7 @@ int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
 
 	if (btcnt == MAX_BUTTONS)
 		return -1;
-	else
-	{
+	else {
 		buttons[btcnt].pos_x  = x;
 		buttons[btcnt].pos_y  = y;
 		buttons[btcnt].width  = width;
@@ -58,7 +58,8 @@ int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
 	}
 }
 
-int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, bitmapdatatype data, uint16_t flags)
+int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
+                            bitmapdatatype data, uint16_t flags)
 {
 	int btcnt = 0;
 
@@ -81,8 +82,7 @@ int UTFT_Buttons::addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
 }
 
 
-void UTFT_Buttons::drawButtons()
-{
+void UTFT_Buttons::drawButtons() {
 	for (int i=0;i<MAX_BUTTONS;i++)
 	{
 		if ((buttons[i].flags & BUTTON_UNUSED) == 0)
@@ -90,8 +90,7 @@ void UTFT_Buttons::drawButtons()
 	}
 }
 
-void UTFT_Buttons::drawButton(int buttonID)
-{
+void UTFT_Buttons::drawButton(int buttonID) {
 	int		text_x, text_y;
 	uint8_t	*_font_current = _UTFT->getFont();;
 	word	_current_color = _UTFT->getColor();
@@ -144,8 +143,7 @@ void UTFT_Buttons::drawButton(int buttonID)
 	_UTFT->setBackColor(_current_back);
 }
 
-void UTFT_Buttons::enableButton(int buttonID, boolean redraw)
-{
+void UTFT_Buttons::enableButton(int buttonID, boolean redraw) {
 	if (!(buttons[buttonID].flags & BUTTON_UNUSED))
 	{
 		buttons[buttonID].flags = buttons[buttonID].flags & ~BUTTON_DISABLED;
@@ -154,8 +152,7 @@ void UTFT_Buttons::enableButton(int buttonID, boolean redraw)
 	}
 }
 
-void UTFT_Buttons::disableButton(int buttonID, boolean redraw)
-{
+void UTFT_Buttons::disableButton(int buttonID, boolean redraw) {
 	if (!(buttons[buttonID].flags & BUTTON_UNUSED))
 	{
 		buttons[buttonID].flags = buttons[buttonID].flags | BUTTON_DISABLED;
@@ -164,8 +161,7 @@ void UTFT_Buttons::disableButton(int buttonID, boolean redraw)
 	}
 }
 
-void UTFT_Buttons::relabelButton(int buttonID, char *label, boolean redraw)
-{
+void UTFT_Buttons::relabelButton(int buttonID, const char *label, boolean redraw) {
 	if (!(buttons[buttonID].flags & BUTTON_UNUSED))
 	{
 		buttons[buttonID].label = label;
@@ -174,19 +170,16 @@ void UTFT_Buttons::relabelButton(int buttonID, char *label, boolean redraw)
 	}
 }
 
-boolean UTFT_Buttons::buttonEnabled(int buttonID)
-{
+boolean UTFT_Buttons::buttonEnabled(int buttonID) {
 	return !(buttons[buttonID].flags & BUTTON_DISABLED);
 }
 
-void UTFT_Buttons::deleteButton(int buttonID)
-{
+void UTFT_Buttons::deleteButton(int buttonID) {
 	if (!(buttons[buttonID].flags & BUTTON_UNUSED))
 		buttons[buttonID].flags = BUTTON_UNUSED;
 }
 
-void UTFT_Buttons::deleteAllButtons()
-{
+void UTFT_Buttons::deleteAllButtons() {
 	for (int i=0;i<MAX_BUTTONS;i++)
 	{
 		buttons[i].pos_x=0;
@@ -247,18 +240,15 @@ int UTFT_Buttons::checkButtons() {
 		//return -1;
 }
 
-void UTFT_Buttons::setTextFont(uint8_t* font)
-{
+void UTFT_Buttons::setTextFont(uint8_t* font) {
 	_font_text = font;
 }
 
-void UTFT_Buttons::setSymbolFont(uint8_t* font)
-{
+void UTFT_Buttons::setSymbolFont(uint8_t* font) {
 	_font_symbol = font;
 }
 
-void UTFT_Buttons::setButtonColors(word atxt, word iatxt, word brd, word brdhi, word back)
-{
+void UTFT_Buttons::setButtonColors(word atxt, word iatxt, word brd, word brdhi, word back) {
 	_color_text				= atxt;
 	_color_text_inactive	= iatxt;
 	_color_background		= back;
