@@ -7,6 +7,7 @@
 #include <RTClib.h>
 
 #define DEBUG 1
+#define RETURN_DELAY 20000
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
@@ -14,31 +15,41 @@ UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 
 //==== Defining Variables
 int x, y;
-int xW, xR, xG, xB = 38;
-int xWC, xRC, xGC, xBC = 42;
+int xC, xW, xR, xG, xB = 38;
+int xCC, xWC, xRC, xGC, xBC = 42;
 int pressedButton;
 uint32_t targetTime = 0;
 
 int lightStatus[6];
-int hourStatus[6];
-int minuteStatus[6];
+int hourStatus[7];
+int minuteStatus[7];
 
 volatile unsigned int page;
-const int whiteLed = 11, redLed = 10, greenLed = 9, blueLed  = 8;
+const uint8_t whiteLed = 12, coolWhiteLed = 11, redLed = 10, greenLed = 9, blueLed  = 8;
 
 RTC_DS1307 RTC;
 DateTime now;
 NewTime  newTime;
 
+char strTemp[4];
 char strTime[9];
 char strDate[10];
+char str[12];
 
 enum {
     PAGE_HOME = 0,
     PAGE_SELECT,
     PAGE_SET_LIGHT,
+    PAGE_SET_TIMER,
     PAGE_SET_TIME,
-    PAGE_SET_TIMER
+    PAGE_SET_CO2,
+    PAGE_TEMP
+};
+
+int switchMode;
+enum {
+    MODE_AUTO = 0,
+    MODE_MANUAL
 };
 
 extern uint8_t GroteskBold24x48[];
@@ -55,9 +66,10 @@ void setup() {
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
 
-    //Serial.begin(9600);
+    Serial.begin(9600);
+    Serial1.begin(9600);
 
-    eepromReadRGB();
+    eepromRead();
 
     // Initial setup
     myGLCD.InitLCD(LANDSCAPE);
@@ -71,12 +83,18 @@ void setup() {
 
     page = PAGE_HOME;
 
+    pwmInit();
+
     setPwm();
 
     drawHomeScreen();
 }
 
 void loop() {
+
+    if (switchMode == MODE_AUTO) {
+        switchLight();
+    }
 
     // automatick return to Homepage
     if (millis() > targetTime && page != PAGE_HOME) {
@@ -93,12 +111,14 @@ void loop() {
         drawTime();
 
         if (myTouch.dataAvailable() == true) {
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawLightControl();
+                setMode();
                 page = PAGE_SET_LIGHT;
             }
 
@@ -118,9 +138,23 @@ void loop() {
 
             if (pressedButton == 2) {
                 myButtons.deleteAllButtons();
-                page = PAGE_SET_TIMER;
                 myGLCD.clrScr();
                 drawTimerScreen();
+                page = PAGE_SET_TIMER;
+            }
+
+            if (pressedButton == 3) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawCo2Screen();
+                page = PAGE_SET_CO2;
+            }
+
+            if (pressedButton == 4) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawTempScreen();
+                page = PAGE_TEMP;
             }
 
             if (pressedButton == 5) {
@@ -138,35 +172,38 @@ void loop() {
     case PAGE_SET_LIGHT:
 
         if (myTouch.dataAvailable() == true) {
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
             pressedButton = myButtons.checkButtons();
+#ifdef DEBUG
             x = myButtons.Touch->getX();
             y = myButtons.Touch->getY();
+#endif
 
             setLedColor();
 
             if (pressedButton == 0) {
-                // set light to on
-                analogWrite(whiteLed, 255);
-                analogWrite(redLed,   0);
-                analogWrite(greenLed, 0);
-                analogWrite(blueLed,  0);
+                // set light to day
+                setDay();
             }
             if (pressedButton == 1) {
                 // set light to off
-                analogWrite(whiteLed, 0);
-                analogWrite(redLed,   0);
-                analogWrite(greenLed, 0);
-                analogWrite(blueLed,  0);
+                setOff();
             }
             if (pressedButton == 2) {
                 // set light to night
-                analogWrite(whiteLed, 0);
-                analogWrite(redLed,   xRC);
-                analogWrite(greenLed, xGC);
-                analogWrite(blueLed,  xBC);
+                setNight();
+            }
+            if (pressedButton == 3) {
+                // set light mode
+                switchMode++;
+                if (switchMode == 2) {
+                    switchMode = MODE_AUTO;
+                }
+                setMode();
+                EEPROM.write(24, switchMode);
             }
 
-            if (pressedButton == 3) {
+            if (pressedButton == 4) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
@@ -181,6 +218,7 @@ void loop() {
     case PAGE_SET_TIME:
 
         if (myTouch.dataAvailable() == true) {
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
@@ -262,10 +300,46 @@ void loop() {
 #endif
         break;
 
+    case PAGE_TEMP:
+
+        if (myTouch.dataAvailable() == true) {
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            pressedButton = myButtons.checkButtons();
+
+            if (pressedButton == 0) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawHomeScreen();
+                page = PAGE_HOME;
+            }
+        }
+#ifdef DEBUG
+        debug();
+#endif
+        break;
+
+    case PAGE_SET_CO2:
+        if (myTouch.dataAvailable() == true) {
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            pressedButton = myButtons.checkButtons();
+
+            if (pressedButton == 1) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawHomeScreen();
+                page = PAGE_HOME;
+            }
+        }
+#ifdef DEBUG
+        debug();
+#endif
+        break;
+
     case PAGE_SET_TIMER:
 
         if (myTouch.dataAvailable() == true) {
             pressedButton = myButtons.checkButtons();
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
 
             // first timer
             if (pressedButton == 0) {
@@ -464,26 +538,26 @@ void loop() {
 
             // save values
             if (pressedButton == 30) {
-                EEPROM.write(5,  lightStatus[0]);
-                EEPROM.write(6,  lightStatus[1]);
-                EEPROM.write(7,  lightStatus[2]);
-                EEPROM.write(8,  lightStatus[3]);
-                EEPROM.write(9,  lightStatus[4]);
-                EEPROM.write(10, lightStatus[5]);
+                EEPROM.write(6,  lightStatus[0]);
+                EEPROM.write(7,  lightStatus[1]);
+                EEPROM.write(8,  lightStatus[2]);
+                EEPROM.write(9,  lightStatus[3]);
+                EEPROM.write(10, lightStatus[4]);
+                EEPROM.write(11, lightStatus[5]);
 
-                EEPROM.write(11, hourStatus[0]);
-                EEPROM.write(12, hourStatus[1]);
-                EEPROM.write(13, hourStatus[2]);
-                EEPROM.write(14, hourStatus[3]);
-                EEPROM.write(15, hourStatus[4]);
-                EEPROM.write(16, hourStatus[5]);
+                EEPROM.write(12, hourStatus[0]);
+                EEPROM.write(13, hourStatus[1]);
+                EEPROM.write(14, hourStatus[2]);
+                EEPROM.write(15, hourStatus[3]);
+                EEPROM.write(16, hourStatus[4]);
+                EEPROM.write(17, hourStatus[5]);
 
-                EEPROM.write(17, minuteStatus[0]);
-                EEPROM.write(18, minuteStatus[1]);
-                EEPROM.write(19, minuteStatus[2]);
-                EEPROM.write(20, minuteStatus[3]);
-                EEPROM.write(21, minuteStatus[4]);
-                EEPROM.write(22, minuteStatus[5]);
+                EEPROM.write(18, minuteStatus[0]);
+                EEPROM.write(19, minuteStatus[1]);
+                EEPROM.write(20, minuteStatus[2]);
+                EEPROM.write(21, minuteStatus[3]);
+                EEPROM.write(22, minuteStatus[4]);
+                EEPROM.write(23, minuteStatus[5]);
             }
 
             // home button
@@ -508,7 +582,7 @@ void loop() {
             myTouch.read();
             page = PAGE_SELECT;
             drawSelectScreen();
-            targetTime = millis() + 20000; // 20 Sec
+            targetTime = millis() + RETURN_DELAY; // 20 Sec
         }
 
 #ifdef DEBUG
@@ -516,6 +590,114 @@ void loop() {
 #endif
         break;
 
+    }
+}
+
+void drawTempScreen() {
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.drawHLine(0, 180, 319);
+    myGLCD.drawLine(20, 205, 20, 0);
+    myGLCD.setFont(SmallFont);
+
+    int startx = 20;
+    int starty = 300;
+
+    // print vertical line and numbers
+    myGLCD.setColor(0, 0, 255);
+    myGLCD.print("C", 5, 4);
+    for (int i = 140; i < starty; i = i + 20) {
+        myGLCD.setColor(255, 255, 255);
+        myGLCD.printNumI(i / 10, 2, starty - i);
+        myGLCD.setColor(80, 80, 80);
+        myGLCD.drawLine(20, starty -i, 319, starty -i);
+    }
+    myGLCD.drawLine(20, 1, 319, 1);
+
+    // print chart
+    myGLCD.setColor(0, 0, 255);
+    myGLCD.print("hours", 25, 182);
+    for (int i = 0; i < 75; i++) {
+        int j = i + 1;
+        int x1 = startx + (i * 4);
+        int y1 = starty - tempData[i] * 10;
+        int x2 = startx + (j * 4);
+        int y2 = starty - tempData[j] * 10;
+
+        if (i == 24) {
+            myGLCD.setColor(255, 255, 255);
+            myGLCD.printNumI(-48, x1 - 13, 182);
+            myGLCD.setColor(80, 80, 80);
+            myGLCD.drawLine(x1 + 1, 179, x1 + 1, 0);
+        }
+        if (i == 48) {
+            myGLCD.setColor(255, 255, 255);
+            myGLCD.printNumI(-24, x1 - 13, 182);
+            myGLCD.setColor(80, 80, 80);
+            myGLCD.drawLine(x1 + 1, 179, x1 + 1, 0);
+        }
+        if (i == 74) {
+            myGLCD.setColor(255, 255, 255);
+            myGLCD.printNumI(0, x1 - 13, 182);
+            myGLCD.setColor(80, 80, 80);
+            myGLCD.drawLine(x1, 179, x1, 0);
+        }
+
+        if (j < 75) {
+            // print chart line
+            myGLCD.setColor(255, 0, 0);
+            myGLCD.drawLine(x1, y1, x2, y2);
+        }
+
+    }
+
+    myButtons.addButton(240, 197, 70,  30, "HOME");
+    myButtons.drawButtons();
+}
+
+void drawCo2Screen() {
+
+    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(240, 197, 70,  30, "HOME");
+    myButtons.drawButtons();
+}
+
+void setOff() {
+    analogWrite(coolWhiteLed, 0);
+    analogWrite(whiteLed, 0);
+    analogWrite(redLed,   0);
+    analogWrite(greenLed, 0);
+    analogWrite(blueLed,  0);
+
+}
+
+void setDay() {
+    analogWrite(coolWhiteLed, xCC);
+    analogWrite(whiteLed, xWC);
+    analogWrite(redLed,   0);
+    analogWrite(greenLed, 0);
+    analogWrite(blueLed,  0);
+}
+
+void setNight() {
+    analogWrite(coolWhiteLed, 0);
+    analogWrite(whiteLed, 0);
+    analogWrite(redLed,   xRC);
+    analogWrite(greenLed, xGC);
+    analogWrite(blueLed,  xBC);
+}
+
+void setMode() {
+    if (switchMode == MODE_AUTO) {
+        myButtons.relabelButton(3, "AUT", true);
+        myButtons.disableButton(0);
+        myButtons.disableButton(1);
+        myButtons.disableButton(2);
+    }
+    if (switchMode == MODE_MANUAL) {
+        myButtons.relabelButton(3, "MAN", true);
+        myButtons.enableButton(0);
+        myButtons.enableButton(1);
+        myButtons.enableButton(2);
     }
 }
 
@@ -576,23 +758,37 @@ void drawTimeControl() {
     myButtons.addButton(205, 139, 25,  30, "<");
     myButtons.addButton(235, 139, 25,  30, ">");
 
-    myButtons.addButton(10,  192, 90,  30, "Save");
-    myButtons.addButton(220, 192, 90,  30, "Home");
+    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(240, 197, 70,  30, "HOME");
 
     myButtons.drawButtons();
 }
 
 void drawHomeScreen() {
     sprintf (strTime, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
-
     myGLCD.setColor(162, 0, 0);
     myGLCD.setFont(GroteskBold24x48);
-    myGLCD.print(strTime, CENTER, 40);
+    myGLCD.print(strTime, CENTER, 30);
 
     sprintf (strDate, "%02d.%02d.%02d", now.day(), now.month(), now.year());
     myGLCD.setColor(150, 150, 150);
     myGLCD.setFont(BigFont);
-    myGLCD.print(strDate, CENTER, 95);
+    myGLCD.print(strDate, CENTER, 85);
+
+    dtostrf(24.5, 4, 1, strTemp);
+    myGLCD.setColor(7, 56, 212);
+    myGLCD.setFont(GroteskBold24x48);
+    myGLCD.print(strTemp, 100, 125);
+    myGLCD.print("C", 205, 125);
+
+    if (switchMode == MODE_MANUAL) {
+        sprintf (str, "MODE:MANUAL");
+    } else {
+        sprintf (str, "MODE:AUTO");
+    }
+    myGLCD.setColor(90, 90, 90);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(str, CENTER, 185);
 }
 
 void drawSelectScreen() {
@@ -601,8 +797,8 @@ void drawSelectScreen() {
     myButtons.addButton(220,  90, 90,  30, "TIMER");
 
     myButtons.addButton(10,  140, 90,  30, "CO2");
-    myButtons.addButton(115, 140, 90,  30, "???");
-    myButtons.addButton(220, 140, 90,  30, "Home");
+    myButtons.addButton(115, 140, 90,  30, "TEMP");
+    myButtons.addButton(220, 140, 90,  30, "HOME");
 
     myButtons.drawButtons();
 }
@@ -610,25 +806,29 @@ void drawSelectScreen() {
 void drawLightControl() {
     myGLCD.setFont(BigFont);
     myGLCD.print("Light controler", CENTER, 10);
-    myGLCD.print("M:", 10,  44);
-    myGLCD.print("R:", 10,  87);
-    myGLCD.print("G:", 10, 115);
-    myGLCD.print("B:", 10, 145);
+    myGLCD.print("CW", 2,  40);
+    myGLCD.print("WW", 2,  70);
+    myGLCD.print("R:", 10, 106);
+    myGLCD.print("G:", 10, 136);
+    myGLCD.print("B:", 10, 166);
     myGLCD.setColor(255, 0, 0);
     myGLCD.drawLine(0, 30, 319, 30);
 
     myGLCD.setColor(255, 255, 255);
 
-    myGLCD.drawRect(40,  45, 310,  58); // Main  slider
-    myGLCD.drawRect(40,  88, 310, 101); // Red   slider
-    myGLCD.drawRect(40, 116, 310, 129); // Green slider
-    myGLCD.drawRect(40, 146, 310, 159); // Blue  slider
+    myGLCD.drawRect(40,  41, 310,  54); // CW  slider
+    myGLCD.drawRect(40,  71, 310,  84); // WW  slider
+
+    myGLCD.drawRect(40, 106, 310, 121); // Red   slider
+    myGLCD.drawRect(40, 136, 310, 149); // Green slider
+    myGLCD.drawRect(40, 166, 310, 179); // Blue  slider
 
     drawSliders();
 
-    myButtons.addButton(10,  197, 50,  30, "ON");
-    myButtons.addButton(70,  197, 60,  30, "OFF");
-    myButtons.addButton(139, 197, 81,  30, "NIGHT");
+    myButtons.addButton(2,   197, 45,  30, "ON");
+    myButtons.addButton(52,  197, 60,  30, "OFF");
+    myButtons.addButton(117, 197, 42,  30, "NI");
+    myButtons.addButton(163, 197, 50,  30, "AUT");
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     myButtons.drawButtons();
@@ -643,25 +843,39 @@ void drawTime() {
 
 void setLedColor() {
     int oldXWC = xW;
+    int oldXCC = xC;
     int oldXRC = xR;
     int oldXGC = xG;
     int oldXBC = xB;
 
     // Area of the Main color slider
-    if( (y >= 42) && (y <= 58)) {
+    if( (y >= 38) && (y <= 54)) {
+        xC = x; // Stores the X value where the screen has been pressed in to variable xR
+        if (xC <= 42) { // Confines the area of the slider to be above 38 pixels
+            xC = 42;
+        }
+        if (xC >= 304) { /// Confines the area of the slider to be under 310 pixels
+            xC = 304;
+        }
+        xCC = map(xC, 304, 42, 0, 255);
+        analogWrite(coolWhiteLed, xCC);
+    }
+
+    // Area of the Main color slider
+    if( (y >= 68) && (y <= 84)) {
         xW = x; // Stores the X value where the screen has been pressed in to variable xR
         if (xW <= 42) { // Confines the area of the slider to be above 38 pixels
             xW = 42;
         }
-        if (xW >= 304){ /// Confines the area of the slider to be under 310 pixels
+        if (xW >= 304) { /// Confines the area of the slider to be under 310 pixels
             xW = 304;
         }
-        xWC = map(xW, 42, 304, 0, 255);
+        xWC = map(xW, 304, 42, 0, 255);
         analogWrite(whiteLed, xWC);
     }
 
     // Area of the Red color slider
-    if( (y >= 86) && (y <= 101)) {
+    if( (y >= 104) && (y <= 119)) {
         xR = x;
         if (xR <= 42) {
             xR = 42;
@@ -674,7 +888,7 @@ void setLedColor() {
     }
 
     // Area of the Green color slider
-    if( (y >= 114) && (y <= 129)) {
+    if( (y >= 134) && (y <= 149)) {
         xG = x;
         if (xG <= 42) {
             xG = 42;
@@ -687,7 +901,7 @@ void setLedColor() {
     }
 
     // Area of the Blue color slider
-    if( (y >= 144) && (y <= 159)) {
+    if( (y >= 164) && (y <= 179)) {
         xB = x;
         if (xB <= 42) {
             xB = 42;
@@ -701,60 +915,72 @@ void setLedColor() {
 
     drawSliders();
 
+    if (xC != oldXWC) {
+        EEPROM.write(1, xCC);
+    }
     if (xW != oldXWC) {
-        EEPROM.write(1, xWC);
+        EEPROM.write(2, xWC);
     }
     if (xR != oldXRC) {
-        EEPROM.write(2, xRC);
+        EEPROM.write(3, xRC);
     }
     if (xG != oldXGC) {
-        EEPROM.write(3, xGC);
+        EEPROM.write(4, xGC);
     }
     if (xB != oldXBC) {
-        EEPROM.write(4, xBC);
+        EEPROM.write(5, xBC);
     }
 }
-
 void drawSliders() {
-    // Draws the positioners White
+    // Draws the positioners Cool White
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xW, 46, (xW + 4), 57); // Positioner
+    myGLCD.fillRect(xC, 42, (xC + 4), 53); // Positioner
 
-    myGLCD.setColor(xWC, xWC, xWC);
-    myGLCD.fillRect(41, 46, (xW - 1),  57); // first rect
+    myGLCD.setColor(255 - xCC, 255 - xCC, 255 - xCC);
+    myGLCD.fillRect(41, 42, (xC - 1),  53); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xW + 5), 46, 308, 57); // second rect
+    myGLCD.fillRect((xC + 5), 42, 308, 53); // second rect
+
+    // Draws the positioners Warm White
+    myGLCD.setColor(0, 0, 255);
+    myGLCD.fillRect(xW, 72, (xW + 4), 83); // Positioner
+
+    myGLCD.setColor(255 - xWC, 255 - xWC, 255 - xWC);
+    myGLCD.fillRect(41, 72, (xW - 1),  83); // first rect
+
+    myGLCD.setColor(0, 0, 0);
+    myGLCD.fillRect((xW + 5), 72, 308, 83); // second rect
 
     // Draws the positioners Red
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xR, 89, (xR + 4), 100); // Positioner
+    myGLCD.fillRect(xR, 107, (xR + 4), 118); // Positioner
 
     myGLCD.setColor(xRC, 0, 0);
-    myGLCD.fillRect(41, 89, (xR - 1),  100); // first rect
+    myGLCD.fillRect(41, 107, (xR - 1),  118); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xR + 5), 89, 308, 100); // second rect
+    myGLCD.fillRect((xR + 5), 107, 308, 118); // second rect
 
     // Draws the positioners Green
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xG, 117, (xG + 4), 128); // Positioner
+    myGLCD.fillRect(xG, 137, (xG + 4), 148); // Positioner
 
     myGLCD.setColor(0, xGC, 0);
-    myGLCD.fillRect(41, 117, (xG - 1),  128); // first rect
+    myGLCD.fillRect(41, 137, (xG - 1),  148); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xG + 5), 117, 308, 128); // second rect
+    myGLCD.fillRect((xG + 5), 137, 308, 148); // second rect
 
     // Draws the positioners Blue
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xB, 147, (xB + 4), 158); // Positioner
+    myGLCD.fillRect(xB, 167, (xB + 4), 178); // Positioner
 
     myGLCD.setColor(0, 0, xBC);
-    myGLCD.fillRect(41, 147, (xB - 1),  158); // first rect
+    myGLCD.fillRect(41, 167, (xB - 1),  178); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xB + 5), 147, 308, 158); // second rect
+    myGLCD.fillRect((xB + 5), 167, 308, 178); // second rect
 }
 
 void drawTimerScreen() {
@@ -825,8 +1051,8 @@ void drawTimerScreen() {
     myButtons.addButton(252, 142, 22,  30, ">");
     myButtons.addButton(280, 142, 34,  30, "");
 
-    myButtons.addButton(10,  192, 90,  30, "Save");
-    myButtons.addButton(220, 192, 90,  30, "Home");
+    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(240, 197, 70,  30, "HOME");
 
     setLightButton(4,  0);
     setLightButton(9,  1);
@@ -838,44 +1064,105 @@ void drawTimerScreen() {
     myButtons.drawButtons();
 }
 
-void eepromReadRGB() {
-    xWC = EEPROM.read(1);
-    xRC = EEPROM.read(2);
-    xGC = EEPROM.read(3);
-    xBC = EEPROM.read(4);
+void eepromRead() {
+    xCC = EEPROM.read(1);
+    xWC = EEPROM.read(2);
+    xRC = EEPROM.read(3);
+    xGC = EEPROM.read(4);
+    xBC = EEPROM.read(5);
 
+    xC = map(xCC, 0, 255, 42, 304);
     xW = map(xWC, 0, 255, 42, 304);
     xR = map(xRC, 0, 255, 42, 304);
     xG = map(xGC, 0, 255, 42, 304);
     xB = map(xBC, 0, 255, 42, 304);
 
-    lightStatus[0] = EEPROM.read(5);
-    lightStatus[1] = EEPROM.read(6);
-    lightStatus[2] = EEPROM.read(7);
-    lightStatus[3] = EEPROM.read(8);
-    lightStatus[4] = EEPROM.read(9);
-    lightStatus[5] = EEPROM.read(10);
+    lightStatus[0] = EEPROM.read(6);
+    lightStatus[1] = EEPROM.read(7);
+    lightStatus[2] = EEPROM.read(8);
+    lightStatus[3] = EEPROM.read(9);
+    lightStatus[4] = EEPROM.read(10);
+    lightStatus[5] = EEPROM.read(11);
 
-    hourStatus[0] = EEPROM.read(11);
-    hourStatus[1] = EEPROM.read(12);
-    hourStatus[2] = EEPROM.read(13);
-    hourStatus[3] = EEPROM.read(14);
-    hourStatus[4] = EEPROM.read(15);
-    hourStatus[5] = EEPROM.read(16);
+    hourStatus[0] = EEPROM.read(12);
+    hourStatus[1] = EEPROM.read(13);
+    hourStatus[2] = EEPROM.read(14);
+    hourStatus[3] = EEPROM.read(15);
+    hourStatus[4] = EEPROM.read(16);
+    hourStatus[5] = EEPROM.read(17);
+    hourStatus[6] = 23;
 
-    minuteStatus[0] = EEPROM.read(17);
-    minuteStatus[1] = EEPROM.read(18);
-    minuteStatus[2] = EEPROM.read(19);
-    minuteStatus[3] = EEPROM.read(20);
-    minuteStatus[4] = EEPROM.read(21);
-    minuteStatus[5] = EEPROM.read(22);
+    minuteStatus[0] = EEPROM.read(18);
+    minuteStatus[1] = EEPROM.read(19);
+    minuteStatus[2] = EEPROM.read(20);
+    minuteStatus[3] = EEPROM.read(21);
+    minuteStatus[4] = EEPROM.read(22);
+    minuteStatus[5] = EEPROM.read(23);
+    minuteStatus[6] = 59;
+
+    switchMode = EEPROM.read(24);
+}
+
+void switchLight() {
+    int minutes, nextMinutes, realMinute;
+    realMinute = now.minute() + (now.hour() * 60);
+
+    //myGLCD.setColor(225, 225, 225);
+    //myGLCD.setFont(SmallFont);
+    //myGLCD.printNumI(realMinute, 0, 5);
+
+    for(uint8_t i = 0; i < 6; i++) {
+        uint8_t j = i + 1;
+
+        minutes     = minuteStatus[i] + (hourStatus[i] * 60);
+        nextMinutes = minuteStatus[j] + (hourStatus[j] * 60);
+
+        //myGLCD.printNumI(minutes, 0, (i+2)*10);
+        //myGLCD.printNumI(nextMinutes, 30, (i+2)*10);
+
+        if (minutes <= realMinute && realMinute < nextMinutes) {
+            setLight(i);
+            break;
+        }
+    }
+}
+
+void setLight(int i) {
+    //myGLCD.printNumI(i, 0, 60);
+    //myGLCD.printNumI(lightStatus[i], 30, 60);
+
+    if (lightStatus[i] == 0) {
+        // set off
+        setOff();
+        //myGLCD.print("OFF", 0, 70);
+    }
+    if (lightStatus[i] == 1) {
+        // set day
+        setDay();
+        //myGLCD.print("DAY", 0, 70);
+    }
+    if (lightStatus[i] == 2) {
+        // set night
+        setNight();
+        //myGLCD.print("NIGHT", 0, 70);
+    }
 }
 
 void setPwm() {
+    analogWrite(coolWhiteLed, xCC);
     analogWrite(whiteLed, xWC);
     analogWrite(redLed,   xRC);
     analogWrite(greenLed, xGC);
     analogWrite(blueLed,  xBC);
+}
+
+void pwmInit(void) {
+
+    // invert PWM
+    //TCCR1A |=  (1 << COM1A1) | (1 << COM1A0);
+    //TCCR1B |=  (1 << COM1B1) | (1 << COM1B0);
+    //TCCR1B = (1 << CS11);   // clock source = CLK / 64, start PWM
+
 }
 
 #ifdef DEBUG
@@ -885,14 +1172,19 @@ void debug() {
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(SmallFont);
 
-    sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
-             lightStatus[0], lightStatus[1],lightStatus[2],
-             lightStatus[3], lightStatus[4], lightStatus[5]);
+    //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
+    //         pressedButton, page, xRC, xGC, xBC, xWC);
+    sprintf (str, "BTN:%02d, PG:%d",
+             pressedButton, page);
+
+    //sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
+    //         lightStatus[0], lightStatus[1],lightStatus[2],
+    //         lightStatus[3], lightStatus[4], lightStatus[5]);
 
     //sprintf (str, "xW: %d, xR: %d, xG: %d, xB: %d", xW, xR, xG, xB);
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
-    Serial.println(str);
+    //Serial.println(str);
 
     myGLCD.print(str, CENTER, 228);
 }
