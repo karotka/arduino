@@ -6,8 +6,8 @@
 #include "utils.h"
 #include <RTClib.h>
 
-#define DEBUG 0
-#define RETURN_DELAY 20000
+#define DEBUG 1
+#define RETURN_DELAY 5000
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
@@ -18,19 +18,23 @@ int x, y;
 
 int xC, xW, xR, xG, xB = 38;
 int xCC, xWC, xRC, xGC, xBC = 42;
+int actualWW, actualCW, targetWW, targetCW;
 
-uint8_t lightStatus[8];
-uint8_t hourStatus[8];
-uint8_t minuteStatus[8];
+uint8_t lightStates[8];
+uint8_t hourStates[8];
+uint8_t minuteStates[8];
 
 const char * dateStr[3] = {"OFF", "DAY", "NIGHT"};
 const uint8_t whiteLed = 12, coolWhiteLed = 11, redLed = 10, greenLed = 9, blueLed  = 8;
 
-volatile uint32_t targetTime = 0;
-volatile uint8_t actualLightStatus;
+volatile uint8_t actualLightStates = 3;
 volatile uint8_t page;
 volatile uint8_t switchMode;
 volatile uint8_t pressedButton;
+
+volatile int timerCounter2 = 0;
+volatile int sumDateNow = 0;
+volatile int temp = 24.5;
 
 RTC_DS1307 RTC;
 DateTime now;
@@ -49,7 +53,8 @@ enum {
     PAGE_SET_TIME,
     PAGE_SET_CO2,
     PAGE_TEMP,
-    PAGE_DEBUG
+    PAGE_DEBUG,
+    PAGE_RETURN_MOME
 };
 
 enum {
@@ -63,7 +68,7 @@ extern uint8_t BigFont[];
 
 volatile int dateNow = 0;
 volatile float tempNow = 24.5;
-volatile uint8_t lightStatusNow = 3;
+volatile uint8_t lightStatesNow = 3;
 
 void setup() {
 
@@ -75,9 +80,6 @@ void setup() {
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
 
-    Serial.begin(9600);
-    Serial1.begin(9600);
-
     eepromRead();
 
     // Initial setup
@@ -86,18 +88,14 @@ void setup() {
     myGLCD.setBackColor(0, 0, 0);
 
     myTouch.InitTouch(LANDSCAPE);
-    myTouch.setPrecision(PREC_MEDIUM);
+    myTouch.setPrecision(PREC_LOW);
 
     myButtons.setTextFont(BigFont);
 
     page = PAGE_HOME;
 
-    pwmInit();
-
-    setPwm();
     pinInit();
-    //timer2set();
-    //drawHomeScreen();
+    timer2set();
 }
 
 void pinInit(void) {
@@ -110,29 +108,74 @@ void timer2set(void) {
     TCNT2 = 0;               // Initialize Counter
 }
 
+ISR(TIMER2_OVF_vect) {
+    cli();
+    timerCounter2++;
+
+    if (switchMode == MODE_AUTO && !(timerCounter2 % 200)) {
+        checkTimer();
+
+        if (actualCW > targetCW) {
+            analogWrite(coolWhiteLed, --actualCW);
+        }
+        if (actualCW < targetCW) {
+            analogWrite(coolWhiteLed, actualCW++);
+        }
+
+        if (actualWW > targetWW) {
+            analogWrite(whiteLed, --actualWW);
+        }
+        if (actualWW < targetWW) {
+            analogWrite(whiteLed, actualWW++);
+        }
+    }
+
+    if (timerCounter2 > RETURN_DELAY) {
+        timerCounter2 = 0;
+
+        if (page != PAGE_HOME) {
+            page = PAGE_RETURN_MOME;
+        }
+    }
+}
+
 void loop() {
-
-    if (switchMode == MODE_AUTO) {
-        switchLight();
-    }
-
-    // automatick return to Homepage
-    if (millis() > targetTime && page != PAGE_HOME) {
-        myButtons.deleteAllButtons();
-        myGLCD.clrScr();
-        drawHomeScreen();
-        lightStatusNow = 3;
-        page = PAGE_HOME;
-    }
+    //PORTK &= ~(1 << PH7);
+    //PORTK |= (1 << PH7);
+    PORTK ^= (1 << PH7);
 
     switch (page) {
 
-    case PAGE_SELECT:
-        now = RTC.now();
-        drawTime();
+    case PAGE_RETURN_MOME:
+        myButtons.deleteAllButtons();
+        myGLCD.clrScr();
+        lightStatesNow = 3;
+        page = PAGE_HOME;
+        break;
+
+    case PAGE_HOME:
+        if (timerCounter2 % 50) {
+            now = RTC.now();
+            drawHomeScreen();
+        }
 
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            myGLCD.clrScr();
+            //myTouch.read();
+            page = PAGE_SELECT;
+            drawSelectScreen();
+            timerCounter2 = 0;
+        }
+        break;
+
+    case PAGE_SELECT:
+        if (timerCounter2 % 50) {
+            now = RTC.now();
+            drawTime();
+        }
+
+        if (myTouch.dataAvailable() == true) {
+            timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
@@ -144,6 +187,13 @@ void loop() {
             }
 
             if (pressedButton == 1) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawTimerScreen();
+                page = PAGE_SET_TIMER;
+            }
+
+            if (pressedButton == 2) {
                 newTime.day    = now.day();
                 newTime.month  = now.month();
                 newTime.year   = now.year();
@@ -155,13 +205,6 @@ void loop() {
                 myGLCD.clrScr();
                 drawTimeControl();
                 page = PAGE_SET_TIME;
-            }
-
-            if (pressedButton == 2) {
-                myButtons.deleteAllButtons();
-                myGLCD.clrScr();
-                drawTimerScreen();
-                page = PAGE_SET_TIMER;
             }
 
             if (pressedButton == 3) {
@@ -182,7 +225,7 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
 #if DEBUG == 1
@@ -202,13 +245,15 @@ void loop() {
 #if DEBUG == 1
     case PAGE_DEBUG:
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
+            timerCounter2 = 0;
+
             pressedButton = myButtons.checkButtons();
             if (pressedButton == 0) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -216,9 +261,8 @@ void loop() {
 #endif
 
     case PAGE_SET_LIGHT:
-
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
             x = myButtons.Touch->getX();
@@ -228,11 +272,11 @@ void loop() {
 
             if (pressedButton == 0) {
                 // set light to day
-                setDay();
+                lightsDay();
             }
             if (pressedButton == 1) {
                 // set light to off
-                setOff();
+                lightsOff();
             }
             if (pressedButton == 2) {
                 // set light to night
@@ -252,16 +296,17 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
         break;
 
     case PAGE_SET_TIME:
+        //PORTK ^= (1 << PH7);
 
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
@@ -335,23 +380,22 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
         break;
 
     case PAGE_TEMP:
-
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -359,51 +403,50 @@ void loop() {
 
     case PAGE_SET_CO2:
         if (myTouch.dataAvailable() == true) {
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 1) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
         break;
 
     case PAGE_SET_TIMER:
-
         if (myTouch.dataAvailable() == true) {
             pressedButton = myButtons.checkButtons();
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
+            timerCounter2 = 0;
 
             // first timer
             if (pressedButton == 0) {
-                hourStatus[0]--;
-                if (hourStatus[0] < 0) {
-                    hourStatus[0] = 23;
+                hourStates[0]--;
+                if (hourStates[0] < 0) {
+                    hourStates[0] = 23;
                 }
                 setTimerTime(0, 10, 8);
             }
             if (pressedButton == 1) {
-                hourStatus[0]++;
-                if (hourStatus[0] > 23) {
-                    hourStatus[0] = 0;
+                hourStates[0]++;
+                if (hourStates[0] > 23) {
+                    hourStates[0] = 0;
                 }
                 setTimerTime(0, 10, 8);
             }
             if (pressedButton == 2) {
-                minuteStatus[0]--;
-                if (minuteStatus[0] < 0) {
-                    minuteStatus[0] = 59;
+                minuteStates[0]--;
+                if (minuteStates[0] < 0) {
+                    minuteStates[0] = 59;
                 }
                 setTimerTime(0, 10, 8);
             }
             if (pressedButton == 3) {
-                minuteStatus[0]++;
-                if (minuteStatus[0] > 59) {
-                    minuteStatus[0] = 0;
+                minuteStates[0]++;
+                if (minuteStates[0] > 59) {
+                    minuteStates[0] = 0;
                 }
                 setTimerTime(0, 10, 8);
             }
@@ -413,30 +456,30 @@ void loop() {
 
             // second time
             if (pressedButton == 5) {
-                hourStatus[1]--;
-                if (hourStatus[1] < 0) {
-                    hourStatus[1] = 23;
+                hourStates[1]--;
+                if (hourStates[1] < 0) {
+                    hourStates[1] = 23;
                 }
                 setTimerTime(1, 10, 64);
             }
             if (pressedButton == 6) {
-                hourStatus[1]++;
-                if (hourStatus[1] > 23) {
-                    hourStatus[1] = 0;
+                hourStates[1]++;
+                if (hourStates[1] > 23) {
+                    hourStates[1] = 0;
                 }
                 setTimerTime(1, 10, 64);
             }
             if (pressedButton == 7) {
-                minuteStatus[1]--;
-                if (minuteStatus[1] < 0) {
-                    minuteStatus[1] = 59;
+                minuteStates[1]--;
+                if (minuteStates[1] < 0) {
+                    minuteStates[1] = 59;
                 }
                 setTimerTime(1, 10, 64);
             }
             if (pressedButton == 8) {
-                minuteStatus[1]++;
-                if (minuteStatus[1] > 59) {
-                    minuteStatus[1] = 0;
+                minuteStates[1]++;
+                if (minuteStates[1] > 59) {
+                    minuteStates[1] = 0;
                 }
                 setTimerTime(1, 10, 64);
             }
@@ -446,30 +489,30 @@ void loop() {
 
             // third time
             if (pressedButton == 10) {
-                hourStatus[2]--;
-                if (hourStatus[2] < 0) {
-                    hourStatus[2] = 23;
+                hourStates[2]--;
+                if (hourStates[2] < 0) {
+                    hourStates[2] = 23;
                 }
                 setTimerTime(2, 10, 122);
             }
             if (pressedButton == 11) {
-                hourStatus[2]++;
-                if (hourStatus[2] > 23) {
-                    hourStatus[2] = 0;
+                hourStates[2]++;
+                if (hourStates[2] > 23) {
+                    hourStates[2] = 0;
                 }
                 setTimerTime(2, 10, 122);
             }
             if (pressedButton == 12) {
-                minuteStatus[2]--;
-                if (minuteStatus[2] < 0) {
-                    minuteStatus[2] = 59;
+                minuteStates[2]--;
+                if (minuteStates[2] < 0) {
+                    minuteStates[2] = 59;
                 }
                 setTimerTime(2, 10, 122);
             }
             if (pressedButton == 13) {
-                minuteStatus[2]++;
-                if (minuteStatus[2] > 59) {
-                    minuteStatus[2] = 0;
+                minuteStates[2]++;
+                if (minuteStates[2] > 59) {
+                    minuteStates[2] = 0;
                 }
                 setTimerTime(2, 10, 122);
             }
@@ -478,30 +521,30 @@ void loop() {
             }
 
             if (pressedButton == 15) {
-                hourStatus[3]--;
-                if (hourStatus[3] < 0) {
-                    hourStatus[3] = 23;
+                hourStates[3]--;
+                if (hourStates[3] < 0) {
+                    hourStates[3] = 23;
                 }
                 setTimerTime(3, 176, 8);
             }
             if (pressedButton == 16) {
-                hourStatus[3]++;
-                if (hourStatus[3] > 23) {
-                    hourStatus[3] = 0;
+                hourStates[3]++;
+                if (hourStates[3] > 23) {
+                    hourStates[3] = 0;
                 }
                 setTimerTime(3, 176, 8);
             }
             if (pressedButton == 17) {
-                minuteStatus[3]--;
-                if (minuteStatus[3] < 0) {
-                    minuteStatus[3] = 59;
+                minuteStates[3]--;
+                if (minuteStates[3] < 0) {
+                    minuteStates[3] = 59;
                 }
                 setTimerTime(3, 176, 8);
             }
             if (pressedButton == 18) {
-                minuteStatus[3]++;
-                if (minuteStatus[3] > 59) {
-                    minuteStatus[3] = 0;
+                minuteStates[3]++;
+                if (minuteStates[3] > 59) {
+                    minuteStates[3] = 0;
                 }
                 setTimerTime(3, 176, 8);
             }
@@ -510,30 +553,30 @@ void loop() {
             }
 
             if (pressedButton == 20) {
-                hourStatus[4]--;
-                if (hourStatus[4] < 0) {
-                    hourStatus[4] = 23;
+                hourStates[4]--;
+                if (hourStates[4] < 0) {
+                    hourStates[4] = 23;
                 }
                 setTimerTime(4, 176, 64);
             }
             if (pressedButton == 21) {
-                hourStatus[4]++;
-                if (hourStatus[4] > 23) {
-                    hourStatus[4] = 0;
+                hourStates[4]++;
+                if (hourStates[4] > 23) {
+                    hourStates[4] = 0;
                 }
                 setTimerTime(4, 176, 64);
             }
             if (pressedButton == 22) {
-                minuteStatus[4]--;
-                if (minuteStatus[4] < 0) {
-                    minuteStatus[4] = 59;
+                minuteStates[4]--;
+                if (minuteStates[4] < 0) {
+                    minuteStates[4] = 59;
                 }
                 setTimerTime(4, 176, 64);
             }
             if (pressedButton == 23) {
-                minuteStatus[4]++;
-                if (minuteStatus[4] > 59) {
-                    minuteStatus[4] = 0;
+                minuteStates[4]++;
+                if (minuteStates[4] > 59) {
+                    minuteStates[4] = 0;
                 }
                 setTimerTime(4, 176, 64);
             }
@@ -542,30 +585,30 @@ void loop() {
             }
 
             if (pressedButton == 25) {
-                hourStatus[5]--;
-                if (hourStatus[5] < 0) {
-                    hourStatus[5] = 23;
+                hourStates[5]--;
+                if (hourStates[5] < 0) {
+                    hourStates[5] = 23;
                 }
                 setTimerTime(5, 176, 120);
             }
             if (pressedButton == 26) {
-                hourStatus[5]++;
-                if (hourStatus[5] > 23) {
-                    hourStatus[5] = 0;
+                hourStates[5]++;
+                if (hourStates[5] > 23) {
+                    hourStates[5] = 0;
                 }
                 setTimerTime(5, 176, 120);
             }
             if (pressedButton == 27) {
-                minuteStatus[5]--;
-                if (minuteStatus[5] < 0) {
-                    minuteStatus[5] = 59;
+                minuteStates[5]--;
+                if (minuteStates[5] < 0) {
+                    minuteStates[5] = 59;
                 }
                 setTimerTime(5, 176, 120);
             }
             if (pressedButton == 28) {
-                minuteStatus[5]++;
-                if (minuteStatus[5] > 59) {
-                    minuteStatus[5] = 0;
+                minuteStates[5]++;
+                if (minuteStates[5] > 59) {
+                    minuteStates[5] = 0;
                 }
                 setTimerTime(5, 176, 120);
             }
@@ -575,28 +618,28 @@ void loop() {
 
             // save values
             if (pressedButton == 30) {
-                EEPROM.write(6,  lightStatus[0]);
-                EEPROM.write(7,  lightStatus[1]);
-                EEPROM.write(8,  lightStatus[2]);
-                EEPROM.write(9,  lightStatus[3]);
-                EEPROM.write(10, lightStatus[4]);
-                EEPROM.write(11, lightStatus[5]);
-                lightStatus[6] = lightStatus[5];
-                lightStatus[7] = lightStatus[5];
+                EEPROM.write(6,  lightStates[0]);
+                EEPROM.write(7,  lightStates[1]);
+                EEPROM.write(8,  lightStates[2]);
+                EEPROM.write(9,  lightStates[3]);
+                EEPROM.write(10, lightStates[4]);
+                EEPROM.write(11, lightStates[5]);
+                lightStates[6] = lightStates[5];
+                lightStates[7] = lightStates[5];
 
-                EEPROM.write(12, hourStatus[0]);
-                EEPROM.write(13, hourStatus[1]);
-                EEPROM.write(14, hourStatus[2]);
-                EEPROM.write(15, hourStatus[3]);
-                EEPROM.write(16, hourStatus[4]);
-                EEPROM.write(17, hourStatus[5]);
+                EEPROM.write(12, hourStates[0]);
+                EEPROM.write(13, hourStates[1]);
+                EEPROM.write(14, hourStates[2]);
+                EEPROM.write(15, hourStates[3]);
+                EEPROM.write(16, hourStates[4]);
+                EEPROM.write(17, hourStates[5]);
 
-                EEPROM.write(18, minuteStatus[0]);
-                EEPROM.write(19, minuteStatus[1]);
-                EEPROM.write(20, minuteStatus[2]);
-                EEPROM.write(21, minuteStatus[3]);
-                EEPROM.write(22, minuteStatus[4]);
-                EEPROM.write(23, minuteStatus[5]);
+                EEPROM.write(18, minuteStates[0]);
+                EEPROM.write(19, minuteStates[1]);
+                EEPROM.write(20, minuteStates[2]);
+                EEPROM.write(21, minuteStates[3]);
+                EEPROM.write(22, minuteStates[4]);
+                EEPROM.write(23, minuteStates[5]);
             }
 
             // home button
@@ -604,29 +647,15 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatusNow = 3;
+                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
-        }
-        break;
-
-    case PAGE_HOME:
-        PORTK ^= (1 << PH7);
-        now = RTC.now();
-        drawHomeScreen();
-
-        if (myTouch.dataAvailable() == true) {
-            myGLCD.clrScr();
-            myTouch.read();
-            page = PAGE_SELECT;
-            drawSelectScreen();
-            targetTime = millis() + RETURN_DELAY; // 20 Sec
         }
         break;
     }
 
 #if DEBUG == 1
-        debug();
+    debug();
 #endif
 }
 
@@ -692,22 +721,20 @@ void drawTempScreen() {
 }
 
 void drawCo2Screen() {
-
     myButtons.addButton(10,  197, 90,  30, "SAVE");
     myButtons.addButton(240, 197, 70,  30, "HOME");
     myButtons.drawButtons();
 }
 
-void setOff() {
+void lightsOff() {
     analogWrite(coolWhiteLed, 0);
     analogWrite(whiteLed, 0);
     analogWrite(redLed,   0);
     analogWrite(greenLed, 0);
     analogWrite(blueLed,  0);
-
 }
 
-void setDay() {
+void lightsDay() {
     analogWrite(coolWhiteLed, xCC);
     analogWrite(whiteLed, xWC);
     analogWrite(redLed,   0);
@@ -739,28 +766,28 @@ void setMode() {
 }
 
 void setTimerTime(int id, int x, int y) {
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[id], minuteStatus[id]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[id], minuteStates[id]);
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, x, y);
 }
 
 void setLightType(int btn, int id) {
-    lightStatus[id]++;
-    if (lightStatus[id] > 2) {
-        lightStatus[id] = 0;
+    lightStates[id]++;
+    if (lightStates[id] > 2) {
+        lightStates[id] = 0;
     }
     setLightButton(btn, id);
 }
 
 void setLightButton(int btn, int id) {
-    if (lightStatus[id] == 0) {
+    if (lightStates[id] == 0) {
         myButtons.relabelButton(btn, "OF", true);
     } else
-    if (lightStatus[id] == 1) {
+    if (lightStates[id] == 1) {
         myButtons.relabelButton(btn, "DA", true);
     } else
-    if (lightStatus[id] == 2) {
+    if (lightStates[id] == 2) {
         myButtons.relabelButton(btn, "NI", true);
     } else {
         myButtons.relabelButton(btn, "NO", true);
@@ -807,15 +834,14 @@ void drawHomeScreen() {
     myGLCD.setFont(GroteskBold24x48);
     myGLCD.print(strTime, CENTER, 30);
 
-    int d = now.day() + now.month() + now.year();
-    if (dateNow != d) {
+    sumDateNow = now.day() + now.month() + now.year();
+    if (dateNow != sumDateNow) {
         sprintf (strDate, "%02d.%02d.%02d", now.day(), now.month(), now.year());
         myGLCD.setColor(150, 150, 150);
         myGLCD.setFont(BigFont);
         myGLCD.print(strDate, CENTER, 85);
     }
 
-    int temp = 24.5;
     if (tempNow != temp) {
         dtostrf(tempNow, 4, 1, strTemp);
         myGLCD.setColor(7, 56, 212);
@@ -824,24 +850,24 @@ void drawHomeScreen() {
         myGLCD.print("C", 205, 125);
     }
 
-    if (actualLightStatus != lightStatusNow) {
+    if (actualLightStates != lightStatesNow) {
         myGLCD.print("                   ", CENTER, 185);
         if (switchMode == MODE_MANUAL) {
-            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightStatus]);
+            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightStates]);
         } else {
-            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightStatus]);
+            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightStates]);
         }
         myGLCD.setColor(90, 90, 90);
         myGLCD.setFont(BigFont);
         myGLCD.print(str, CENTER, 185);
-        lightStatusNow = actualLightStatus;
+        lightStatesNow = actualLightStates;
     }
 }
 
 void drawSelectScreen() {
     myButtons.addButton(10,   90, 90,  30, "LIGHT");
-    myButtons.addButton(115,  90, 90,  30, "TIME");
-    myButtons.addButton(220,  90, 90,  30, "TIMER");
+    myButtons.addButton(115,  90, 90,  30, "TIMER");
+    myButtons.addButton(220,  90, 90,  30, "TIME");
 
     myButtons.addButton(10,  140, 90,  30, "CO2");
     myButtons.addButton(115, 140, 90,  30, "TEMP");
@@ -1037,7 +1063,7 @@ void drawSliders() {
 
 void drawTimerScreen() {
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[0], minuteStatus[0]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[0], minuteStates[0]);
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 10, 8);
@@ -1048,7 +1074,7 @@ void drawTimerScreen() {
     myButtons.addButton(88,  28, 22,  30, ">");
     myButtons.addButton(116, 28, 34,  30, "");
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[1], minuteStatus[1]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[1], minuteStates[1]);
     myGLCD.setColor(225, 225, 225);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 10, 64);
@@ -1059,7 +1085,7 @@ void drawTimerScreen() {
     myButtons.addButton(88,  85, 22,  30, ">");
     myButtons.addButton(116, 85, 34,  30, "");
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[2], minuteStatus[2]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[2], minuteStates[2]);
     myGLCD.setColor(225, 225, 225);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 10, 122);
@@ -1070,7 +1096,7 @@ void drawTimerScreen() {
     myButtons.addButton(88,  142, 22,  30, ">");
     myButtons.addButton(116, 142, 34,  30, "");
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[3], minuteStatus[3]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[3], minuteStates[3]);
     myGLCD.setColor(225, 225, 225);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 176, 8);
@@ -1081,7 +1107,7 @@ void drawTimerScreen() {
     myButtons.addButton(252, 28, 22,  30, ">");
     myButtons.addButton(280, 28, 34,  30, "");
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[4], minuteStatus[4]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[4], minuteStates[4]);
     myGLCD.setColor(225, 225, 225);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 176, 64);
@@ -1092,7 +1118,7 @@ void drawTimerScreen() {
     myButtons.addButton(252, 85, 22,  30, ">");
     myButtons.addButton(280, 85, 34,  30, "");
 
-    sprintf (strDate, "%02dh:%02dm.", hourStatus[5], minuteStatus[5]);
+    sprintf (strDate, "%02dh:%02dm.", hourStates[5], minuteStates[5]);
     myGLCD.setColor(225, 225, 225);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, 176, 120);
@@ -1129,96 +1155,93 @@ void eepromRead() {
     xG = map(xGC, 0, 255, 42, 304);
     xB = map(xBC, 0, 255, 42, 304);
 
-    lightStatus[0] = EEPROM.read(6);
-    lightStatus[1] = EEPROM.read(7);
-    lightStatus[2] = EEPROM.read(8);
-    lightStatus[3] = EEPROM.read(9);
-    lightStatus[4] = EEPROM.read(10);
-    lightStatus[5] = EEPROM.read(11);
-    lightStatus[6] = lightStatus[5];
-    lightStatus[7] = lightStatus[5];
+    lightStates[0] = EEPROM.read(6);
+    lightStates[1] = EEPROM.read(7);
+    lightStates[2] = EEPROM.read(8);
+    lightStates[3] = EEPROM.read(9);
+    lightStates[4] = EEPROM.read(10);
+    lightStates[5] = EEPROM.read(11);
+    lightStates[6] = lightStates[5];
+    lightStates[7] = lightStates[5];
 
-    hourStatus[0] = EEPROM.read(12);
-    hourStatus[1] = EEPROM.read(13);
-    hourStatus[2] = EEPROM.read(14);
-    hourStatus[3] = EEPROM.read(15);
-    hourStatus[4] = EEPROM.read(16);
-    hourStatus[5] = EEPROM.read(17);
-    hourStatus[6] = 23;
-    hourStatus[7] = 0;
+    hourStates[0] = EEPROM.read(12);
+    hourStates[1] = EEPROM.read(13);
+    hourStates[2] = EEPROM.read(14);
+    hourStates[3] = EEPROM.read(15);
+    hourStates[4] = EEPROM.read(16);
+    hourStates[5] = EEPROM.read(17);
+    hourStates[6] = 23;
+    hourStates[7] = 0;
 
-    minuteStatus[0] = EEPROM.read(18);
-    minuteStatus[1] = EEPROM.read(19);
-    minuteStatus[2] = EEPROM.read(20);
-    minuteStatus[3] = EEPROM.read(21);
-    minuteStatus[4] = EEPROM.read(22);
-    minuteStatus[5] = EEPROM.read(23);
-    minuteStatus[6] = 59;
-    minuteStatus[7] = 0;
+    minuteStates[0] = EEPROM.read(18);
+    minuteStates[1] = EEPROM.read(19);
+    minuteStates[2] = EEPROM.read(20);
+    minuteStates[3] = EEPROM.read(21);
+    minuteStates[4] = EEPROM.read(22);
+    minuteStates[5] = EEPROM.read(23);
+    minuteStates[6] = 59;
+    minuteStates[7] = 0;
 
     switchMode = EEPROM.read(24);
 }
 
-void switchLight() {
+/**
+  Check if actual time is bettween timer values
+  If yes, switch lights to right state
+**/
+void checkTimer() {
+
     int minutes, nextMinutes, realMinute;
     realMinute = now.minute() + (now.hour() * 60);
-
-    //myGLCD.setColor(225, 225, 225);
-    //myGLCD.setFont(SmallFont);
 
     for(uint8_t i = 0; i < 8; i++) {
         uint8_t j = i + 1;
         if (i == 7) { j = 0; }
 
-        minutes     = minuteStatus[i] + (hourStatus[i] * 60);
-        nextMinutes = minuteStatus[j] + (hourStatus[j] * 60);
+        minutes     = minuteStates[i] + (hourStates[i] * 60);
+        nextMinutes = minuteStates[j] + (hourStates[j] * 60);
 
         if (minutes <= realMinute && realMinute < nextMinutes) {
-            //myGLCD.printNumI(minutes, 0, 10);
-            //myGLCD.printNumI(nextMinutes, 30, 10);
-            //myGLCD.printNumI(realMinutes, 60, 10);
-            //myGLCD.printNumI(i, 90, 10);
-            setLight(i);
+            switchLight(i);
             break;
         }
     }
 }
 
-void setLight(int i) {
-    //myGLCD.printNumI(i, 0, 60);
-    //myGLCD.printNumI(lightStatus[i], 30, 60);
-
-    actualLightStatus = lightStatus[i];
-    if (actualLightStatus == 0) {
-        // set off
-        setOff();
-        //myGLCD.print("OFF", 0, 70);
+void switchLight(int i) {
+    if (actualLightStates != lightStates[i]) {
+        actualLightStates = lightStates[i];
+        if (actualLightStates == 0) {
+            // set off
+            actualWW = xWC;
+            actualCW = xCC;
+            targetWW = 0;
+            targetCW = 0;
+            analogWrite(redLed,   0);
+            analogWrite(greenLed, 0);
+            analogWrite(blueLed,  0);
+        }
+        if (actualLightStates == 1) {
+            // set day
+            actualWW = 0;
+            actualCW = 0;
+            targetWW = xWC;
+            targetCW = xCC;
+            analogWrite(redLed,   0);
+            analogWrite(greenLed, 0);
+            analogWrite(blueLed,  0);
+        }
+        if (actualLightStates == 2) {
+            // set night
+            actualWW = xWC;
+            actualCW = xCC;
+            targetWW = 0;
+            targetCW = 0;
+            analogWrite(redLed,   xRC);
+            analogWrite(greenLed, xGC);
+            analogWrite(blueLed,  xBC);
+        }
     }
-    if (actualLightStatus == 1) {
-        // set day
-        setDay();
-        //myGLCD.print("DAY", 0, 70);
-    }
-    if (actualLightStatus == 2) {
-        // set night
-        setNight();
-        //myGLCD.print("NIGHT", 0, 70);
-    }
-}
-
-void setPwm() {
-    analogWrite(coolWhiteLed, xCC);
-    analogWrite(whiteLed, xWC);
-    analogWrite(redLed,   xRC);
-    analogWrite(greenLed, xGC);
-    analogWrite(blueLed,  xBC);
-}
-
-void pwmInit(void) {
-    // invert PWM
-    //TCCR1A |=  (1 << COM1A1) | (1 << COM1A0);
-    //TCCR1B |=  (1 << COM1B1) | (1 << COM1B0);
-    //TCCR1B = (1 << CS11);   // clock source = CLK / 64, start PWM
 }
 
 #if DEBUG == 1
@@ -1230,12 +1253,13 @@ void debug() {
 
     //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
     //         pressedButton, page, xRC, xGC, xBC, xWC);
-    sprintf (str, "BTN:%02d, PG:%d",
-             pressedButton, page);
+    //sprintf (str, "BTN:%02d, PG:%d");
+    sprintf (str, "aWW:%03d, tWW:%03d, aCW:%03d, tCW:%03d",
+             actualWW, targetWW, actualCW, targetCW);
 
     //sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
-    //         lightStatus[0], lightStatus[1],lightStatus[2],
-    //         lightStatus[3], lightStatus[4], lightStatus[5]);
+    //         lightStates[0], lightStates[1],lightStates[2],
+    //         lightStates[3], lightStates[4], lightStates[5]);
 
     //sprintf (str, "xW: %d, xR: %d, xG: %d, xB: %d", xW, xR, xG, xB);
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
@@ -1244,7 +1268,11 @@ void debug() {
 
     myGLCD.print(str, CENTER, 228);
 }
+#endif
 
+void drawRegDebug() {}
+
+#ifdef D
 void drawRegDebug() {
     sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
         BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));
