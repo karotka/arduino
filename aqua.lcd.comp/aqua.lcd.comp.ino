@@ -24,10 +24,18 @@ uint8_t lightStates[8];
 uint8_t hourStates[8];
 uint8_t minuteStates[8];
 
-const char * dateStr[3] = {"OFF", "DAY", "NIGHT"};
+const char * dateStr[4] = {"OFF", "DAY", "NIGHT", "NONE"};
+enum {
+    MODE_OFF = 0,
+    MODE_DAY,
+    MODE_NIGHT,
+    MODE_NONE
+};
+
 const uint8_t whiteLed = 12, coolWhiteLed = 11, redLed = 10, greenLed = 9, blueLed  = 8;
 
-volatile uint8_t actualLightStates = 3;
+volatile uint8_t lightStatesNow;
+volatile uint8_t actualLightState;
 volatile uint8_t page;
 volatile uint8_t switchMode;
 volatile uint8_t pressedButton;
@@ -68,15 +76,16 @@ extern uint8_t BigFont[];
 
 volatile int dateNow = 0;
 volatile float tempNow = 24.5;
-volatile uint8_t lightStatesNow = 3;
 
 void setup() {
+    actualLightState = MODE_NONE;
+    lightStatesNow = MODE_NONE;
 
     Wire.begin();
     RTC.begin();
 
     if (!RTC.isrunning()) {
-        //Serial.println("RTC is NOT running!");
+        Serial.println("RTC is NOT running!");
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
 
@@ -96,6 +105,8 @@ void setup() {
 
     pinInit();
     timer2set();
+
+    defaultLights();
 }
 
 void pinInit(void) {
@@ -115,18 +126,19 @@ ISR(TIMER2_OVF_vect) {
     if (switchMode == MODE_AUTO && !(timerCounter2 % 200)) {
         checkTimer();
 
+        // dimming process
         if (actualCW > targetCW) {
-            analogWrite(coolWhiteLed, --actualCW);
+            analogWrite(coolWhiteLed, actualCW--);
         }
         if (actualCW < targetCW) {
-            analogWrite(coolWhiteLed, actualCW++);
+            analogWrite(coolWhiteLed, ++actualCW);
         }
 
         if (actualWW > targetWW) {
-            analogWrite(whiteLed, --actualWW);
+            analogWrite(whiteLed, actualWW--);
         }
         if (actualWW < targetWW) {
-            analogWrite(whiteLed, actualWW++);
+            analogWrite(whiteLed, ++actualWW);
         }
     }
 
@@ -263,12 +275,14 @@ void loop() {
     case PAGE_SET_LIGHT:
         if (myTouch.dataAvailable() == true) {
             timerCounter2 = 0;
+            actualLightState = MODE_NONE;
+
             pressedButton = myButtons.checkButtons();
 
             x = myButtons.Touch->getX();
             y = myButtons.Touch->getY();
 
-            setLedColor();
+            drawTouchLedArea();
 
             if (pressedButton == 0) {
                 // set light to day
@@ -713,7 +727,6 @@ void drawTempScreen() {
             myGLCD.setColor(255, 0, 0);
             myGLCD.drawLine(x1, y1, x2, y2);
         }
-
     }
 
     myButtons.addButton(240, 197, 70,  30, "HOME");
@@ -727,27 +740,30 @@ void drawCo2Screen() {
 }
 
 void lightsOff() {
-    analogWrite(coolWhiteLed, 0);
-    analogWrite(whiteLed, 0);
-    analogWrite(redLed,   0);
-    analogWrite(greenLed, 0);
-    analogWrite(blueLed,  0);
+    analogWrite(coolWhiteLed, 255);
+    analogWrite(whiteLed, 255);
+    analogWrite(redLed,   255);
+    analogWrite(greenLed, 255);
+    analogWrite(blueLed,  255);
+    actualLightState = MODE_OFF;
 }
 
 void lightsDay() {
     analogWrite(coolWhiteLed, xCC);
     analogWrite(whiteLed, xWC);
-    analogWrite(redLed,   0);
-    analogWrite(greenLed, 0);
-    analogWrite(blueLed,  0);
+    analogWrite(redLed,   255);
+    analogWrite(greenLed, 255);
+    analogWrite(blueLed,  255);
+    actualLightState = MODE_DAY;
 }
 
 void setNight() {
-    analogWrite(coolWhiteLed, 0);
-    analogWrite(whiteLed, 0);
+    analogWrite(coolWhiteLed, 255);
+    analogWrite(whiteLed, 255);
     analogWrite(redLed,   xRC);
     analogWrite(greenLed, xGC);
     analogWrite(blueLed,  xBC);
+    actualLightState = MODE_NIGHT;
 }
 
 void setMode() {
@@ -850,17 +866,30 @@ void drawHomeScreen() {
         myGLCD.print("C", 205, 125);
     }
 
-    if (actualLightStates != lightStatesNow) {
+    if (actualLightState != lightStatesNow) {
         myGLCD.print("                   ", CENTER, 185);
         if (switchMode == MODE_MANUAL) {
-            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightStates]);
+            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightState]);
         } else {
-            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightStates]);
+            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightState]);
         }
         myGLCD.setColor(90, 90, 90);
         myGLCD.setFont(BigFont);
         myGLCD.print(str, CENTER, 185);
-        lightStatesNow = actualLightStates;
+        lightStatesNow = actualLightState;
+    }
+
+    if (actualCW > targetCW || actualCW < targetCW) {
+        myGLCD.setColor(255, 255, 255);
+        myGLCD.fillRect(30, 215, 285 - actualCW, 212);
+        myGLCD.setColor(0, 0, 0);
+        myGLCD.fillRect(284 - actualCW, 215, 285, 212);
+    }
+    if (actualWW > targetWW || actualWW < targetWW) {
+        myGLCD.setColor(255, 223, 143);
+        myGLCD.fillRect(30, 222, 285 - actualWW, 219);
+        myGLCD.setColor(0, 0, 0);
+        myGLCD.fillRect(284 - actualWW, 222, 285, 219);
     }
 }
 
@@ -894,18 +923,24 @@ void drawLightControl() {
     myGLCD.setColor(255, 255, 255);
 
     myGLCD.drawRect(40,  41, 310,  54); // CW  slider
+    drawSlidersCC();
+
     myGLCD.drawRect(40,  71, 310,  84); // WW  slider
+    drawSlidersWC();
 
     myGLCD.drawRect(40, 106, 310, 121); // Red   slider
+    drawSlidersRC();
+
     myGLCD.drawRect(40, 136, 310, 149); // Green slider
+    drawSlidersGC();
+
     myGLCD.drawRect(40, 166, 310, 179); // Blue  slider
+    drawSlidersBC();
 
-    drawSliders();
-
-    myButtons.addButton(2,   197, 45,  30, "ON");
-    myButtons.addButton(52,  197, 60,  30, "OFF");
-    myButtons.addButton(117, 197, 42,  30, "NI");
-    myButtons.addButton(163, 197, 50,  30, "AUT");
+    myButtons.addButton(2,   197, 50,  30, "DAY");
+    myButtons.addButton(55,  197, 60,  30, "OFF");
+    myButtons.addButton(120, 197, 42,  30, "NI");
+    myButtons.addButton(169, 197, 50,  30, "AUT");
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     myButtons.drawButtons();
@@ -918,7 +953,7 @@ void drawTime() {
     myGLCD.print(strTime, CENTER, 20);
 }
 
-void setLedColor() {
+void drawTouchLedArea() {
     int oldXWC = xW;
     int oldXCC = xC;
     int oldXRC = xR;
@@ -960,7 +995,7 @@ void setLedColor() {
         if (xR >= 304) {
             xR = 304;
         }
-        xRC = map(xR, 42, 304, 0, 255);
+        xRC = map(xR, 304, 42, 0, 255);
         analogWrite(redLed,   xRC);
     }
 
@@ -973,7 +1008,7 @@ void setLedColor() {
         if (xG >= 304) {
             xG = 304;
         }
-        xGC = map(xG, 42, 304, 0, 255);
+        xGC = map(xG, 304, 42, 0, 255);
         analogWrite(greenLed, xGC);
     }
 
@@ -986,75 +1021,86 @@ void setLedColor() {
         if (xB >= 304) {
             xB = 304;
         }
-        xBC = map(xB, 42, 304, 0, 255);
+        xBC = map(xB, 304, 42, 0, 255);
         analogWrite(blueLed,  xBC);
     }
 
-    drawSliders();
-
     if (xC != oldXWC) {
+        drawSlidersCC();
         EEPROM.write(1, xCC);
     }
     if (xW != oldXWC) {
+        drawSlidersWC();
         EEPROM.write(2, xWC);
     }
     if (xR != oldXRC) {
+        drawSlidersRC();
         EEPROM.write(3, xRC);
     }
     if (xG != oldXGC) {
+        drawSlidersGC();
         EEPROM.write(4, xGC);
     }
     if (xB != oldXBC) {
+        drawSlidersBC();
         EEPROM.write(5, xBC);
     }
 }
 
-void drawSliders() {
+void drawSlidersCC() {
     // Draws the positioners Cool White
     myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(xC, 42, (xC + 4), 53); // Positioner
 
-    myGLCD.setColor(255 - xCC, 255 - xCC, 255 - xCC);
+    myGLCD.setColor(255, 255, 255);
     myGLCD.fillRect(41, 42, (xC - 1),  53); // first rect
 
     myGLCD.setColor(0, 0, 0);
     myGLCD.fillRect((xC + 5), 42, 308, 53); // second rect
+}
 
+void drawSlidersWC() {
     // Draws the positioners Warm White
     myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(xW, 72, (xW + 4), 83); // Positioner
 
-    myGLCD.setColor(255 - xWC, 255 - xWC, 255 - xWC);
+    myGLCD.setColor(255, 223, 143);
     myGLCD.fillRect(41, 72, (xW - 1),  83); // first rect
 
     myGLCD.setColor(0, 0, 0);
     myGLCD.fillRect((xW + 5), 72, 308, 83); // second rect
+}
 
+void drawSlidersRC() {
     // Draws the positioners Red
     myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(xR, 107, (xR + 4), 118); // Positioner
 
-    myGLCD.setColor(xRC, 0, 0);
+    myGLCD.setColor(255, 0, 0);
     myGLCD.fillRect(41, 107, (xR - 1),  118); // first rect
 
     myGLCD.setColor(0, 0, 0);
     myGLCD.fillRect((xR + 5), 107, 308, 118); // second rect
+}
 
+void drawSlidersGC() {
     // Draws the positioners Green
     myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(xG, 137, (xG + 4), 148); // Positioner
 
-    myGLCD.setColor(0, xGC, 0);
+    myGLCD.setColor(0, 255, 0);
     myGLCD.fillRect(41, 137, (xG - 1),  148); // first rect
 
     myGLCD.setColor(0, 0, 0);
     myGLCD.fillRect((xG + 5), 137, 308, 148); // second rect
+}
 
+void drawSlidersBC() {
     // Draws the positioners Blue
     myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(xB, 167, (xB + 4), 178); // Positioner
 
-    myGLCD.setColor(0, 0, xBC);
+    myGLCD.setColor(0, 0, 255);
     myGLCD.fillRect(41, 167, (xB - 1),  178); // first rect
 
     myGLCD.setColor(0, 0, 0);
@@ -1149,11 +1195,11 @@ void eepromRead() {
     xGC = EEPROM.read(4);
     xBC = EEPROM.read(5);
 
-    xC = map(xCC, 0, 255, 42, 304);
-    xW = map(xWC, 0, 255, 42, 304);
-    xR = map(xRC, 0, 255, 42, 304);
-    xG = map(xGC, 0, 255, 42, 304);
-    xB = map(xBC, 0, 255, 42, 304);
+    xC = map(xCC, 0, 255, 304, 42);
+    xW = map(xWC, 0, 255, 304, 42);
+    xR = map(xRC, 0, 255, 304, 42);
+    xG = map(xGC, 0, 255, 304, 42);
+    xB = map(xBC, 0, 255, 304, 42);
 
     lightStates[0] = EEPROM.read(6);
     lightStates[1] = EEPROM.read(7);
@@ -1185,6 +1231,14 @@ void eepromRead() {
     switchMode = EEPROM.read(24);
 }
 
+void defaultLights() {
+    analogWrite(coolWhiteLed, xCC);
+    analogWrite(whiteLed, xWC);
+    analogWrite(redLed, xRC);
+    analogWrite(greenLed, xGC);
+    analogWrite(blueLed, xBC);
+}
+
 /**
   Check if actual time is bettween timer values
   If yes, switch lights to right state
@@ -1209,34 +1263,34 @@ void checkTimer() {
 }
 
 void switchLight(int i) {
-    if (actualLightStates != lightStates[i]) {
-        actualLightStates = lightStates[i];
-        if (actualLightStates == 0) {
+    if (actualLightState != lightStates[i]) {
+        actualLightState = lightStates[i];
+        if (actualLightState == MODE_OFF) {
             // set off
-            actualWW = xWC;
-            actualCW = xCC;
-            targetWW = 0;
-            targetCW = 0;
-            analogWrite(redLed,   0);
-            analogWrite(greenLed, 0);
-            analogWrite(blueLed,  0);
+            actualWW = OCR1B;
+            actualCW = OCR1A;
+            targetWW = 255;
+            targetCW = 255;
+            analogWrite(redLed,   255);
+            analogWrite(greenLed, 255);
+            analogWrite(blueLed,  255);
         }
-        if (actualLightStates == 1) {
+        if (actualLightState == MODE_DAY) {
             // set day
-            actualWW = 0;
-            actualCW = 0;
+            actualWW = OCR1B;
+            actualCW = OCR1A;
             targetWW = xWC;
             targetCW = xCC;
-            analogWrite(redLed,   0);
-            analogWrite(greenLed, 0);
-            analogWrite(blueLed,  0);
+            analogWrite(redLed,   255);
+            analogWrite(greenLed, 255);
+            analogWrite(blueLed,  255);
         }
-        if (actualLightStates == 2) {
+        if (actualLightState == MODE_NIGHT) {
             // set night
-            actualWW = xWC;
-            actualCW = xCC;
-            targetWW = 0;
-            targetCW = 0;
+            actualWW = OCR1B;
+            actualCW = OCR1A;
+            targetWW = 255;
+            targetCW = 255;
             analogWrite(redLed,   xRC);
             analogWrite(greenLed, xGC);
             analogWrite(blueLed,  xBC);
@@ -1245,6 +1299,17 @@ void switchLight(int i) {
 }
 
 #if DEBUG == 1
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
 void debug() {
     char str[62];
 
@@ -1254,8 +1319,17 @@ void debug() {
     //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
     //         pressedButton, page, xRC, xGC, xBC, xWC);
     //sprintf (str, "BTN:%02d, PG:%d");
-    sprintf (str, "aWW:%03d, tWW:%03d, aCW:%03d, tCW:%03d",
-             actualWW, targetWW, actualCW, targetCW);
+
+    //sprintf (str, "Actual:%03d Now:%03d",
+    //             actualLightState, lightStatesNow);
+    //myGLCD.print(str, CENTER, 10);
+    //
+    //sprintf (str, "Slider R:%03d G:%03d B:%03d WW:%03d CW:%03d",
+    //         xRC, xGC, xBC, xWC, xCC);
+    //myGLCD.print(str, CENTER, 215);
+    //
+    sprintf (str, "Ww a:%03d-t:%03d, Co: a%03d-t:%03d SM:%d",
+             actualWW, targetWW, actualCW, targetCW, switchMode);
 
     //sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
     //         lightStates[0], lightStates[1],lightStates[2],
@@ -1268,11 +1342,7 @@ void debug() {
 
     myGLCD.print(str, CENTER, 228);
 }
-#endif
 
-void drawRegDebug() {}
-
-#ifdef D
 void drawRegDebug() {
     sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
         BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));

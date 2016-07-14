@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="25" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -13666,28 +13666,6 @@ In this library the device names are the same as the pin names of the symbols, t
 <rectangle x1="0.7112" y1="-1.2954" x2="1.1684" y2="-0.7112" layer="51"/>
 <rectangle x1="-1.1684" y1="-1.2954" x2="-0.7112" y2="-0.7112" layer="51"/>
 </package>
-<package name="TO92-EBC">
-<description>&lt;b&gt;TO-92&lt;/b&gt;&lt;p&gt;
- grid 5.08 mm</description>
-<wire x1="-2.095" y1="-2.921" x2="2.095" y2="-2.921" width="0.127" layer="21"/>
-<wire x1="-2.413" y1="-0.1341" x2="2.413" y2="-0.1341" width="0.127" layer="21" curve="-129.583"/>
-<wire x1="1.136" y1="-1.397" x2="-1.136" y2="-1.397" width="0.127" layer="51"/>
-<wire x1="-2.413" y1="-0.1341" x2="-2.664" y2="-1.397" width="0.127" layer="51" curve="27.9376"/>
-<wire x1="-2.664" y1="-1.397" x2="-2.413" y2="-2.4059" width="0.127" layer="51" curve="22.4788"/>
-<wire x1="-1.404" y1="-1.397" x2="-2.664" y2="-1.397" width="0.127" layer="51"/>
-<wire x1="-2.4135" y1="-2.4059" x2="-2.095" y2="-2.921" width="0.127" layer="21" curve="13.0385"/>
-<wire x1="-1.136" y1="-1.397" x2="-1.404" y2="-1.397" width="0.127" layer="21"/>
-<wire x1="2.413" y1="-2.4059" x2="2.664" y2="-1.397" width="0.127" layer="51" curve="22.4788"/>
-<wire x1="2.664" y1="-1.397" x2="2.413" y2="-0.1341" width="0.127" layer="51" curve="27.9376"/>
-<wire x1="2.664" y1="-1.397" x2="1.404" y2="-1.397" width="0.127" layer="51"/>
-<wire x1="1.404" y1="-1.397" x2="1.136" y2="-1.397" width="0.127" layer="21"/>
-<wire x1="2.095" y1="-2.921" x2="2.4247" y2="-2.3818" width="0.127" layer="21" curve="13.6094"/>
-<pad name="C" x="-2.54" y="-1.27" drill="0.8128" shape="long" rot="R90"/>
-<pad name="E" x="2.54" y="-1.27" drill="0.8128" shape="long" rot="R90"/>
-<pad name="B" x="0" y="-1.27" drill="0.8128" shape="long" rot="R90"/>
-<text x="-2.54" y="1.778" size="1.27" layer="25" ratio="10">&gt;NAME</text>
-<text x="-2.54" y="-4.572" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
-</package>
 </packages>
 <symbols>
 <symbol name="NPN">
@@ -13730,24 +13708,6 @@ In this library the device names are the same as the pin names of the symbols, t
 <technology name="BLT1"/>
 <technology name="C"/>
 <technology name="CLT1"/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="BC447*" prefix="Q">
-<description>&lt;b&gt;NPN Transistor&lt;/b&gt;</description>
-<gates>
-<gate name="G$1" symbol="NPN" x="0" y="0"/>
-</gates>
-<devices>
-<device name="" package="TO92-EBC">
-<connects>
-<connect gate="G$1" pin="B" pad="B"/>
-<connect gate="G$1" pin="C" pad="C"/>
-<connect gate="G$1" pin="E" pad="E"/>
-</connects>
-<technologies>
-<technology name=""/>
 </technologies>
 </device>
 </devices>
@@ -16157,15 +16117,18 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <part name="RTC-DS1307(DS3231)1" library="pinhead" deviceset="PINHD-1X5" device=""/>
 <part name="SUPPLY8" library="supply2" deviceset="VCC" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
-<part name="X1" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="X3" library="con-wago-508" deviceset="W237-3E" device=""/>
+<part name="230V" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="OUT230V" library="con-wago-508" deviceset="W237-3E" device=""/>
 <part name="K2" library="relay" deviceset="JS-M1*" device="" technology="-9V-4"/>
-<part name="Q1" library="transistor-npn" deviceset="BC447*" device=""/>
 <part name="JP2" library="pinhead" deviceset="PINHD-1X4" device=""/>
 <part name="JP3" library="pinhead" deviceset="PINHD-1X4" device=""/>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
 <part name="C2" library="rcl" deviceset="C-EU" device="C1206"/>
 <part name="C1" library="rcl" deviceset="C-EU" device="C0805"/>
+<part name="JP4" library="pinhead" deviceset="PINHD-1X4" device=""/>
+<part name="RTC-DS1307(DS3231)2" library="pinhead" deviceset="PINHD-1X5" device=""/>
+<part name="R12" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="T13" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
 </parts>
 <sheets>
 <sheet>
@@ -16176,24 +16139,24 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="43.18" y="0.635" size="1.778" layer="95"/>
 <attribute name="VALUE" x="33.02" y="11.43" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="LED8" gate="-1" x="99.06" y="116.84" rot="R270"/>
+<instance part="LED8" gate="-1" x="116.84" y="104.14" rot="R270"/>
 <instance part="LED8" gate="-2" x="185.42" y="82.55" rot="R270"/>
-<instance part="LED9" gate="-1" x="78.74" y="116.84" rot="R270"/>
+<instance part="LED9" gate="-1" x="111.76" y="104.14" rot="R270"/>
 <instance part="LED9" gate="-2" x="153.035" y="82.55" rot="R270"/>
-<instance part="LED10" gate="-1" x="58.42" y="116.84" rot="R270"/>
+<instance part="LED10" gate="-1" x="106.68" y="104.14" rot="R270"/>
 <instance part="LED10" gate="-2" x="121.285" y="82.55" rot="R270"/>
-<instance part="LED11" gate="-1" x="38.1" y="116.84" rot="R270"/>
+<instance part="LED11" gate="-1" x="101.6" y="104.14" rot="R270"/>
 <instance part="LED11" gate="-2" x="89.535" y="82.55" rot="R270"/>
 <instance part="RTC-DS1307(DS3231)" gate="A" x="96.52" y="25.4" smashed="yes" rot="R90">
 <attribute name="NAME" x="109.22" y="29.21" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="106.68" y="19.05" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="LED12" gate="-1" x="17.78" y="116.84" rot="R270"/>
+<instance part="LED12" gate="-1" x="96.52" y="104.14" rot="R270"/>
 <instance part="LED12" gate="-2" x="57.785" y="82.55" rot="R270"/>
-<instance part="LED13" gate="-1" x="-2.54" y="116.84" rot="R270"/>
+<instance part="LED13" gate="-1" x="91.44" y="104.14" rot="R270"/>
 <instance part="LED13" gate="-2" x="25.4" y="82.55" rot="R270"/>
 <instance part="7.0-30V" gate="-1" x="116.84" y="119.38"/>
-<instance part="7.0-30V" gate="-2" x="0" y="38.1"/>
+<instance part="7.0-30V" gate="-2" x="48.895" y="113.665" rot="R270"/>
 <instance part="SERIAL" gate="A" x="76.2" y="25.4" smashed="yes" rot="R90">
 <attribute name="NAME" x="78.74" y="29.21" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="86.36" y="19.05" size="1.778" layer="96" rot="R90"/>
@@ -16207,8 +16170,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="27.305" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="44.1325" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V1" gate="G$1" x="17.145" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="16.8275" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V1" gate="G$1" x="18.415" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="18.0975" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T2" gate="G$1" x="40.64" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="37.465" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16218,7 +16181,7 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="35.56" y="55.4736" size="1.778" layer="95"/>
 <attribute name="VALUE" x="37.338" y="59.69" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="GND2" gate="1" x="5.08" y="35.56"/>
+<instance part="GND2" gate="1" x="46.355" y="108.585" rot="R270"/>
 <instance part="GND1" gate="1" x="45.72" y="59.69"/>
 <instance part="R1" gate="G$1" x="58.42" y="67.31" smashed="yes">
 <attribute name="NAME" x="58.8264" y="69.215" size="1.778" layer="95" rot="R90"/>
@@ -16228,8 +16191,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="59.69" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="76.5175" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V2" gate="G$1" x="49.53" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="49.2125" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V2" gate="G$1" x="50.8" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="50.4825" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T4" gate="G$1" x="73.025" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="69.85" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16248,8 +16211,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="91.44" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="108.2675" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V3" gate="G$1" x="81.28" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="80.9625" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V3" gate="G$1" x="82.55" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="82.2325" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T6" gate="G$1" x="104.775" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="101.6" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16268,8 +16231,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="123.19" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="140.0175" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V4" gate="G$1" x="113.665" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="113.3475" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V4" gate="G$1" x="114.3" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="113.9825" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T8" gate="G$1" x="136.525" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="133.35" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16288,8 +16251,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="154.94" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="171.7675" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V5" gate="G$1" x="145.415" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="145.0975" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V5" gate="G$1" x="146.05" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="145.7325" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T10" gate="G$1" x="168.275" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="165.1" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16308,8 +16271,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="187.325" y="73.025" size="1.778" layer="95" rot="MR90"/>
 <attribute name="VALUE" x="204.1525" y="82.2325" size="1.778" layer="96" rot="MR0"/>
 </instance>
-<instance part="VCC+12V6" gate="G$1" x="177.8" y="67.31" smashed="yes" rot="R90">
-<attribute name="VALUE" x="177.4825" y="69.5325" size="1.778" layer="96" rot="R90"/>
+<instance part="VCC+12V6" gate="G$1" x="178.435" y="67.31" smashed="yes" rot="R90">
+<attribute name="VALUE" x="178.1175" y="69.5325" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="T12" gate="G$1" x="200.66" y="64.77" smashed="yes" rot="R90">
 <attribute name="NAME" x="197.485" y="60.96" size="1.778" layer="95" rot="R90"/>
@@ -16349,22 +16312,34 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 </instance>
 <instance part="SUPPLY8" gate="G$1" x="146.05" y="36.195"/>
 <instance part="GND13" gate="1" x="146.05" y="1.27"/>
-<instance part="X1" gate="-1" x="-2.54" y="50.8"/>
-<instance part="X1" gate="-2" x="-2.54" y="45.72"/>
-<instance part="X3" gate="-1" x="15.24" y="55.88" rot="R270"/>
-<instance part="X3" gate="-2" x="-2.54" y="58.42"/>
-<instance part="X3" gate="-3" x="15.24" y="35.56" rot="R90"/>
+<instance part="230V" gate="-1" x="61.595" y="116.205" rot="R270"/>
+<instance part="230V" gate="-2" x="56.515" y="116.205" rot="R270"/>
+<instance part="OUT230V" gate="-1" x="66.675" y="98.425" rot="R180"/>
+<instance part="OUT230V" gate="-2" x="69.215" y="116.205" rot="R270"/>
+<instance part="OUT230V" gate="-3" x="46.355" y="98.425"/>
 <instance part="K2" gate="1" x="146.05" y="27.305" smashed="yes">
 <attribute name="VALUE" x="128.905" y="30.226" size="1.778" layer="96"/>
 <attribute name="PART" x="147.32" y="32.385" size="1.778" layer="95"/>
 </instance>
-<instance part="K2" gate="2" x="10.16" y="45.72" rot="R270"/>
-<instance part="Q1" gate="G$1" x="143.51" y="15.24"/>
-<instance part="JP2" gate="A" x="177.8" y="27.94" rot="R90"/>
-<instance part="JP3" gate="A" x="175.26" y="13.97" rot="R270"/>
+<instance part="K2" gate="2" x="56.515" y="103.505" rot="R180"/>
+<instance part="JP2" gate="A" x="184.785" y="36.195" rot="R90"/>
+<instance part="JP3" gate="A" x="182.245" y="10.16" rot="R270"/>
 <instance part="GND14" gate="1" x="200.66" y="106.68"/>
 <instance part="C2" gate="G$1" x="144.78" y="114.3"/>
 <instance part="C1" gate="G$1" x="200.66" y="114.3"/>
+<instance part="JP4" gate="A" x="184.785" y="25.4" rot="R90"/>
+<instance part="RTC-DS1307(DS3231)2" gate="A" x="96.52" y="40.64" smashed="yes" rot="R90">
+<attribute name="NAME" x="109.22" y="44.45" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="106.68" y="34.29" size="1.778" layer="96" rot="R90"/>
+</instance>
+<instance part="R12" gate="G$1" x="135.89" y="15.24" smashed="yes">
+<attribute name="NAME" x="136.2964" y="10.16" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="132.08" y="11.938" size="1.778" layer="96"/>
+</instance>
+<instance part="T13" gate="G$1" x="143.51" y="15.24" smashed="yes">
+<attribute name="NAME" x="139.7" y="18.415" size="1.778" layer="95"/>
+<attribute name="VALUE" x="133.35" y="20.32" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -16375,7 +16350,10 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <wire x1="99.06" y1="2.54" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="JP1" gate="G$1" pin="5"/>
 <pinref part="RTC-DS1307(DS3231)1" gate="A" pin="4"/>
-<wire x1="99.06" y1="30.48" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="99.06" y1="38.1" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="RTC-DS1307(DS3231)2" gate="A" pin="4"/>
+<junction x="99.06" y="38.1"/>
+<wire x1="99.06" y1="38.1" x2="99.06" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="SDA" class="0">
@@ -16384,7 +16362,10 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <wire x1="96.52" y1="22.86" x2="96.52" y2="2.54" width="0.1524" layer="91"/>
 <pinref part="JP1" gate="G$1" pin="6"/>
 <pinref part="RTC-DS1307(DS3231)1" gate="A" pin="3"/>
-<wire x1="96.52" y1="30.48" x2="96.52" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="38.1" x2="96.52" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="RTC-DS1307(DS3231)2" gate="A" pin="3"/>
+<junction x="96.52" y="38.1"/>
+<wire x1="96.52" y1="38.1" x2="96.52" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$5" class="0">
@@ -16440,7 +16421,10 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <pinref part="RTC-DS1307(DS3231)" gate="A" pin="1"/>
 <wire x1="91.44" y1="22.86" x2="91.44" y2="20.32" width="0.1524" layer="91"/>
 <pinref part="RTC-DS1307(DS3231)1" gate="A" pin="1"/>
-<wire x1="91.44" y1="30.48" x2="91.44" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="38.1" x2="91.44" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="RTC-DS1307(DS3231)2" gate="A" pin="1"/>
+<junction x="91.44" y="38.1"/>
+<wire x1="91.44" y1="38.1" x2="91.44" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND" gate="G$1" pin="1"/>
@@ -16525,12 +16509,15 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <segment>
 <pinref part="GND13" gate="1" pin="GND"/>
 <wire x1="146.05" y1="3.81" x2="146.05" y2="10.16" width="0.1524" layer="91"/>
-<pinref part="Q1" gate="G$1" pin="E"/>
+<pinref part="T13" gate="G$1" pin="E"/>
 </segment>
 <segment>
 <pinref part="JP2" gate="A" pin="3"/>
 <pinref part="JP3" gate="A" pin="2"/>
-<wire x1="177.8" y1="16.51" x2="177.8" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="184.785" y1="12.7" x2="184.785" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="3"/>
+<junction x="184.785" y="22.86"/>
+<wire x1="184.785" y1="22.86" x2="184.785" y2="33.655" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND8" gate="1" pin="GND"/>
@@ -16595,8 +16582,8 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <pinref part="JP1" gate="G$1" pin="12"/>
 </segment>
 <segment>
-<pinref part="Q1" gate="G$1" pin="B"/>
-<wire x1="140.97" y1="15.24" x2="137.16" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="R12" gate="G$1" pin="1"/>
+<wire x1="130.81" y1="15.24" x2="127" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$11" class="0">
@@ -16769,7 +16756,7 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 </segment>
 <segment>
 <pinref part="JP1" gate="G$1" pin="1"/>
-<wire x1="109.22" y1="15.24" x2="109.22" y2="2.54" width="0.1524" layer="91"/>
+<wire x1="109.22" y1="11.43" x2="109.22" y2="2.54" width="0.1524" layer="91"/>
 <pinref part="JP1" gate="G$1" pin="2"/>
 <wire x1="109.22" y1="2.54" x2="106.68" y2="2.54" width="0.1524" layer="91"/>
 <junction x="109.22" y="2.54"/>
@@ -16781,7 +16768,10 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <segment>
 <pinref part="JP2" gate="A" pin="1"/>
 <pinref part="JP3" gate="A" pin="4"/>
-<wire x1="172.72" y1="16.51" x2="172.72" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="179.705" y1="12.7" x2="179.705" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="1"/>
+<junction x="179.705" y="22.86"/>
+<wire x1="179.705" y1="22.86" x2="179.705" y2="33.655" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="SUPPLY8" gate="G$1" pin="VCC"/>
@@ -16813,57 +16803,51 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 </segment>
 <segment>
 <pinref part="LED8" gate="-1" pin="KL"/>
-<wire x1="99.06" y1="111.76" x2="99.06" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="116.84" y1="99.06" x2="116.84" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED9" gate="-1" pin="KL"/>
-<wire x1="78.74" y1="111.76" x2="78.74" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="111.76" y1="99.06" x2="111.76" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED10" gate="-1" pin="KL"/>
-<wire x1="58.42" y1="111.76" x2="58.42" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="99.06" x2="106.68" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED11" gate="-1" pin="KL"/>
-<wire x1="38.1" y1="111.76" x2="38.1" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="101.6" y1="99.06" x2="101.6" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED12" gate="-1" pin="KL"/>
-<wire x1="17.78" y1="111.76" x2="17.78" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="99.06" x2="96.52" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="LED13" gate="-1" pin="KL"/>
-<wire x1="-2.54" y1="111.76" x2="-2.54" y2="110.49" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="99.06" x2="91.44" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V1" gate="G$1" pin="VCC"/>
 <pinref part="R6" gate="G$1" pin="1"/>
-<wire x1="19.685" y1="67.31" x2="20.955" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V2" gate="G$1" pin="VCC"/>
 <pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="52.07" y1="67.31" x2="53.34" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V3" gate="G$1" pin="VCC"/>
 <pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="83.82" y1="67.31" x2="85.09" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V4" gate="G$1" pin="VCC"/>
 <pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="116.205" y1="67.31" x2="116.84" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V5" gate="G$1" pin="VCC"/>
 <pinref part="R8" gate="G$1" pin="1"/>
-<wire x1="147.955" y1="67.31" x2="148.59" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="VCC+12V6" gate="G$1" pin="VCC"/>
 <pinref part="R10" gate="G$1" pin="1"/>
-<wire x1="180.34" y1="67.31" x2="180.975" y2="67.31" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="3.3V" class="0">
@@ -16879,54 +16863,69 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <pinref part="RTC-DS1307(DS3231)" gate="A" pin="2"/>
 <wire x1="93.98" y1="22.86" x2="93.98" y2="15.24" width="0.1524" layer="91"/>
 <pinref part="RTC-DS1307(DS3231)1" gate="A" pin="2"/>
-<wire x1="93.98" y1="30.48" x2="93.98" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="38.1" x2="93.98" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="RTC-DS1307(DS3231)2" gate="A" pin="2"/>
+<junction x="93.98" y="38.1"/>
+<wire x1="93.98" y1="38.1" x2="93.98" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$41" class="0">
 <segment>
 <wire x1="146.05" y1="22.225" x2="146.05" y2="20.32" width="0.1524" layer="91"/>
 <pinref part="K2" gate="1" pin="2"/>
-<pinref part="Q1" gate="G$1" pin="C"/>
+<pinref part="T13" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$1" class="0">
 <segment>
-<pinref part="X1" gate="-1" pin="KL"/>
-<pinref part="X3" gate="-2" pin="KL"/>
-<wire x1="2.54" y1="50.8" x2="2.54" y2="58.42" width="0.1524" layer="91"/>
+<pinref part="230V" gate="-1" pin="KL"/>
+<pinref part="OUT230V" gate="-2" pin="KL"/>
+<wire x1="61.595" y1="111.125" x2="69.215" y2="111.125" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$2" class="0">
 <segment>
-<pinref part="X1" gate="-2" pin="KL"/>
-<wire x1="7.62" y1="45.72" x2="2.54" y2="45.72" width="0.1524" layer="91"/>
+<pinref part="230V" gate="-2" pin="KL"/>
+<wire x1="56.515" y1="106.045" x2="56.515" y2="111.125" width="0.1524" layer="91"/>
 <pinref part="K2" gate="2" pin="P"/>
 </segment>
 </net>
 <net name="N$14" class="0">
 <segment>
 <pinref part="K2" gate="2" pin="S"/>
-<pinref part="X3" gate="-1" pin="KL"/>
+<pinref part="OUT230V" gate="-1" pin="KL"/>
 </segment>
 </net>
 <net name="N$37" class="0">
 <segment>
 <pinref part="K2" gate="2" pin="O"/>
-<pinref part="X3" gate="-3" pin="KL"/>
+<pinref part="OUT230V" gate="-3" pin="KL"/>
 </segment>
 </net>
 <net name="N$26" class="0">
 <segment>
 <pinref part="JP2" gate="A" pin="4"/>
 <pinref part="JP3" gate="A" pin="1"/>
-<wire x1="180.34" y1="16.51" x2="180.34" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="187.325" y1="12.7" x2="187.325" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="4"/>
+<junction x="187.325" y="22.86"/>
+<wire x1="187.325" y1="22.86" x2="187.325" y2="33.655" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="OUT" class="0">
 <segment>
 <pinref part="JP2" gate="A" pin="2"/>
 <pinref part="JP3" gate="A" pin="3"/>
-<wire x1="175.26" y1="16.51" x2="175.26" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="182.245" y1="12.7" x2="182.245" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="2"/>
+<junction x="182.245" y="22.86"/>
+<wire x1="182.245" y1="22.86" x2="182.245" y2="33.655" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$34" class="0">
+<segment>
+<pinref part="R12" gate="G$1" pin="2"/>
+<pinref part="T13" gate="G$1" pin="B"/>
 </segment>
 </net>
 </nets>
