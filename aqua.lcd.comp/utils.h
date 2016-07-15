@@ -1,21 +1,21 @@
-float tempData[75] = {
-    19.5, 20.4, 21.4, 22.5, 23.5,
-    24.5, 24.7, 25.6, 23.5, 22.5,
-    21.5, 20.4, 20.0, 19.5, 18.5,
-    19.0, 20.4, 21.4, 22.5, 23.5,
-    24.5, 25.4, 26.4, 27.5, 27.8,
-    28.5, 29.4, 28.4, 29.5, 26.5,
-    25.5, 24.4, 23.4, 22.5, 21.5,
-    21.5, 21.6, 21.7, 21.8, 21.9,
-    22.5, 23.4, 23.5, 23.6, 23.5,
-    24.5, 23.4, 20.4, 19.5, 17.5,
-    19.5, 20.4, 21.4, 22.5, 23.5,
-    24.5, 25.4, 26.4, 27.5, 28.5,
-    28.4, 28.3, 28.2, 27.5, 26.5,
-    25.5, 24.4, 23.4, 23.5, 22.6,
-    21.5, 19.4, 18.4, 17.5, 14.0
-};
 
+template <class T> int EEPROM_writeAnything(int ee, const T& value) {
+   const byte* p = (const byte*)(const void*)&value;
+   int i;
+   for (i = 0; i < sizeof(value); i++)
+       EEPROM.write(ee++, *p++);
+   return i;
+}
+
+template <class T> int EEPROM_readAnything(int ee, T& value) {
+   byte* p = (byte*)(void*)&value;
+   int i;
+   for (i = 0; i < sizeof(value); i++)
+       *p++ = EEPROM.read(ee++);
+   return i;
+}
+
+//
 /*
 void sort(int a[], int size) {
     for(int i=0; i<(size-1); i++) {

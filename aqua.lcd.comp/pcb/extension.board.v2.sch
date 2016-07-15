@@ -16065,42 +16065,42 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <part name="7.0-30V" library="con-wago-508" deviceset="W237-02P" device=""/>
 <part name="SERIAL" library="pinhead" deviceset="PINHD-1X6" device=""/>
 <part name="GND" library="pinhead" deviceset="PINHD-1X2" device=""/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T1" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V1" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T2" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R16" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R16" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
-<part name="R1" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R1" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T3" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V2" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T4" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R2" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R2" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
-<part name="R3" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T5" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V3" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T6" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R4" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R4" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
-<part name="R5" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R5" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T7" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V4" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T8" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R7" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R7" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
-<part name="R8" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R8" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T9" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V5" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T10" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R9" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R9" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
-<part name="R10" library="rcl" deviceset="R-EU_" device="R1206" value="1K"/>
+<part name="R10" library="rcl" deviceset="R-EU_" device="R1206" value="2k2"/>
 <part name="T11" library="transistor-power" deviceset="IRF?5305" device="R" value="IRFR024NPBF"/>
 <part name="VCC+12V6" library="supply2" deviceset="VCC" device="" value="12V"/>
 <part name="T12" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
-<part name="R11" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R11" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="JP1" library="pinhead" deviceset="PINHD-1X12" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
@@ -16127,8 +16127,12 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <part name="C1" library="rcl" deviceset="C-EU" device="C0805"/>
 <part name="JP4" library="pinhead" deviceset="PINHD-1X4" device=""/>
 <part name="RTC-DS1307(DS3231)2" library="pinhead" deviceset="PINHD-1X5" device=""/>
-<part name="R12" library="rcl" deviceset="R-EU_" device="R1206" value="680"/>
+<part name="R12" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
 <part name="T13" library="transistor-npn" deviceset="BC847*" device="SMD" technology="B"/>
+<part name="R13" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
+<part name="GND15" library="supply1" deviceset="GND" device=""/>
+<part name="R14" library="rcl" deviceset="R-EU_" device="R1206" value="4k7"/>
+<part name="GND16" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -16322,12 +16326,12 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="PART" x="147.32" y="32.385" size="1.778" layer="95"/>
 </instance>
 <instance part="K2" gate="2" x="56.515" y="103.505" rot="R180"/>
-<instance part="JP2" gate="A" x="184.785" y="36.195" rot="R90"/>
-<instance part="JP3" gate="A" x="182.245" y="10.16" rot="R270"/>
+<instance part="JP2" gate="A" x="182.88" y="36.195" rot="R90"/>
+<instance part="JP3" gate="A" x="180.34" y="-0.635" rot="R270"/>
 <instance part="GND14" gate="1" x="200.66" y="106.68"/>
 <instance part="C2" gate="G$1" x="144.78" y="114.3"/>
 <instance part="C1" gate="G$1" x="200.66" y="114.3"/>
-<instance part="JP4" gate="A" x="184.785" y="25.4" rot="R90"/>
+<instance part="JP4" gate="A" x="182.88" y="25.4" rot="R90"/>
 <instance part="RTC-DS1307(DS3231)2" gate="A" x="96.52" y="40.64" smashed="yes" rot="R90">
 <attribute name="NAME" x="109.22" y="44.45" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="106.68" y="34.29" size="1.778" layer="96" rot="R90"/>
@@ -16340,6 +16344,16 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <attribute name="NAME" x="139.7" y="18.415" size="1.778" layer="95"/>
 <attribute name="VALUE" x="133.35" y="20.32" size="1.778" layer="96"/>
 </instance>
+<instance part="R13" gate="G$1" x="192.405" y="16.51" smashed="yes" rot="R180">
+<attribute name="NAME" x="191.9986" y="21.59" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="196.215" y="19.812" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="GND15" gate="1" x="203.835" y="13.97"/>
+<instance part="R14" gate="G$1" x="192.405" y="10.795" smashed="yes" rot="R180">
+<attribute name="NAME" x="191.9986" y="15.875" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="196.215" y="14.097" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="GND16" gate="1" x="203.835" y="8.255"/>
 </instances>
 <busses>
 </busses>
@@ -16512,20 +16526,30 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <pinref part="T13" gate="G$1" pin="E"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="3"/>
-<pinref part="JP3" gate="A" pin="2"/>
-<wire x1="184.785" y1="12.7" x2="184.785" y2="22.86" width="0.1524" layer="91"/>
-<pinref part="JP4" gate="A" pin="3"/>
-<junction x="184.785" y="22.86"/>
-<wire x1="184.785" y1="22.86" x2="184.785" y2="33.655" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="GND8" gate="1" pin="GND"/>
 <pinref part="C2" gate="G$1" pin="2"/>
 </segment>
 <segment>
 <pinref part="GND14" gate="1" pin="GND"/>
 <pinref part="C1" gate="G$1" pin="2"/>
+</segment>
+<segment>
+<pinref part="R13" gate="G$1" pin="1"/>
+<pinref part="GND15" gate="1" pin="GND"/>
+<wire x1="197.485" y1="16.51" x2="203.835" y2="16.51" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP2" gate="A" pin="4"/>
+<pinref part="JP3" gate="A" pin="1"/>
+<wire x1="185.42" y1="1.905" x2="185.42" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="4"/>
+<junction x="185.42" y="22.86"/>
+<wire x1="185.42" y1="22.86" x2="185.42" y2="33.655" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R14" gate="G$1" pin="1"/>
+<pinref part="GND16" gate="1" pin="GND"/>
+<wire x1="203.835" y1="10.795" x2="197.485" y2="10.795" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -16768,10 +16792,10 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <segment>
 <pinref part="JP2" gate="A" pin="1"/>
 <pinref part="JP3" gate="A" pin="4"/>
-<wire x1="179.705" y1="12.7" x2="179.705" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="1.905" x2="177.8" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="JP4" gate="A" pin="1"/>
-<junction x="179.705" y="22.86"/>
-<wire x1="179.705" y1="22.86" x2="179.705" y2="33.655" width="0.1524" layer="91"/>
+<junction x="177.8" y="22.86"/>
+<wire x1="177.8" y1="22.86" x2="177.8" y2="33.655" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="SUPPLY8" gate="G$1" pin="VCC"/>
@@ -16902,30 +16926,37 @@ Source: http://www.mew-europe.com/.. en_ds_61211_0000.pdf</description>
 <pinref part="OUT230V" gate="-3" pin="KL"/>
 </segment>
 </net>
-<net name="N$26" class="0">
-<segment>
-<pinref part="JP2" gate="A" pin="4"/>
-<pinref part="JP3" gate="A" pin="1"/>
-<wire x1="187.325" y1="12.7" x2="187.325" y2="22.86" width="0.1524" layer="91"/>
-<pinref part="JP4" gate="A" pin="4"/>
-<junction x="187.325" y="22.86"/>
-<wire x1="187.325" y1="22.86" x2="187.325" y2="33.655" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="OUT" class="0">
+<net name="A0" class="0">
 <segment>
 <pinref part="JP2" gate="A" pin="2"/>
-<pinref part="JP3" gate="A" pin="3"/>
-<wire x1="182.245" y1="12.7" x2="182.245" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="JP4" gate="A" pin="2"/>
-<junction x="182.245" y="22.86"/>
-<wire x1="182.245" y1="22.86" x2="182.245" y2="33.655" width="0.1524" layer="91"/>
+<wire x1="180.34" y1="22.86" x2="180.34" y2="33.655" width="0.1524" layer="91"/>
+<pinref part="JP3" gate="A" pin="3"/>
+<wire x1="180.34" y1="22.86" x2="180.34" y2="16.51" width="0.1524" layer="91"/>
+<pinref part="R13" gate="G$1" pin="2"/>
+<wire x1="180.34" y1="16.51" x2="180.34" y2="1.905" width="0.1524" layer="91"/>
+<wire x1="187.325" y1="16.51" x2="180.34" y2="16.51" width="0.1524" layer="91"/>
+<junction x="180.34" y="16.51"/>
 </segment>
 </net>
 <net name="N$34" class="0">
 <segment>
 <pinref part="R12" gate="G$1" pin="2"/>
 <pinref part="T13" gate="G$1" pin="B"/>
+</segment>
+</net>
+<net name="A1" class="0">
+<segment>
+<pinref part="JP2" gate="A" pin="3"/>
+<pinref part="JP3" gate="A" pin="2"/>
+<wire x1="182.88" y1="1.905" x2="182.88" y2="10.795" width="0.1524" layer="91"/>
+<pinref part="JP4" gate="A" pin="3"/>
+<junction x="182.88" y="22.86"/>
+<wire x1="182.88" y1="10.795" x2="182.88" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="22.86" x2="182.88" y2="33.655" width="0.1524" layer="91"/>
+<pinref part="R14" gate="G$1" pin="2"/>
+<wire x1="187.325" y1="10.795" x2="182.88" y2="10.795" width="0.1524" layer="91"/>
+<junction x="182.88" y="10.795"/>
 </segment>
 </net>
 </nets>

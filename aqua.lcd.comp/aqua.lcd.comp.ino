@@ -5,9 +5,28 @@
 #include <EEPROM.h>
 #include "utils.h"
 #include <RTClib.h>
+//#include "SparkFunHTU21D.h"
+#include "TCN75a.h"
 
-#define DEBUG 1
-#define RETURN_DELAY 5000
+#define DEBUG               1
+
+#define RETURN_DELAY        5000 // 10s
+#define RELE_PIN            14
+#define LED_WHITE           12
+#define LED_COOL_WHITE      11
+#define LED_RED             10
+#define LED_GREEN           9
+#define LED_BLUE            8
+
+const char* co2Str[2]  = {"OFF", "ON"};
+const char* dateStr[4] = {"OFF", "DAY", "NIGHT", "NONE"};
+
+enum {
+    MODE_OFF = 0,
+    MODE_DAY,
+    MODE_NIGHT,
+    MODE_NONE
+};
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
@@ -21,28 +40,28 @@ int xCC, xWC, xRC, xGC, xBC = 42;
 int actualWW, actualCW, targetWW, targetCW;
 
 uint8_t lightStates[8];
+
 uint8_t hourStates[8];
 uint8_t minuteStates[8];
 
-const char * dateStr[4] = {"OFF", "DAY", "NIGHT", "NONE"};
-enum {
-    MODE_OFF = 0,
-    MODE_DAY,
-    MODE_NIGHT,
-    MODE_NONE
-};
+uint8_t co2states[6];
 
-const uint8_t whiteLed = 12, coolWhiteLed = 11, redLed = 10, greenLed = 9, blueLed  = 8;
+uint8_t co2hour[6];
+uint8_t co2minute[6];
 
 volatile uint8_t lightStatesNow;
 volatile uint8_t actualLightState;
 volatile uint8_t page;
 volatile uint8_t switchMode;
+volatile uint8_t co2Mode;
 volatile uint8_t pressedButton;
 
 volatile int timerCounter2 = 0;
+volatile uint8_t i2cReadTimeCounter;
+volatile int temperatureReadTimeCounter;
+
 volatile int sumDateNow = 0;
-volatile int temp = 24.5;
+volatile int dateNow = 0;
 
 RTC_DS1307 RTC;
 DateTime now;
@@ -70,16 +89,31 @@ enum {
     MODE_MANUAL
 };
 
+enum {
+    CO2_OFF = 0,
+    CO2_ON
+};
+
 extern uint8_t GroteskBold24x48[];
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
-volatile int dateNow = 0;
-volatile float tempNow = 24.5;
+//HTU21D temperature;
+TCN75A temperature;
+float temperatureMin[60] = {0};
+float temperatureHour[60] = {0};
+float tempDataTable[75] = {16.0};
+
+volatile float actualTemp = 0;
+volatile uint8_t tempPointer = 0;
+volatile int tempMinPointer = 0;
+byte newTemperature;
 
 void setup() {
     actualLightState = MODE_NONE;
     lightStatesNow = MODE_NONE;
+
+    pinMode(RELE_PIN, OUTPUT);
 
     Wire.begin();
     RTC.begin();
@@ -88,6 +122,8 @@ void setup() {
         Serial.println("RTC is NOT running!");
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
+
+    temperature.begin();
 
     eepromRead();
 
@@ -121,27 +157,31 @@ void timer2set(void) {
 
 ISR(TIMER2_OVF_vect) {
     cli();
+
     timerCounter2++;
+    i2cReadTimeCounter++;
+    temperatureReadTimeCounter++;
 
     if (switchMode == MODE_AUTO && !(timerCounter2 % 200)) {
         checkTimer();
 
         // dimming process
         if (actualCW > targetCW) {
-            analogWrite(coolWhiteLed, actualCW--);
+            analogWrite(LED_COOL_WHITE, actualCW--);
         }
         if (actualCW < targetCW) {
-            analogWrite(coolWhiteLed, ++actualCW);
+            analogWrite(LED_COOL_WHITE, ++actualCW);
         }
 
         if (actualWW > targetWW) {
-            analogWrite(whiteLed, actualWW--);
+            analogWrite(LED_WHITE, actualWW--);
         }
         if (actualWW < targetWW) {
-            analogWrite(whiteLed, ++actualWW);
+            analogWrite(LED_WHITE, ++actualWW);
         }
     }
 
+    // return to homepage
     if (timerCounter2 > RETURN_DELAY) {
         timerCounter2 = 0;
 
@@ -149,12 +189,68 @@ ISR(TIMER2_OVF_vect) {
             page = PAGE_RETURN_MOME;
         }
     }
+
+    /*
+     * temperature average per minute
+     * each minute add one new value
+     */
+    if (newTemperature) {
+        newTemperature = false;
+        temperatureMin[tempPointer] = actualTemp;
+        tempPointer++;
+
+        /*
+         * if number of values is 60 make average and
+         * write it into temperatureHour
+         */
+        if (tempPointer == 60) {
+            float tempSum = 0;
+            for (uint8_t i = 0; i < 60; i++) {
+                tempSum += temperatureMin[i];
+            }
+
+            temperatureHour[tempMinPointer] = tempSum / 60;
+            tempPointer = 0;
+            tempMinPointer++;
+
+            /*
+             * if number of values is 60 make average and
+             * write it into tempDataTable on the end of array
+             */
+            if (tempMinPointer == 60) {
+                float tempSum = 0;
+                for (uint8_t i = 0; i < 60; i++) {
+                    tempSum += temperatureHour[i];
+                }
+
+                // shift values in array
+                for (uint8_t i = 1; i < 75; i++) {
+                    tempDataTable[i - 1] = tempDataTable[i];
+                }
+
+                // write last value into the end of the array
+                tempDataTable[74] = tempSum / 60;
+                // write array into EEEPROM
+                EEPROM_writeAnything(128, tempDataTable);
+                // reset tempMinutePointer
+                tempMinPointer = 0;
+            }
+        }
+    }
 }
 
 void loop() {
-    //PORTK &= ~(1 << PH7);
-    //PORTK |= (1 << PH7);
-    PORTK ^= (1 << PH7);
+    //PORTK &= ~(1 << PK7);
+    //PORTK |= (1 << PK7);
+    //PORTK ^= (1 << PK7);
+
+    // read temperature each one second
+    if (temperatureReadTimeCounter > 420) {
+        PORTK ^= (1 << PK7);
+        newTemperature = true;
+        actualTemp = temperature.readTemperature();
+        temperatureReadTimeCounter = 0;
+    }
 
     switch (page) {
 
@@ -166,14 +262,14 @@ void loop() {
         break;
 
     case PAGE_HOME:
-        if (timerCounter2 % 50) {
+        if (i2cReadTimeCounter > 50) {
             now = RTC.now();
             drawHomeScreen();
+            i2cReadTimeCounter = 0;
         }
 
         if (myTouch.dataAvailable() == true) {
             myGLCD.clrScr();
-            //myTouch.read();
             page = PAGE_SELECT;
             drawSelectScreen();
             timerCounter2 = 0;
@@ -181,7 +277,8 @@ void loop() {
         break;
 
     case PAGE_SELECT:
-        if (timerCounter2 % 50) {
+        if (i2cReadTimeCounter > 50) {
+            i2cReadTimeCounter = 0;
             now = RTC.now();
             drawTime();
         }
@@ -420,13 +517,165 @@ void loop() {
             timerCounter2 = 0;
             pressedButton = myButtons.checkButtons();
 
+            // first timer
+            if (pressedButton == 0) {
+                co2hour[0]--;
+                if (co2hour[0] == 255) {
+                    co2hour[0] = 23;
+                }
+                setCo2TimerTime(0, 10, 8);
+            }
             if (pressedButton == 1) {
+                co2hour[0]++;
+                if (co2hour[0] > 23) {
+                    co2hour[0] = 0;
+                }
+                setCo2TimerTime(0, 10, 8);
+            }
+            if (pressedButton == 2) {
+                co2minute[0]--;
+                if (co2minute[0] == 255) {
+                    co2minute[0] = 59;
+                }
+                setCo2TimerTime(0, 10, 8);
+            }
+            if (pressedButton == 3) {
+                co2minute[0]++;
+                if (co2minute[0] > 59) {
+                    co2minute[0] = 0;
+                }
+                setCo2TimerTime(0, 10, 8);
+            }
+            if (pressedButton == 4) {
+                digitalWrite(RELE_PIN, HIGH);
+                co2Mode = CO2_ON;
+            }
+
+            if (pressedButton == 5) {
+                co2hour[1]--;
+                if (co2hour[1] == 255) {
+                    co2hour[1] = 23;
+                }
+                setCo2TimerTime(1, 10, 64);
+            }
+            if (pressedButton == 6) {
+                co2hour[1]++;
+                if (co2hour[1] > 23) {
+                    co2hour[1] = 0;
+                }
+                setCo2TimerTime(1, 10, 64);
+            }
+            if (pressedButton == 7) {
+                co2minute[1]--;
+                if (co2minute[1] == 255) {
+                    co2minute[1] = 59;
+                }
+                setCo2TimerTime(1, 10, 64);
+            }
+            if (pressedButton == 8) {
+                co2minute[1]++;
+                if (co2minute[1] > 59) {
+                    co2minute[1] = 0;
+                }
+                setCo2TimerTime(1, 10, 64);
+            }
+
+            // second column
+            if (pressedButton == 10) {
+                co2hour[2]--;
+                if (co2hour[2] == 255) {
+                    co2hour[2] = 23;
+                }
+                setCo2TimerTime(2, 176, 8);
+            }
+            if (pressedButton == 11) {
+                co2hour[2]++;
+                if (co2hour[2] > 23) {
+                    co2hour[2] = 0;
+                }
+                setCo2TimerTime(2, 176, 8);
+            }
+            if (pressedButton == 12) {
+                co2minute[2]--;
+                if (co2minute[2] == 255) {
+                    co2minute[2] = 59;
+                }
+                setCo2TimerTime(2, 176, 8);
+            }
+            if (pressedButton == 13) {
+                co2minute[2]++;
+                if (co2minute[2] > 59) {
+                    co2minute[2] = 0;
+                }
+                setCo2TimerTime(2, 176, 8);
+            }
+            if (pressedButton == 14) {
+                digitalWrite(RELE_PIN, LOW);
+                co2Mode = CO2_OFF;
+            }
+
+            if (pressedButton == 15) {
+                co2hour[3]--;
+                if (co2hour[3] == 255) {
+                    co2hour[3] = 23;
+                }
+                setCo2TimerTime(3, 176, 64);
+            }
+            if (pressedButton == 16) {
+                co2hour[3]++;
+                if (co2hour[3] > 23) {
+                    co2hour[3] = 0;
+                }
+                setCo2TimerTime(3, 176, 64);
+            }
+            if (pressedButton == 17) {
+                co2minute[3]--;
+                if (co2minute[3] == 255) {
+                    co2minute[3] = 59;
+                }
+                setCo2TimerTime(3, 176, 64);
+            }
+            if (pressedButton == 18) {
+                co2minute[3]++;
+                if (co2minute[3] > 59) {
+                    co2minute[3] = 0;
+                }
+                setCo2TimerTime(3, 176, 64);
+            }
+            if (pressedButton == 19) {
+                digitalWrite(RELE_PIN, LOW);
+                co2Mode = CO2_OFF;
+            }
+
+            // save values
+            if (pressedButton == 20) {
+                EEPROM.write(25,  co2states[0]);
+                EEPROM.write(26,  co2states[1]);
+                EEPROM.write(27,  co2states[2]);
+                EEPROM.write(28,  co2states[3]);
+                co2states[4] = co2states[3];
+                co2states[5] = co2states[3];
+
+                EEPROM.write(29, co2hour[0]);
+                EEPROM.write(30, co2hour[1]);
+                EEPROM.write(31, co2hour[2]);
+                EEPROM.write(32, co2hour[3]);
+
+                EEPROM.write(33, co2minute[0]);
+                EEPROM.write(34, co2minute[1]);
+                EEPROM.write(35, co2minute[2]);
+                EEPROM.write(36, co2minute[3]);
+            }
+
+            // home button
+            if (pressedButton == 21) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
                 lightStatesNow = 3;
                 page = PAGE_HOME;
             }
+
         }
         break;
 
@@ -438,7 +687,7 @@ void loop() {
             // first timer
             if (pressedButton == 0) {
                 hourStates[0]--;
-                if (hourStates[0] < 0) {
+                if (hourStates[0] == 255) {
                     hourStates[0] = 23;
                 }
                 setTimerTime(0, 10, 8);
@@ -452,7 +701,7 @@ void loop() {
             }
             if (pressedButton == 2) {
                 minuteStates[0]--;
-                if (minuteStates[0] < 0) {
+                if (minuteStates[0] == 255) {
                     minuteStates[0] = 59;
                 }
                 setTimerTime(0, 10, 8);
@@ -471,7 +720,7 @@ void loop() {
             // second time
             if (pressedButton == 5) {
                 hourStates[1]--;
-                if (hourStates[1] < 0) {
+                if (hourStates[1] == 255) {
                     hourStates[1] = 23;
                 }
                 setTimerTime(1, 10, 64);
@@ -485,7 +734,7 @@ void loop() {
             }
             if (pressedButton == 7) {
                 minuteStates[1]--;
-                if (minuteStates[1] < 0) {
+                if (minuteStates[1] == 255) {
                     minuteStates[1] = 59;
                 }
                 setTimerTime(1, 10, 64);
@@ -504,7 +753,7 @@ void loop() {
             // third time
             if (pressedButton == 10) {
                 hourStates[2]--;
-                if (hourStates[2] < 0) {
+                if (hourStates[2] == 255) {
                     hourStates[2] = 23;
                 }
                 setTimerTime(2, 10, 122);
@@ -518,7 +767,7 @@ void loop() {
             }
             if (pressedButton == 12) {
                 minuteStates[2]--;
-                if (minuteStates[2] < 0) {
+                if (minuteStates[2] == 255) {
                     minuteStates[2] = 59;
                 }
                 setTimerTime(2, 10, 122);
@@ -536,7 +785,7 @@ void loop() {
 
             if (pressedButton == 15) {
                 hourStates[3]--;
-                if (hourStates[3] < 0) {
+                if (hourStates[3] == 255) {
                     hourStates[3] = 23;
                 }
                 setTimerTime(3, 176, 8);
@@ -550,7 +799,7 @@ void loop() {
             }
             if (pressedButton == 17) {
                 minuteStates[3]--;
-                if (minuteStates[3] < 0) {
+                if (minuteStates[3] == 255) {
                     minuteStates[3] = 59;
                 }
                 setTimerTime(3, 176, 8);
@@ -568,7 +817,7 @@ void loop() {
 
             if (pressedButton == 20) {
                 hourStates[4]--;
-                if (hourStates[4] < 0) {
+                if (hourStates[4] == 255) {
                     hourStates[4] = 23;
                 }
                 setTimerTime(4, 176, 64);
@@ -582,7 +831,7 @@ void loop() {
             }
             if (pressedButton == 22) {
                 minuteStates[4]--;
-                if (minuteStates[4] < 0) {
+                if (minuteStates[4] == 255) {
                     minuteStates[4] = 59;
                 }
                 setTimerTime(4, 176, 64);
@@ -600,7 +849,7 @@ void loop() {
 
             if (pressedButton == 25) {
                 hourStates[5]--;
-                if (hourStates[5] < 0) {
+                if (hourStates[5] == 255) {
                     hourStates[5] = 23;
                 }
                 setTimerTime(5, 176, 120);
@@ -614,7 +863,7 @@ void loop() {
             }
             if (pressedButton == 27) {
                 minuteStates[5]--;
-                if (minuteStates[5] < 0) {
+                if (minuteStates[5] == 255) {
                     minuteStates[5] = 59;
                 }
                 setTimerTime(5, 176, 120);
@@ -699,9 +948,9 @@ void drawTempScreen() {
     for (int i = 0; i < 75; i++) {
         int j = i + 1;
         int x1 = startx + (i * 4);
-        int y1 = starty - tempData[i] * 10;
+        int y1 = starty - tempDataTable[i] * 10;
         int x2 = startx + (j * 4);
-        int y2 = starty - tempData[j] * 10;
+        int y2 = starty - tempDataTable[j] * 10;
 
         if (i == 24) {
             myGLCD.setColor(255, 255, 255);
@@ -734,35 +983,81 @@ void drawTempScreen() {
 }
 
 void drawCo2Screen() {
+    sprintf (strDate, "%02dh:%02dm.", co2hour[0], co2minute[0]);
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 10, 8);
+
+    myButtons.addButton(2,   28, 22,  30, "<");
+    myButtons.addButton(28,  28, 22,  30, ">");
+    myButtons.addButton(62,  28, 22,  30, "<");
+    myButtons.addButton(88,  28, 22,  30, ">");
+    myButtons.addButton(116, 28, 34,  30, "");
+
+    sprintf (strDate, "%02dh:%02dm.", co2hour[1], co2minute[1]);
+    myGLCD.setColor(225, 225, 225);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 10, 64);
+
+    myButtons.addButton(2,   85, 22,  30, "<");
+    myButtons.addButton(28,  85, 22,  30, ">");
+    myButtons.addButton(62,  85, 22,  30, "<");
+    myButtons.addButton(88,  85, 22,  30, ">");
+    myButtons.addButton(116, 85, 34,  30, "");
+
+
+    sprintf (strDate, "%02dh:%02dm.", co2hour[2], co2minute[2]);
+    myGLCD.setColor(225, 225, 225);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 176, 8);
+
+    myButtons.addButton(166, 28, 22,  30, "<");
+    myButtons.addButton(192, 28, 22,  30, ">");
+    myButtons.addButton(226, 28, 22,  30, "<");
+    myButtons.addButton(252, 28, 22,  30, ">");
+    myButtons.addButton(280, 28, 34,  30, "");
+
+    sprintf (strDate, "%02dh:%02dm.", co2hour[3], co2minute[3]);
+    myGLCD.setColor(225, 225, 225);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 176, 64);
+
+    myButtons.addButton(166, 85, 22,  30, "<");
+    myButtons.addButton(192, 85, 22,  30, ">");
+    myButtons.addButton(226, 85, 22,  30, "<");
+    myButtons.addButton(252, 85, 22,  30, ">");
+    myButtons.addButton(280, 85, 34,  30, "");
+
+
     myButtons.addButton(10,  197, 90,  30, "SAVE");
     myButtons.addButton(240, 197, 70,  30, "HOME");
     myButtons.drawButtons();
 }
 
 void lightsOff() {
-    analogWrite(coolWhiteLed, 255);
-    analogWrite(whiteLed, 255);
-    analogWrite(redLed,   255);
-    analogWrite(greenLed, 255);
-    analogWrite(blueLed,  255);
+    analogWrite(LED_COOL_WHITE, 255);
+    analogWrite(LED_WHITE, 255);
+    analogWrite(LED_RED,   255);
+    analogWrite(LED_GREEN, 255);
+    analogWrite(LED_BLUE,  255);
     actualLightState = MODE_OFF;
 }
 
 void lightsDay() {
-    analogWrite(coolWhiteLed, xCC);
-    analogWrite(whiteLed, xWC);
-    analogWrite(redLed,   255);
-    analogWrite(greenLed, 255);
-    analogWrite(blueLed,  255);
+    analogWrite(LED_COOL_WHITE, xCC);
+    analogWrite(LED_WHITE, xWC);
+    analogWrite(LED_RED,   255);
+    analogWrite(LED_GREEN, 255);
+    analogWrite(LED_BLUE,  255);
     actualLightState = MODE_DAY;
 }
 
 void setNight() {
-    analogWrite(coolWhiteLed, 255);
-    analogWrite(whiteLed, 255);
-    analogWrite(redLed,   xRC);
-    analogWrite(greenLed, xGC);
-    analogWrite(blueLed,  xBC);
+    analogWrite(LED_COOL_WHITE, 255);
+    analogWrite(LED_WHITE, 255);
+    analogWrite(LED_RED,   xRC);
+    analogWrite(LED_GREEN, xGC);
+    analogWrite(LED_BLUE,  xBC);
     actualLightState = MODE_NIGHT;
 }
 
@@ -783,6 +1078,13 @@ void setMode() {
 
 void setTimerTime(int id, int x, int y) {
     sprintf (strDate, "%02dh:%02dm.", hourStates[id], minuteStates[id]);
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, x, y);
+}
+
+void setCo2TimerTime(int id, int x, int y) {
+    sprintf (strDate, "%02dh:%02dm.", co2hour[id], co2minute[id]);
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, x, y);
@@ -848,24 +1150,24 @@ void drawHomeScreen() {
     sprintf (strTime, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
     myGLCD.setColor(162, 0, 0);
     myGLCD.setFont(GroteskBold24x48);
-    myGLCD.print(strTime, CENTER, 30);
+    myGLCD.print(strTime, CENTER, 27);
 
     sumDateNow = now.day() + now.month() + now.year();
     if (dateNow != sumDateNow) {
         sprintf (strDate, "%02d.%02d.%02d", now.day(), now.month(), now.year());
         myGLCD.setColor(150, 150, 150);
         myGLCD.setFont(BigFont);
-        myGLCD.print(strDate, CENTER, 85);
+        myGLCD.print(strDate, CENTER, 80);
     }
 
-    if (tempNow != temp) {
-        dtostrf(tempNow, 4, 1, strTemp);
-        myGLCD.setColor(7, 56, 212);
-        myGLCD.setFont(GroteskBold24x48);
-        myGLCD.print(strTemp, 100, 125);
-        myGLCD.print("C", 205, 125);
-    }
+    dtostrf(actualTemp, 4, 1, strTemp);
+    myGLCD.setColor(7, 56, 212);
+    myGLCD.setFont(GroteskBold24x48);
+    myGLCD.print(strTemp, 100, 112);
+    myGLCD.print("C", 205, 112);
 
+    myGLCD.setColor(90, 90, 90);
+    myGLCD.setFont(BigFont);
     if (actualLightState != lightStatesNow) {
         myGLCD.print("                   ", CENTER, 185);
         if (switchMode == MODE_MANUAL) {
@@ -873,11 +1175,17 @@ void drawHomeScreen() {
         } else {
             sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightState]);
         }
-        myGLCD.setColor(90, 90, 90);
-        myGLCD.setFont(BigFont);
-        myGLCD.print(str, CENTER, 185);
+        myGLCD.print(str, CENTER, 165);
         lightStatesNow = actualLightState;
     }
+
+    //myGLCD.print("                   ", CENTER, 185);
+    if (co2Mode == MODE_OFF) {
+        sprintf (str, "CO2:%s", co2Str[CO2_OFF]);
+    } else {
+        sprintf (str, "CO2:%s", co2Str[CO2_ON]);
+    }
+    myGLCD.print(str, CENTER, 185);
 
     if (actualCW > targetCW || actualCW < targetCW) {
         myGLCD.setColor(255, 255, 255);
@@ -923,18 +1231,15 @@ void drawLightControl() {
     myGLCD.setColor(255, 255, 255);
 
     myGLCD.drawRect(40,  41, 310,  54); // CW  slider
-    drawSlidersCC();
-
     myGLCD.drawRect(40,  71, 310,  84); // WW  slider
-    drawSlidersWC();
-
     myGLCD.drawRect(40, 106, 310, 121); // Red   slider
-    drawSlidersRC();
-
     myGLCD.drawRect(40, 136, 310, 149); // Green slider
-    drawSlidersGC();
-
     myGLCD.drawRect(40, 166, 310, 179); // Blue  slider
+
+    drawSlidersCC();
+    drawSlidersWC();
+    drawSlidersRC();
+    drawSlidersGC();
     drawSlidersBC();
 
     myButtons.addButton(2,   197, 50,  30, "DAY");
@@ -970,7 +1275,7 @@ void drawTouchLedArea() {
             xC = 304;
         }
         xCC = map(xC, 304, 42, 0, 255);
-        analogWrite(coolWhiteLed, xCC);
+        analogWrite(LED_COOL_WHITE, xCC);
     }
 
     // Area of the Main color slider
@@ -983,7 +1288,7 @@ void drawTouchLedArea() {
             xW = 304;
         }
         xWC = map(xW, 304, 42, 0, 255);
-        analogWrite(whiteLed, xWC);
+        analogWrite(LED_WHITE, xWC);
     }
 
     // Area of the Red color slider
@@ -996,7 +1301,7 @@ void drawTouchLedArea() {
             xR = 304;
         }
         xRC = map(xR, 304, 42, 0, 255);
-        analogWrite(redLed,   xRC);
+        analogWrite(LED_RED,   xRC);
     }
 
     // Area of the Green color slider
@@ -1009,7 +1314,7 @@ void drawTouchLedArea() {
             xG = 304;
         }
         xGC = map(xG, 304, 42, 0, 255);
-        analogWrite(greenLed, xGC);
+        analogWrite(LED_GREEN, xGC);
     }
 
     // Area of the Blue color slider
@@ -1022,7 +1327,7 @@ void drawTouchLedArea() {
             xB = 304;
         }
         xBC = map(xB, 304, 42, 0, 255);
-        analogWrite(blueLed,  xBC);
+        analogWrite(LED_BLUE,  xBC);
     }
 
     if (xC != oldXWC) {
@@ -1101,7 +1406,7 @@ void drawSlidersBC() {
     myGLCD.fillRect(xB, 167, (xB + 4), 178); // Positioner
 
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(41, 167, (xB - 1),  178); // first rect
+    myGLCD.fillRect(41, 167, (xB - 1),  178); // first
 
     myGLCD.setColor(0, 0, 0);
     myGLCD.fillRect((xB + 5), 167, 308, 178); // second rect
@@ -1229,14 +1534,38 @@ void eepromRead() {
     minuteStates[7] = 0;
 
     switchMode = EEPROM.read(24);
+
+
+    co2states[0] = EEPROM.read(25);
+    co2states[1] = EEPROM.read(26);
+    co2states[2] = EEPROM.read(27);
+    co2states[3] = EEPROM.read(28);
+    co2states[4] = co2states[3];
+    co2states[5] = co2states[3];
+
+    co2hour[0] = EEPROM.read(29);
+    co2hour[1] = EEPROM.read(30);
+    co2hour[2] = EEPROM.read(31);
+    co2hour[3] = EEPROM.read(32);
+    co2hour[4] = 23;
+    co2hour[5] = 0;
+
+    co2minute[0] = EEPROM.read(33);
+    co2minute[1] = EEPROM.read(34);
+    co2minute[2] = EEPROM.read(35);
+    co2minute[3] = EEPROM.read(36);
+    co2minute[4] = 59;
+    co2minute[5] = 0;
+
+    EEPROM_readAnything(128, tempDataTable);
 }
 
 void defaultLights() {
-    analogWrite(coolWhiteLed, xCC);
-    analogWrite(whiteLed, xWC);
-    analogWrite(redLed, xRC);
-    analogWrite(greenLed, xGC);
-    analogWrite(blueLed, xBC);
+    analogWrite(LED_COOL_WHITE, xCC);
+    analogWrite(LED_WHITE, xWC);
+    analogWrite(LED_RED, xRC);
+    analogWrite(LED_GREEN, xGC);
+    analogWrite(LED_BLUE, xBC);
 }
 
 /**
@@ -1271,9 +1600,9 @@ void switchLight(int i) {
             actualCW = OCR1A;
             targetWW = 255;
             targetCW = 255;
-            analogWrite(redLed,   255);
-            analogWrite(greenLed, 255);
-            analogWrite(blueLed,  255);
+            analogWrite(LED_RED,   255);
+            analogWrite(LED_GREEN, 255);
+            analogWrite(LED_BLUE,  255);
         }
         if (actualLightState == MODE_DAY) {
             // set day
@@ -1281,9 +1610,9 @@ void switchLight(int i) {
             actualCW = OCR1A;
             targetWW = xWC;
             targetCW = xCC;
-            analogWrite(redLed,   255);
-            analogWrite(greenLed, 255);
-            analogWrite(blueLed,  255);
+            analogWrite(LED_RED,   255);
+            analogWrite(LED_GREEN, 255);
+            analogWrite(LED_BLUE,  255);
         }
         if (actualLightState == MODE_NIGHT) {
             // set night
@@ -1291,9 +1620,9 @@ void switchLight(int i) {
             actualCW = OCR1A;
             targetWW = 255;
             targetCW = 255;
-            analogWrite(redLed,   xRC);
-            analogWrite(greenLed, xGC);
-            analogWrite(blueLed,  xBC);
+            analogWrite(LED_RED,   xRC);
+            analogWrite(LED_GREEN, xGC);
+            analogWrite(LED_BLUE,  xBC);
         }
     }
 }
@@ -1311,10 +1640,10 @@ void switchLight(int i) {
   (byte & 0x01 ? '1' : '0')
 
 void debug() {
-    char str[62];
+    //char str[62];
 
-    myGLCD.setColor(255, 255, 255);
-    myGLCD.setFont(SmallFont);
+    //myGLCD.setColor(255, 255, 255);
+    //myGLCD.setFont(SmallFont);
 
     //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
     //         pressedButton, page, xRC, xGC, xBC, xWC);
@@ -1328,8 +1657,10 @@ void debug() {
     //         xRC, xGC, xBC, xWC, xCC);
     //myGLCD.print(str, CENTER, 215);
     //
-    sprintf (str, "Ww a:%03d-t:%03d, Co: a%03d-t:%03d SM:%d",
-             actualWW, targetWW, actualCW, targetCW, switchMode);
+    //sprintf (str, "Ww a:%03d-t:%03d, Co: a%03d-t:%03d SM:%d",
+    //         actualWW, targetWW, actualCW, targetCW, switchMode);
+    //sprintf (str, "Temp avg:%3d-t:%03d, Co: a%03d-t:%03d SM:%d",
+    //         actualWW, targetWW, actualCW, targetCW, switchMode);
 
     //sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
     //         lightStates[0], lightStates[1],lightStates[2],
@@ -1340,7 +1671,7 @@ void debug() {
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
     //Serial.println(str);
 
-    myGLCD.print(str, CENTER, 228);
+    //myGLCD.print(str, CENTER, 228);
 }
 
 void drawRegDebug() {
@@ -1379,5 +1710,20 @@ void drawRegDebug() {
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(SmallFont);
     myGLCD.print(str, LEFT, 85);
+
+    int posy = 105;
+    int posx = 0;
+    for (int i = 1; i < 61; i++) {
+
+        if (i % 7 == 0) {
+            posy += 15;
+            posx = 0;
+        }
+
+        dtostrf(temperatureHour[i - 1], 4, 1, str);
+        myGLCD.print(str, posx, posy);
+        posx += 35;
+
+    }
 }
 #endif
