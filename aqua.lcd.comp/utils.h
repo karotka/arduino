@@ -15,6 +15,12 @@ template <class T> int EEPROM_readAnything(int ee, T& value) {
    return i;
 }
 
+void myRound(float * value) {
+    *value = *value * 10.0f;
+    *value = *value > 0.0f ? floor(*value + 0.5f) : ceil(*value - 0.5f);
+    *value = *value / 10.0f;
+}
+
 //
 /*
 void sort(int a[], int size) {

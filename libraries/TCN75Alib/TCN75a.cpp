@@ -2,7 +2,7 @@
 #include "TCN75A.h"
 
 TCN75A::TCN75A() {
-  //Set initial values for private vars
+    // Set initial values for private vars
 }
 
 void TCN75A::begin(void) {
@@ -10,10 +10,13 @@ void TCN75A::begin(void) {
 
     // Start I2C transmission
     Wire.beginTransmission(TCN75A_ADDRESS);
+
     // Select configuration register
     Wire.write(0x01);
+
     // 12-bit ADC resolution
     Wire.write(0x60);
+
     // Stop I2C transmission
     Wire.endTransmission();
 }

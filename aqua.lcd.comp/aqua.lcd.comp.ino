@@ -1,117 +1,73 @@
+#include "configure.h"
+#include <Thermistor.h>
 #include <Wire.h>
-#include <UTFT.h>
-#include <ITDB02_Touch.h>
 #include <UTFT_Buttons.h>
 #include <EEPROM.h>
 #include "utils.h"
 #include <RTClib.h>
-//#include "SparkFunHTU21D.h"
 #include "TCN75a.h"
-
-#define DEBUG               1
-
-#define RETURN_DELAY        5000 // 10s
-#define RELE_PIN            14
-#define LED_WHITE           12
-#define LED_COOL_WHITE      11
-#define LED_RED             10
-#define LED_GREEN           9
-#define LED_BLUE            8
-
-const char* co2Str[2]  = {"OFF", "ON"};
-const char* dateStr[4] = {"OFF", "DAY", "NIGHT", "NONE"};
-
-enum {
-    MODE_OFF = 0,
-    MODE_DAY,
-    MODE_NIGHT,
-    MODE_NONE
-};
-
-UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
-ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
-UTFT_Buttons  myButtons(&myGLCD, &myTouch);
-
-//==== Defining Variables
-int x, y;
-
-int xC, xW, xR, xG, xB = 38;
-int xCC, xWC, xRC, xGC, xBC = 42;
-int actualWW, actualCW, targetWW, targetCW;
-
-uint8_t lightStates[8];
-
-uint8_t hourStates[8];
-uint8_t minuteStates[8];
-
-uint8_t co2states[6];
-
-uint8_t co2hour[6];
-uint8_t co2minute[6];
-
-volatile uint8_t lightStatesNow;
-volatile uint8_t actualLightState;
-volatile uint8_t page;
-volatile uint8_t switchMode;
-volatile uint8_t co2Mode;
-volatile uint8_t pressedButton;
-
-volatile int timerCounter2 = 0;
-volatile uint8_t i2cReadTimeCounter;
-volatile int temperatureReadTimeCounter;
-
-volatile int sumDateNow = 0;
-volatile int dateNow = 0;
 
 RTC_DS1307 RTC;
 DateTime now;
 NewTime  newTime;
+TCN75A temperature;
+Thermistor t0(A0);
+//Thermistor t1(A1);
+//Thermistor t2(A2);
+
+volatile int x, y;
+volatile int xC, xW, xR, xG, xB = 38;
+volatile int xCC, xWC, xRC, xGC, xBC = 42;
+volatile int actualWW, actualCW, targetWW, targetCW;
+
+uint8_t lightStates[8];
+uint8_t hourStates[8];
+uint8_t minuteStates[8];
+
+uint8_t co2states[6];
+uint8_t co2hour[6];
+uint8_t co2minute[6];
+
+volatile uint8_t page;
+volatile uint8_t actualCo2state;
+volatile uint8_t lightStatesNow;
+volatile uint8_t actualLightState;
+volatile uint8_t switchMode;
+volatile uint8_t pressedButton;
+volatile uint8_t flashWrote;
+volatile uint8_t i2cReadTimeCounter;
+
+volatile int timerCounter2 = 0;
+volatile int temperatureReadTimeCounter;
+
+volatile int sumDateNow = 0;
+volatile int dateNow = 0;
 
 char strTemp[4];
 char strTime[9];
 char strDate[10];
 char str[19];
 
-enum {
-    PAGE_HOME = 0,
-    PAGE_SELECT,
-    PAGE_SET_LIGHT,
-    PAGE_SET_TIMER,
-    PAGE_SET_TIME,
-    PAGE_SET_CO2,
-    PAGE_TEMP,
-    PAGE_DEBUG,
-    PAGE_RETURN_MOME
-};
-
-enum {
-    MODE_AUTO = 0,
-    MODE_MANUAL
-};
-
-enum {
-    CO2_OFF = 0,
-    CO2_ON
-};
-
 extern uint8_t GroteskBold24x48[];
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
 //HTU21D temperature;
-TCN75A temperature;
 float temperatureMin[60] = {0};
 float temperatureHour[60] = {0};
-float tempDataTable[75] = {16.0};
+float tempDataTable[75] = {0};
 
-volatile float actualTemp = 0;
 volatile uint8_t tempPointer = 0;
+volatile uint8_t newTemperature;
+volatile float tempSum = 0;
+volatile float actualTemp = 0;
 volatile int tempMinPointer = 0;
-byte newTemperature;
+
 
 void setup() {
     actualLightState = MODE_NONE;
     lightStatesNow = MODE_NONE;
+    flashWrote = false;
 
     pinMode(RELE_PIN, OUTPUT);
 
@@ -124,6 +80,7 @@ void setup() {
     }
 
     temperature.begin();
+    t0.begin();
 
     eepromRead();
 
@@ -156,7 +113,7 @@ void timer2set(void) {
 }
 
 ISR(TIMER2_OVF_vect) {
-    cli();
+    //cli();
 
     timerCounter2++;
     i2cReadTimeCounter++;
@@ -164,6 +121,7 @@ ISR(TIMER2_OVF_vect) {
 
     if (switchMode == MODE_AUTO && !(timerCounter2 % 200)) {
         checkTimer();
+        checkCo2();
 
         // dimming process
         if (actualCW > targetCW) {
@@ -172,7 +130,6 @@ ISR(TIMER2_OVF_vect) {
         if (actualCW < targetCW) {
             analogWrite(LED_COOL_WHITE, ++actualCW);
         }
-
         if (actualWW > targetWW) {
             analogWrite(LED_WHITE, actualWW--);
         }
@@ -196,21 +153,23 @@ ISR(TIMER2_OVF_vect) {
      */
     if (newTemperature) {
         newTemperature = false;
-        temperatureMin[tempPointer] = actualTemp;
         tempPointer++;
+        temperatureMin[tempPointer] = actualTemp;
 
         /*
          * if number of values is 60 make average and
          * write it into temperatureHour
          */
         if (tempPointer == 60) {
-            float tempSum = 0;
+            tempPointer = 0;
+
+            // count avr min temperature
+            tempSum = 0;
             for (uint8_t i = 0; i < 60; i++) {
                 tempSum += temperatureMin[i];
             }
 
             temperatureHour[tempMinPointer] = tempSum / 60;
-            tempPointer = 0;
             tempMinPointer++;
 
             /*
@@ -218,35 +177,48 @@ ISR(TIMER2_OVF_vect) {
              * write it into tempDataTable on the end of array
              */
             if (tempMinPointer == 60) {
-                float tempSum = 0;
-                for (uint8_t i = 0; i < 60; i++) {
-                    tempSum += temperatureHour[i];
-                }
+                // reset tempMinutePointer
+                tempMinPointer = 0;
 
                 // shift values in array
                 for (uint8_t i = 1; i < 75; i++) {
                     tempDataTable[i - 1] = tempDataTable[i];
                 }
 
+                tempSum = 0;
+                // count new last value
+                for (uint8_t i = 0; i < 60; i++) {
+                    tempSum += temperatureHour[i];
+                }
+
                 // write last value into the end of the array
                 tempDataTable[74] = tempSum / 60;
-                // write array into EEEPROM
-                EEPROM_writeAnything(128, tempDataTable);
-                // reset tempMinutePointer
-                tempMinPointer = 0;
             }
         }
     }
+
+    if (now.hour() == 0 && flashWrote == false) {
+        // write array into EEEPROM
+        EEPROM_writeAnything(128, tempDataTable);
+        flashWrote = true;
+    }
+    if (now.hour() == 2) {
+        flashWrote = false;
+    }
+
 }
 
 void loop() {
     //PORTK &= ~(1 << PK7);
     //PORTK |= (1 << PK7);
-    //PORTK ^= (1 << PK7);
 
     // read temperature each one second
-    if (temperatureReadTimeCounter > 420) {
-        PORTK ^= (1 << PK7);
+    if (temperatureReadTimeCounter > 430) {
+        t0.readTemperature();
+        //t1.readTemperature();
+        //t2.readTemperature();
+        //t3.readTemperature();
+
         newTemperature = true;
         actualTemp = temperature.readTemperature();
         temperatureReadTimeCounter = 0;
@@ -414,7 +386,6 @@ void loop() {
         break;
 
     case PAGE_SET_TIME:
-        //PORTK ^= (1 << PH7);
 
         if (myTouch.dataAvailable() == true) {
             timerCounter2 = 0;
@@ -547,8 +518,7 @@ void loop() {
                 setCo2TimerTime(0, 10, 8);
             }
             if (pressedButton == 4) {
-                digitalWrite(RELE_PIN, HIGH);
-                co2Mode = CO2_ON;
+                setCo2Type(4, 0);
             }
 
             if (pressedButton == 5) {
@@ -578,6 +548,9 @@ void loop() {
                     co2minute[1] = 0;
                 }
                 setCo2TimerTime(1, 10, 64);
+            }
+            if (pressedButton == 9) {
+                setCo2Type(9, 1);
             }
 
             // second column
@@ -610,8 +583,7 @@ void loop() {
                 setCo2TimerTime(2, 176, 8);
             }
             if (pressedButton == 14) {
-                digitalWrite(RELE_PIN, LOW);
-                co2Mode = CO2_OFF;
+                setCo2Type(14, 2);
             }
 
             if (pressedButton == 15) {
@@ -643,8 +615,7 @@ void loop() {
                 setCo2TimerTime(3, 176, 64);
             }
             if (pressedButton == 19) {
-                digitalWrite(RELE_PIN, LOW);
-                co2Mode = CO2_OFF;
+                setCo2Type(19, 3);
             }
 
             // save values
@@ -1028,9 +999,14 @@ void drawCo2Screen() {
     myButtons.addButton(252, 85, 22,  30, ">");
     myButtons.addButton(280, 85, 34,  30, "");
 
-
     myButtons.addButton(10,  197, 90,  30, "SAVE");
     myButtons.addButton(240, 197, 70,  30, "HOME");
+
+    setCo2Button(4,  0);
+    setCo2Button(9,  1);
+    setCo2Button(14, 2);
+    setCo2Button(19, 3);
+
     myButtons.drawButtons();
 }
 
@@ -1090,6 +1066,23 @@ void setCo2TimerTime(int id, int x, int y) {
     myGLCD.print(strDate, x, y);
 }
 
+void setCo2Type(int btn, int id) {
+    co2states[id]++;
+    if (co2states[id] > 1) {
+        co2states[id] = 0;
+    }
+    setCo2Button(btn, id);
+}
+
+void setCo2Button(int btn, int id) {
+    if (co2states[id] == CO2_OFF) {
+        myButtons.relabelButton(btn, "OF", true);
+    } else
+    if (co2states[id] == CO2_ON) {
+        myButtons.relabelButton(btn, "ON", true);
+    }
+}
+
 void setLightType(int btn, int id) {
     lightStates[id]++;
     if (lightStates[id] > 2) {
@@ -1099,16 +1092,16 @@ void setLightType(int btn, int id) {
 }
 
 void setLightButton(int btn, int id) {
-    if (lightStates[id] == 0) {
+    if (lightStates[id] == MODE_OFF) {
         myButtons.relabelButton(btn, "OF", true);
     } else
-    if (lightStates[id] == 1) {
+    if (lightStates[id] == MODE_DAY) {
         myButtons.relabelButton(btn, "DA", true);
     } else
-    if (lightStates[id] == 2) {
+    if (lightStates[id] == MODE_NIGHT) {
         myButtons.relabelButton(btn, "NI", true);
     } else {
-        myButtons.relabelButton(btn, "NO", true);
+        myButtons.relabelButton(btn, "Un", true);
     }
 }
 
@@ -1179,8 +1172,8 @@ void drawHomeScreen() {
         lightStatesNow = actualLightState;
     }
 
-    //myGLCD.print("                   ", CENTER, 185);
-    if (co2Mode == MODE_OFF) {
+    myGLCD.print("    ", 250, 185);
+    if (actualCo2state == CO2_OFF) {
         sprintf (str, "CO2:%s", co2Str[CO2_OFF]);
     } else {
         sprintf (str, "CO2:%s", co2Str[CO2_ON]);
@@ -1535,7 +1528,6 @@ void eepromRead() {
 
     switchMode = EEPROM.read(24);
 
-
     co2states[0] = EEPROM.read(25);
     co2states[1] = EEPROM.read(26);
     co2states[2] = EEPROM.read(27);
@@ -1569,9 +1561,9 @@ void defaultLights() {
 }
 
 /**
-  Check if actual time is bettween timer values
-  If yes, switch lights to right state
-**/
+ * Check if actual time is bettween timer values
+ * If yes, switch lights to right state
+ **/
 void checkTimer() {
 
     int minutes, nextMinutes, realMinute;
@@ -1587,6 +1579,41 @@ void checkTimer() {
         if (minutes <= realMinute && realMinute < nextMinutes) {
             switchLight(i);
             break;
+        }
+    }
+}
+
+/**
+ * Check if actual time is bettween timer values
+ * If yes, switch lights to the right state
+ **/
+void checkCo2() {
+
+    int minutes, nextMinutes, realMinute;
+    realMinute = now.minute() + (now.hour() * 60);
+
+    for(uint8_t i = 0; i < 6; i++) {
+        uint8_t j = i + 1;
+        if (i == 5) { j = 0; }
+
+        minutes     = co2minute[i] + (co2hour[i] * 60);
+        nextMinutes = co2minute[j] + (co2hour[j] * 60);
+
+        if (minutes <= realMinute && realMinute < nextMinutes) {
+            switchCo2(i);
+            break;
+        }
+    }
+}
+
+void switchCo2(int i) {
+    if (actualCo2state != co2states[i]) {
+        actualCo2state = co2states[i];
+        if (actualCo2state == CO2_OFF) {
+            digitalWrite(RELE_PIN, HIGH);
+        }
+        if (actualCo2state == CO2_ON) {
+            digitalWrite(RELE_PIN, LOW);
         }
     }
 }
@@ -1630,20 +1657,20 @@ void switchLight(int i) {
 #if DEBUG == 1
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)  \
-  (byte & 0x80 ? '1' : '0'), \
-  (byte & 0x40 ? '1' : '0'), \
-  (byte & 0x20 ? '1' : '0'), \
-  (byte & 0x10 ? '1' : '0'), \
-  (byte & 0x08 ? '1' : '0'), \
-  (byte & 0x04 ? '1' : '0'), \
-  (byte & 0x02 ? '1' : '0'), \
-  (byte & 0x01 ? '1' : '0')
+    (byte & 0x80 ? '1' : '0'), \
+    (byte & 0x40 ? '1' : '0'), \
+    (byte & 0x20 ? '1' : '0'), \
+    (byte & 0x10 ? '1' : '0'), \
+    (byte & 0x08 ? '1' : '0'), \
+    (byte & 0x04 ? '1' : '0'), \
+    (byte & 0x02 ? '1' : '0'), \
+    (byte & 0x01 ? '1' : '0')
 
 void debug() {
-    //char str[62];
+    char str[62];
 
-    //myGLCD.setColor(255, 255, 255);
-    //myGLCD.setFont(SmallFont);
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.setFont(SmallFont);
 
     //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
     //         pressedButton, page, xRC, xGC, xBC, xWC);
@@ -1659,8 +1686,12 @@ void debug() {
     //
     //sprintf (str, "Ww a:%03d-t:%03d, Co: a%03d-t:%03d SM:%d",
     //         actualWW, targetWW, actualCW, targetCW, switchMode);
+
     //sprintf (str, "Temp avg:%3d-t:%03d, Co: a%03d-t:%03d SM:%d",
     //         actualWW, targetWW, actualCW, targetCW, switchMode);
+
+    //sprintf (str, "NeT:%01d Tp:%02d Tmp:%02d TS:%04d 74:%03d",
+    //         newTemperature, tempPointer, tempMinPointer, (int)tempSum, (int)tempDataTable[74]);
 
     //sprintf (str, "BTN: %d, page: %d, %d %d %d %d %d %d", pressedButton, page,
     //         lightStates[0], lightStates[1],lightStates[2],
@@ -1670,8 +1701,11 @@ void debug() {
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
     //Serial.println(str);
+    float t = t0.getCelsius();
+    myRound(&t);
 
-    //myGLCD.print(str, CENTER, 228);
+    dtostrf(t, 2, 1, str);
+    myGLCD.print(str, CENTER, 228);
 }
 
 void drawRegDebug() {
