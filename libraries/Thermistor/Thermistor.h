@@ -24,7 +24,7 @@ public:
     float getCelsius();
 
 protected:
-    float samples[NUMSAMPLES];
+    float samples[NUMSAMPLES] = {0.0};
     float steinhart;
     float celsius;
     float average;

@@ -54,6 +54,7 @@ typedef struct {
   uint16_t			flags;
   const char		*label;
   bitmapdatatype	data;
+  word              bgColor;
 } button_type;
 
 class UTFT_Buttons {
@@ -61,27 +62,29 @@ class UTFT_Buttons {
 		UTFT_Buttons(UTFT *ptrUTFT, ITDB02_Touch *ptrURTouch);
 
 		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
-                          const char *label, uint16_t flags=0);
+                          const char *label, uint16_t flags = 0, word bgColor = VGA_BLUE);
 		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
                           bitmapdatatype data, uint16_t flags=0);
 		void	drawButtons();
 		void	drawButton(int buttonID);
 		void	enableButton(int buttonID, boolean redraw=false);
 		void	disableButton(int buttonID, boolean redraw=false);
-		void	relabelButton(int buttonID, const char *label, boolean redraw=false);
+		void	relabelButton(int buttonID, const char *label, boolean redraw = false,
+                                word bgColor = VGA_BLUE);
 		boolean	buttonEnabled(int buttonID);
 		void	deleteButton(int buttonID);
 		void	deleteAllButtons();
 		int		checkButtons();
 		void	setTextFont(uint8_t* font);
 		void	setSymbolFont(uint8_t* font);
-		void	setButtonColors(word atxt, word iatxt, word brd, word brdhi, word back);
+		void	setButtonColors(word atxt, word iatxt, word brd, word brdhi, word back, word iback);
 		ITDB02_Touch *Touch;
 
 	protected:
 		UTFT		*_UTFT;
 		button_type	buttons[MAX_BUTTONS];
-		word		_color_text, _color_text_inactive, _color_background, _color_border, _color_hilite;
+		word		_color_text, _color_text_inactive, _color_background,
+                    _color_border, _color_hilite, _color_back_inactive;
 		uint8_t		*_font_text, *_font_symbol;
 };
 

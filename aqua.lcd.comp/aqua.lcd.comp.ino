@@ -1,3 +1,10 @@
+/**
+ * Graphical interface for Arduino Aquarium Computer
+ * http://www.sainsmart.com/sainsmart-mega2560-board-3-5-tft-lcd-module-display-shield-kit-for-atmel-atmega-avr-16au-atmega8u2.html
+ * 3.2" 320x240 pixel SSD1289
+ *
+ */
+
 #include "configure.h"
 #include <Thermistor.h>
 #include <Wire.h>
@@ -12,8 +19,9 @@ DateTime now;
 NewTime  newTime;
 TCN75A temperature;
 Thermistor t0(A0);
-//Thermistor t1(A1);
-//Thermistor t2(A2);
+Thermistor t1(A1);
+Thermistor t2(A2);
+Thermistor t3(A3);
 
 volatile int x, y;
 volatile int xC, xW, xR, xG, xB = 38;
@@ -27,6 +35,8 @@ uint8_t minuteStates[8];
 uint8_t co2states[6];
 uint8_t co2hour[6];
 uint8_t co2minute[6];
+
+uint8_t temperatureSenzorStatus[4];
 
 volatile uint8_t page;
 volatile uint8_t actualCo2state;
@@ -53,15 +63,15 @@ extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
 //HTU21D temperature;
-float temperatureMin[60] = {0};
+float temperatureMin[60]  = {0};
 float temperatureHour[60] = {0};
-float tempDataTable[75] = {0};
+float tempDataTable[75]   = {0};
 
 volatile uint8_t tempPointer = 0;
 volatile uint8_t newTemperature;
-volatile float tempSum = 0;
-volatile float actualTemp = 0;
-volatile int tempMinPointer = 0;
+volatile float   tempSum = 0;
+volatile float   actualTemp = 0;
+volatile int     tempMinPointer = 0;
 
 
 void setup() {
@@ -81,6 +91,9 @@ void setup() {
 
     temperature.begin();
     t0.begin();
+    t1.begin();
+    t2.begin();
+    t3.begin();
 
     eepromRead();
 
@@ -100,6 +113,9 @@ void setup() {
     timer2set();
 
     defaultLights();
+
+    myButtons.setButtonColors(VGA_WHITE, VGA_WHITE, VGA_WHITE,
+                              VGA_RED, VGA_BLUE, VGA_GRAY);
 }
 
 void pinInit(void) {
@@ -214,11 +230,18 @@ void loop() {
 
     // read temperature each one second
     if (temperatureReadTimeCounter > 430) {
-        t0.readTemperature();
-        //t1.readTemperature();
-        //t2.readTemperature();
-        //t3.readTemperature();
-
+        if (temperatureSenzorStatus[0] == 1) {
+            t0.readTemperature();
+        }
+        if (temperatureSenzorStatus[1] == 1) {
+            t1.readTemperature();
+        }
+        if (temperatureSenzorStatus[2] == 1) {
+            t2.readTemperature();
+        }
+        if (temperatureSenzorStatus[3] == 1) {
+            t3.readTemperature();
+        }
         newTemperature = true;
         actualTemp = temperature.readTemperature();
         temperatureReadTimeCounter = 0;
@@ -326,7 +349,6 @@ void loop() {
 #if DEBUG == 1
     case PAGE_DEBUG:
         if (myTouch.dataAvailable() == true) {
-            timerCounter2 = 0;
             timerCounter2 = 0;
 
             pressedButton = myButtons.checkButtons();
@@ -474,6 +496,27 @@ void loop() {
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
+                temperatureSenzorStatus[0]++;
+                setTempButton(0);
+                EEPROM.write(42, temperatureSenzorStatus[0]);
+            }
+            if (pressedButton == 1) {
+                temperatureSenzorStatus[1]++;
+                setTempButton(1);
+                EEPROM.write(43, temperatureSenzorStatus[1]);
+            }
+            if (pressedButton == 2) {
+                temperatureSenzorStatus[2]++;
+                setTempButton(2);
+                EEPROM.write(44, temperatureSenzorStatus[2]);
+            }
+            if (pressedButton == 3) {
+                temperatureSenzorStatus[3]++;
+                setTempButton(3);
+                EEPROM.write(45, temperatureSenzorStatus[3]);
+            }
+
+            if (pressedButton == 4) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
@@ -949,8 +992,31 @@ void drawTempScreen() {
         }
     }
 
+    myButtons.addButton(2,   197, 50,  30, "", 0, VGA_GRAY);
+    myButtons.addButton(55,  197, 50,  30, "", 0, VGA_GRAY);
+    myButtons.addButton(108, 197, 50,  30, "", 0, VGA_GRAY);
+    myButtons.addButton(161, 197, 50,  30, "", 0, VGA_GRAY);
+
     myButtons.addButton(240, 197, 70,  30, "HOME");
+
     myButtons.drawButtons();
+
+    for (uint8_t i = 0; i < 4; i++) {
+        setTempButton(i);
+    }
+}
+
+void setTempButton(uint8_t id) {
+    sprintf (str, "TE%01d", id + 1);
+
+    if (temperatureSenzorStatus[id] > 1) {
+        temperatureSenzorStatus[id] = 0;
+    }
+    if (temperatureSenzorStatus[id] == 0) {
+        myButtons.relabelButton(id, str, true, VGA_GRAY);
+    } else {
+        myButtons.relabelButton(id, str, true, VGA_GREEN);
+    }
 }
 
 void drawCo2Screen() {
@@ -999,7 +1065,7 @@ void drawCo2Screen() {
     myButtons.addButton(252, 85, 22,  30, ">");
     myButtons.addButton(280, 85, 34,  30, "");
 
-    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(10,  197, 90,  30, "SAVE", 0, VGA_RED);
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     setCo2Button(4,  0);
@@ -1040,15 +1106,15 @@ void setNight() {
 void setMode() {
     if (switchMode == MODE_AUTO) {
         myButtons.relabelButton(3, "AUT", true);
-        myButtons.disableButton(0);
-        myButtons.disableButton(1);
-        myButtons.disableButton(2);
+        myButtons.disableButton(0, true);
+        myButtons.disableButton(1, true);
+        myButtons.disableButton(2, true);
     }
     if (switchMode == MODE_MANUAL) {
         myButtons.relabelButton(3, "MAN", true);
-        myButtons.enableButton(0);
-        myButtons.enableButton(1);
-        myButtons.enableButton(2);
+        myButtons.enableButton(0, true);
+        myButtons.enableButton(1, true);
+        myButtons.enableButton(2, true);
     }
 }
 
@@ -1133,7 +1199,7 @@ void drawTimeControl() {
     myButtons.addButton(205, 139, 25,  30, "<");
     myButtons.addButton(235, 139, 25,  30, ">");
 
-    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(10,  197, 90,  30, "SAVE", 0, VGA_RED);
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     myButtons.drawButtons();
@@ -1473,7 +1539,7 @@ void drawTimerScreen() {
     myButtons.addButton(252, 142, 22,  30, ">");
     myButtons.addButton(280, 142, 34,  30, "");
 
-    myButtons.addButton(10,  197, 90,  30, "SAVE");
+    myButtons.addButton(10,  197, 90,  30, "SAVE", 0, VGA_RED);
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     setLightButton(4,  0);
@@ -1548,6 +1614,11 @@ void eepromRead() {
     co2minute[3] = EEPROM.read(36);
     co2minute[4] = 59;
     co2minute[5] = 0;
+
+    temperatureSenzorStatus[0] = EEPROM.read(42);
+    temperatureSenzorStatus[1] = EEPROM.read(43);
+    temperatureSenzorStatus[2] = EEPROM.read(44);
+    temperatureSenzorStatus[3] = EEPROM.read(45);
 
     EEPROM_readAnything(128, tempDataTable);
 }
@@ -1674,7 +1745,6 @@ void debug() {
 
     //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
     //         pressedButton, page, xRC, xGC, xBC, xWC);
-    //sprintf (str, "BTN:%02d, PG:%d");
 
     //sprintf (str, "Actual:%03d Now:%03d",
     //             actualLightState, lightStatesNow);
@@ -1700,11 +1770,25 @@ void debug() {
     //sprintf (str, "xW: %d, xR: %d, xG: %d, xB: %d", xW, xR, xG, xB);
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
-    //Serial.println(str);
-    float t = t0.getCelsius();
-    myRound(&t);
 
-    dtostrf(t, 2, 1, str);
+    float te0, te1, te2, te3;
+
+    te0 = t0.getCelsius();
+    myRound(&te0);
+
+    te1 = t1.getCelsius();
+    myRound(&te1);
+
+    te2 = t2.getCelsius();
+    myRound(&te2);
+
+    te3 = t3.getCelsius();
+    myRound(&te3);
+
+    sprintf (str, "T0:%03d T1:%03d T2:%03d T3:%03d",
+             (int)(te0*10), (int)(te1*10), (int)(te2*10), (int)(te3*10));
+
+    //dtostrf(t, 2, 1, str);
     myGLCD.print(str, CENTER, 228);
 }
 
