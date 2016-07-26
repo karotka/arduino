@@ -17,16 +17,17 @@
 class Thermistor {
 
 public:
-    Thermistor(uint8_t pin);
+    Thermistor(uint8_t pin, int correction = 0);
 
     void begin();
     void readTemperature();
     float getCelsius();
 
 protected:
-    float samples[NUMSAMPLES] = {0.0};
+    uint8_t pin;
+    int correction;
+    float samples[NUMSAMPLES];
     float steinhart;
     float celsius;
     float average;
-    uint8_t pin;
 };

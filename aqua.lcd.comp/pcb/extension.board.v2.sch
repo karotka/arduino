@@ -16116,12 +16116,12 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 </class>
 </classes>
 <parts>
-<part name="LED8" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="LED9" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="LED10" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="LED11" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="LED12" library="con-wago-508" deviceset="W237-02P" device=""/>
-<part name="LED13" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="BLUE" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="GREEN" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="RED" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="COOLW" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="WARMW" library="con-wago-508" deviceset="W237-02P" device=""/>
+<part name="CH13" library="con-wago-508" deviceset="W237-02P" device=""/>
 <part name="12VIN" library="con-wago-508" deviceset="W237-02P" device=""/>
 <part name="SERIAL" library="pinhead" deviceset="PINHD-1X6" device=""/>
 <part name="GND" library="pinhead" deviceset="PINHD-1X2" device=""/>
@@ -16206,45 +16206,45 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <plain>
 </plain>
 <instances>
-<instance part="LED8" gate="-1" x="116.84" y="104.14" smashed="yes" rot="R270">
+<instance part="BLUE" gate="-1" x="116.84" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="120.65" y="110.744" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED8" gate="-2" x="185.42" y="82.55" smashed="yes" rot="R270">
+<instance part="BLUE" gate="-2" x="185.42" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="187.96" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="189.865" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED9" gate="-1" x="111.76" y="104.14" smashed="yes" rot="R270">
+<instance part="GREEN" gate="-1" x="111.76" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="114.3" y="107.569" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED9" gate="-2" x="153.035" y="82.55" smashed="yes" rot="R270">
+<instance part="GREEN" gate="-2" x="153.035" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="155.575" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="157.48" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED10" gate="-1" x="106.68" y="104.14" smashed="yes" rot="R270">
+<instance part="RED" gate="-1" x="106.68" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="111.125" y="110.744" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED10" gate="-2" x="121.285" y="82.55" smashed="yes" rot="R270">
+<instance part="RED" gate="-2" x="121.285" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="123.825" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="126.365" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED11" gate="-1" x="101.6" y="104.14" smashed="yes" rot="R270">
+<instance part="COOLW" gate="-1" x="101.6" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="104.775" y="107.569" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED11" gate="-2" x="89.535" y="82.55" smashed="yes" rot="R270">
+<instance part="COOLW" gate="-2" x="89.535" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="92.075" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="93.98" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED12" gate="-1" x="96.52" y="104.14" smashed="yes" rot="R270">
+<instance part="WARMW" gate="-1" x="96.52" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="100.33" y="110.744" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED12" gate="-2" x="57.785" y="82.55" smashed="yes" rot="R270">
+<instance part="WARMW" gate="-2" x="57.785" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="60.325" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="62.865" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED13" gate="-1" x="91.44" y="104.14" smashed="yes" rot="R270">
+<instance part="CH13" gate="-1" x="91.44" y="104.14" smashed="yes" rot="R270">
 <attribute name="NAME" x="93.98" y="107.569" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="LED13" gate="-2" x="25.4" y="82.55" smashed="yes" rot="R270">
+<instance part="CH13" gate="-2" x="25.4" y="82.55" smashed="yes" rot="R270">
 <attribute name="VALUE" x="27.94" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="30.48" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
@@ -16773,7 +16773,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 </net>
 <net name="N$13" class="0">
 <segment>
-<pinref part="LED13" gate="-2" pin="KL"/>
+<pinref part="CH13" gate="-2" pin="KL"/>
 <wire x1="27.94" y1="77.47" x2="25.4" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T1" gate="G$1" pin="D"/>
 </segment>
@@ -16799,7 +16799,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <wire x1="60.325" y1="77.47" x2="57.785" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T3" gate="G$1" pin="D"/>
-<pinref part="LED12" gate="-2" pin="KL"/>
+<pinref part="WARMW" gate="-2" pin="KL"/>
 </segment>
 </net>
 <net name="N$18" class="0">
@@ -16823,7 +16823,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <wire x1="92.075" y1="77.47" x2="89.535" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T5" gate="G$1" pin="D"/>
-<pinref part="LED11" gate="-2" pin="KL"/>
+<pinref part="COOLW" gate="-2" pin="KL"/>
 </segment>
 </net>
 <net name="N$21" class="0">
@@ -16847,7 +16847,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <wire x1="123.825" y1="77.47" x2="121.285" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T7" gate="G$1" pin="D"/>
-<pinref part="LED10" gate="-2" pin="KL"/>
+<pinref part="RED" gate="-2" pin="KL"/>
 </segment>
 </net>
 <net name="N$28" class="0">
@@ -16871,7 +16871,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <wire x1="155.575" y1="77.47" x2="153.035" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T9" gate="G$1" pin="D"/>
-<pinref part="LED9" gate="-2" pin="KL"/>
+<pinref part="GREEN" gate="-2" pin="KL"/>
 </segment>
 </net>
 <net name="N$31" class="0">
@@ -16895,7 +16895,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <wire x1="187.96" y1="77.47" x2="185.42" y2="77.47" width="0.1524" layer="91"/>
 <pinref part="T11" gate="G$1" pin="D"/>
-<pinref part="LED8" gate="-2" pin="KL"/>
+<pinref part="BLUE" gate="-2" pin="KL"/>
 </segment>
 </net>
 <net name="+5V" class="3">
@@ -16994,27 +16994,27 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <pinref part="12VIN" gate="-1" pin="KL"/>
 </segment>
 <segment>
-<pinref part="LED8" gate="-1" pin="KL"/>
+<pinref part="BLUE" gate="-1" pin="KL"/>
 <wire x1="116.84" y1="99.06" x2="116.84" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED9" gate="-1" pin="KL"/>
+<pinref part="GREEN" gate="-1" pin="KL"/>
 <wire x1="111.76" y1="99.06" x2="111.76" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED10" gate="-1" pin="KL"/>
+<pinref part="RED" gate="-1" pin="KL"/>
 <wire x1="106.68" y1="99.06" x2="106.68" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED11" gate="-1" pin="KL"/>
+<pinref part="COOLW" gate="-1" pin="KL"/>
 <wire x1="101.6" y1="99.06" x2="101.6" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED12" gate="-1" pin="KL"/>
+<pinref part="WARMW" gate="-1" pin="KL"/>
 <wire x1="96.52" y1="99.06" x2="96.52" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="LED13" gate="-1" pin="KL"/>
+<pinref part="CH13" gate="-1" pin="KL"/>
 <wire x1="91.44" y1="99.06" x2="91.44" y2="97.79" width="0.1524" layer="91"/>
 </segment>
 </net>

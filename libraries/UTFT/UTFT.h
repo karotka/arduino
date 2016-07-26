@@ -156,6 +156,7 @@
 #define VGA_RED			0xF800
 #define VGA_GREEN		0x0400
 #define VGA_BLUE		0x001F
+#define VGA_DARKBLUE	0x0111
 #define VGA_SILVER		0xC618
 #define VGA_GRAY		0x8410
 #define VGA_MAROON		0x8000

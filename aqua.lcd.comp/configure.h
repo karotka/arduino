@@ -2,7 +2,7 @@
 #include <ITDB02_Touch.h>
 #include <UTFT_Buttons.h>
 
-#define DEBUG               1
+#define DEBUG               0
 
 #define RETURN_DELAY        5000 // 11s
 #define RELE_PIN            14
@@ -11,6 +11,8 @@
 #define LED_RED             10
 #define LED_GREEN           9
 #define LED_BLUE            8
+
+#define COLOR_TIME 255, 60, 60
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);

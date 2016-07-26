@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "Thermistor.h"
 
-Thermistor::Thermistor(uint8_t pin)
-    : pin(pin), celsius(0)  {
+Thermistor::Thermistor(uint8_t pin, int correction)
+    : pin(pin), correction(0), celsius(0)  {
 }
 
 void Thermistor::begin() {
@@ -16,6 +16,7 @@ float Thermistor::getCelsius() {
         average += samples[i];
     }
     average /= NUMSAMPLES;
+    average += correction;
 
     // convert the value to resistance
     average = 1023 / average - 1;

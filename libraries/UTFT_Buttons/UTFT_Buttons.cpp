@@ -218,10 +218,10 @@ int UTFT_Buttons::checkButtons() {
 
     //if (_Touch->dataAvailable() == true) {
 		Touch->read();
-		int		result = -1;
-		int		touch_x = Touch->getX();
-		int		touch_y = Touch->getY();
-		word	_current_color = _UTFT->getColor();
+		int      result = -1;
+		uint16_t touch_x = Touch->getX();
+		uint16_t touch_y = Touch->getY();
+		word     _current_color = _UTFT->getColor();
 
 		for (int i=0;i<MAX_BUTTONS;i++) {
 			if (((buttons[i].flags & BUTTON_UNUSED) == 0) and ((buttons[i].flags & BUTTON_DISABLED) == 0) and (result == -1))

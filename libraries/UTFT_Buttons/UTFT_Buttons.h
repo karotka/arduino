@@ -50,11 +50,11 @@
 #define BUTTON_UNUSED			0x8000
 
 typedef struct {
-  uint16_t			pos_x, pos_y, width, height;
-  uint16_t			flags;
-  const char		*label;
-  bitmapdatatype	data;
-  word              bgColor;
+    uint16_t        pos_x, pos_y, width, height;
+    uint16_t		flags;
+    const char		*label;
+    bitmapdatatype	data;
+    word            bgColor;
 } button_type;
 
 class UTFT_Buttons {
