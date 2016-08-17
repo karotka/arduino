@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "Thermistor.h"
 
-Thermistor::Thermistor(uint8_t pin, int correction)
-    : pin(pin), correction(0), celsius(0)  {
+Thermistor::Thermistor(uint8_t pin, float correction)
+    : pin(pin), correction(correction), celsius(0), pointer(0)  {
 }
 
 void Thermistor::begin() {
@@ -10,13 +10,15 @@ void Thermistor::begin() {
 }
 
 float Thermistor::getCelsius() {
+    if (pointer != NUMSAMPLES) {
+        return 0;
+    }
     // average all the samples out
     average = 0;
     for (uint8_t i = 0; i < NUMSAMPLES; i++) {
         average += samples[i];
     }
     average /= NUMSAMPLES;
-    average += correction;
 
     // convert the value to resistance
     average = 1023 / average - 1;
@@ -28,6 +30,7 @@ float Thermistor::getCelsius() {
     steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
     steinhart = 1.0 / steinhart;                 // Invert
     steinhart -= 273.15;                         // convert to C
+    steinhart += correction;
 
     return steinhart;
 }
@@ -38,6 +41,11 @@ void Thermistor::readTemperature() {
     for (uint8_t i = 1; i < NUMSAMPLES; i++) {
         samples[i - 1] = samples[i];
     }
-    samples[NUMSAMPLES - 1] = analogRead(pin);
+    adc = analogRead(pin);
+    samples[NUMSAMPLES - 1] = adc;
+    pointer++;
 
+    if (pointer > NUMSAMPLES) {
+        pointer = NUMSAMPLES;
+    }
 }

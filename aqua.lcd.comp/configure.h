@@ -2,7 +2,7 @@
 #include <ITDB02_Touch.h>
 #include <UTFT_Buttons.h>
 
-#define DEBUG               0
+#define DEBUG               1
 
 #define RETURN_DELAY        5000 // 11s
 #define RELE_PIN            14

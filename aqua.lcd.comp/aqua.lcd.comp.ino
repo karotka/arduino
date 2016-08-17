@@ -13,16 +13,17 @@
 #include <RTClib.h>
 #include <EEPROM.h>
 #include "utils.h"
-#include "TCN75a.h"
 
 RTC_DS1307 RTC;
 DateTime now;
 NewTime  newTime;
-TCN75A temperature;
-Thermistor t0(A0, 200);
+
+Thermistor t0(A0);
 Thermistor t1(A1);
 Thermistor t2(A2);
 Thermistor t3(A3);
+
+float te0, te1, te2, te3;
 
 volatile int x, y;
 volatile int xC, xW, xR, xG, xB = 38;
@@ -63,7 +64,7 @@ extern uint8_t GroteskBold24x48[];
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
-//HTU21D temperature;
+// temperature;
 float temperatureMin[60]  = {0};
 float temperatureHour[60] = {0};
 float tempDataTable[75]   = {0};
@@ -71,7 +72,7 @@ float tempDataTable[75]   = {0};
 volatile uint8_t tempPointer = 0;
 volatile uint8_t newTemperature;
 volatile float   tempSum = 0;
-volatile float   actualTemp = 0;
+
 volatile int     tempMinPointer = 0;
 
 
@@ -180,8 +181,6 @@ void checkCo2() {
 }
 
 ISR(TIMER2_OVF_vect) {
-    //cli();
-
     timerCounter2++;
     i2cReadTimeCounter++;
     temperatureReadTimeCounter++;
@@ -221,7 +220,7 @@ ISR(TIMER2_OVF_vect) {
     if (newTemperature) {
         newTemperature = false;
         tempPointer++;
-        temperatureMin[tempPointer] = actualTemp;
+        temperatureMin[tempPointer] = te1;
 
         /*
          * if number of values is 60 make average and
@@ -557,8 +556,7 @@ void drawHomeScreen() {
         myGLCD.print(strDate, CENTER, 80);
     }
 
-    dtostrf(actualTemp, 2, 1, strTemp);
-    //myGLCD.setColor(100, 135, 255);
+    dtostrf(te1, 2, 1, strTemp);
     myGLCD.setColor(VGA_AQUA);
     myGLCD.setFont(GroteskBold24x48);
     myGLCD.print(strTemp, 100, 110);
@@ -577,7 +575,6 @@ void drawHomeScreen() {
         lightStatesNow = actualLightState;
     }
 
-    //myGLCD.print("    ", 250, 185);
     if (actualCo2state == CO2_OFF) {
         sprintf (str, "  CO2:%s", co2Str[CO2_OFF]);
     } else {
@@ -585,9 +582,7 @@ void drawHomeScreen() {
     }
     myGLCD.print(str, LEFT, 190);
 
-    float te0 = t0.getCelsius();
-    myRound(&te0);
-    dtostrf (te0, 2, 1, strTemp);
+    dtostrf (te2, 2, 1, strTemp);
     sprintf (str, "T1:%sC  ", strTemp);
     myGLCD.print(str, RIGHT, 190);
 
@@ -964,7 +959,7 @@ void eepromRead() {
     temperatureSenzorStatus[2] = EEPROM.read(44);
     temperatureSenzorStatus[3] = EEPROM.read(45);
 
-    EEPROM_readAnything(128, tempDataTable);
+    //EEPROM_readAnything(128, tempDataTable);
 }
 
 void defaultLights() {
@@ -1020,20 +1015,6 @@ void debug() {
     //sprintf (str, "xW: %d, xR: %d, xG: %d, xB: %d", xW, xR, xG, xB);
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
-
-    float te0, te1, te2, te3;
-
-    te0 = t0.getCelsius();
-    myRound(&te0);
-
-    te1 = t1.getCelsius();
-    myRound(&te1);
-
-    te2 = t2.getCelsius();
-    myRound(&te2);
-
-    te3 = t3.getCelsius();
-    myRound(&te3);
 
     sprintf (str, "T0:%03d T1:%03d T2:%03d T3:%03d",
              (int)(te0*10), (int)(te1*10), (int)(te2*10), (int)(te3*10));
@@ -1103,15 +1084,13 @@ void setup() {
 
     pinMode(RELE_PIN, OUTPUT);
 
-    Wire.begin();
     RTC.begin();
 
-    if (!RTC.isrunning()) {
-        Serial.println("RTC is NOT running!");
-        RTC.adjust(DateTime(__DATE__, __TIME__));
-    }
+    //if (!RTC.isrunning()) {
+    //    Serial.println("RTC is NOT running!");
+    //    RTC.adjust(DateTime(__DATE__, __TIME__));
+    //}
 
-    temperature.begin();
     t0.begin();
     t1.begin();
     t2.begin();
@@ -1145,18 +1124,25 @@ void loop() {
     if (temperatureReadTimeCounter > 430) {
         if (temperatureSenzorStatus[0] == 1) {
             t0.readTemperature();
+            te0 = t0.getCelsius();
+            myRound(&te0);
         }
         if (temperatureSenzorStatus[1] == 1) {
+            te1 = t1.getCelsius();
+            myRound(&te1);
             t1.readTemperature();
         }
         if (temperatureSenzorStatus[2] == 1) {
+            te2 = t2.getCelsius();
+            myRound(&te2);
             t2.readTemperature();
         }
         if (temperatureSenzorStatus[3] == 1) {
+            te3 = t3.getCelsius();
+            myRound(&te3);
             t3.readTemperature();
         }
         newTemperature = true;
-        actualTemp = temperature.readTemperature();
         temperatureReadTimeCounter = 0;
     }
 
