@@ -30,6 +30,14 @@ enum {
 };
 
 enum {
+    TEMP_0 = 0,
+    TEMP_1,
+    TEMP_2,
+    TEMP_3,
+    TEMP_NONE
+};
+
+enum {
     PAGE_HOME = 0,
     PAGE_SELECT,
     PAGE_SET_LIGHT,

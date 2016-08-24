@@ -1,6 +1,6 @@
 /*
-  UTFT.cpp - Multi-Platform library support for Color TFT LCD Boards
-  Copyright (C)2015 Rinky-Dink Electronics, Henning Karlsen. All right reserved
+  UTFT.cpp - Arduino/chipKit library support for Color TFT LCD Boards
+  Copyright (C)2010-2013 Henning Karlsen. All right reserved
 
   This library is the continuation of my ITDB02_Graph, ITDB02_Graph16
   and RGB_GLCD libraries for Arduino and chipKit. As the number of
@@ -13,31 +13,30 @@
   NKC Electronics (for the RGB GLCD module/shield).
 
   This library supports a number of 8bit, 16bit and serial graphic
-  displays, and will work with both Arduino, chipKit boards and select
-  TI LaunchPads. For a full list of tested display modules and controllers,
-  see the document UTFT_Supported_display_modules_&_controllers.pdf.
+  displays, and will work with both Arduino and chipKit boards. For a
+  full list of tested display modules and controllers, see the
+  document UTFT_Supported_display_modules_&_controllers.pdf.
 
   When using 8bit and 16bit display modules there are some
   requirements you must adhere to. These requirements can be found
   in the document UTFT_Requirements.pdf.
   There are no special requirements when using serial displays.
 
-  You can find the latest version of the library at
-  http://www.RinkyDinkElectronics.com/
+  You can always find the latest version of the library at
+  http://electronics.henningkarlsen.com/
+
+  If you make any modifications or improvements to the code, I would
+  appreciate that you share the code with me so that I might include
+  it in the next release. I can be contacted through
+  http://electronics.henningkarlsen.com/contact.php.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the CC BY-NC-SA 3.0 license.
   Please see the included documents for further information.
-
-  Commercial use of this library requires you to buy a license that
-  will allow commercial use. This includes using the library,
-  modified or not, as a tool to sell products.
-
-  The license applies to all part of the library including the
-  examples and tools supplied with the library.
 */
 
 #include "UTFT.h"
+#include <pins_arduino.h>
 
 // Include hardware-specific functions for the correct MCU
 #if defined(__AVR__)
@@ -59,13 +58,13 @@
 #elif defined(__PIC32MX__)
   #include "hardware/pic32/HW_PIC32.h"
   #if defined(__32MX320F128H__)
-    #pragma message("Compiling for chipKIT UNO32 (PIC32MX320F128H)")
+    #pragma message("Compiling for chipKIT UNO32 (__32MX320F128H__)")
 	#include "hardware/pic32/HW_PIC32MX320F128H.h"
   #elif defined(__32MX340F512H__)
-    #pragma message("Compiling for chipKIT uC32 (PIC32MX340F512H)")
+    #pragma message("Compiling for chipKIT uC32 (__32MX340F512H__)")
 	#include "hardware/pic32/HW_PIC32MX340F512H.h"
   #elif defined(__32MX795F512L__)
-    #pragma message("Compiling for chipKIT MAX32 (PIC32MX795F512L)")
+    #pragma message("Compiling for chipKIT MAX32 (__32MX795F512L__)")
 	#include "hardware/pic32/HW_PIC32MX795F512L.h"
   #else
     #error "Unsupported PIC32 MCU!"
@@ -75,12 +74,6 @@
 	#if defined(__SAM3X8E__)
 		#pragma message("Compiling for Arduino Due (AT91SAM3X8E)...")
 		#include "hardware/arm/HW_SAM3X8E.h"
-	#elif defined(__MK20DX128__) || defined(__MK20DX256__)
-		#pragma message("Compiling for Teensy 3.x (MK20DX128VLH7 / MK20DX256VLH7)...")
-		#include "hardware/arm/HW_MX20DX256.h"
-	#elif defined(__CC3200R1M1RGC__)
-		#pragma message("Compiling for TI CC3200 LaunchPad...")
-		#include "hardware/arm/HW_CC3200.h"
 	#else
 		#error "Unsupported ARM MCU!"
 	#endif
@@ -91,33 +84,153 @@ UTFT::UTFT()
 {
 }
 
-UTFT::UTFT(byte model, int RS, int WR, int CS, int RST, int SER)
+UTFT::UTFT(byte model, int RS, int WR,int CS, int RST, int SER)
 {
-	word	dsx[] = {239, 239, 239, 239, 239, 239, 175, 175, 239, 127, 127, 239, 271, 479, 239, 239, 239, 0, 0, 239, 479, 319, 239, 175, 127, 239, 239, 319, 319, 799, 127, 127};
-	word	dsy[] = {319, 399, 319, 319, 319, 319, 219, 219, 399, 159, 127, 319, 479, 799, 319, 319, 319, 0, 0, 319, 799, 479, 319, 219, 159, 319, 319, 479, 479, 479, 159, 159};
-	byte	dtm[] = {16, 16, 16, 8, 8, 16, 8, SERIAL_4PIN, 16, SERIAL_5PIN, SERIAL_5PIN, 16, 16, 16, 8, 16, LATCHED_16, 0, 0, 8, 16, 16, 16, 8, SERIAL_5PIN, SERIAL_5PIN, SERIAL_4PIN, 16, 16, 16, SERIAL_5PIN, SERIAL_5PIN};
-
-	disp_x_size =			dsx[model];
-	disp_y_size =			dsy[model];
-	display_transfer_mode =	dtm[model];
-	display_model =			model;
-
-	__p1 = RS;
-	__p2 = WR;
-	__p3 = CS;
-	__p4 = RST;
-	__p5 = SER;
-
-	if (display_transfer_mode == SERIAL_4PIN)
+	switch (model)
 	{
-		display_transfer_mode=1;
-		display_serial_mode=SERIAL_4PIN;
+		case HX8347A:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case ILI9327:
+			disp_x_size=239;
+			disp_y_size=399;
+			display_transfer_mode=16;
+			break;
+		case SSD1289:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case ILI9325C:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=8;
+			break;
+		case ILI9325D_8:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=8;
+			break;
+		case ILI9325D_16:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case ILI9325D_16ALT:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case HX8340B_8:
+			disp_x_size=175;
+			disp_y_size=219;
+			display_transfer_mode=8;
+			break;
+		case HX8340B_S:
+			disp_x_size=175;
+			disp_y_size=219;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_4PIN;
+			break;
+		case HX8352A:
+			disp_x_size=239;
+			disp_y_size=399;
+			display_transfer_mode=16;
+			break;
+		case ST7735:
+			disp_x_size=127;
+			disp_y_size=159;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_5PIN;
+			break;
+		case ST7735S:
+			disp_x_size=127;
+			disp_y_size=159;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_5PIN;
+			break;
+		case PCF8833:
+			disp_x_size=127;
+			disp_y_size=127;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_5PIN;
+			break;
+		case S1D19122:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case SSD1963_480:
+			disp_x_size=271;
+			disp_y_size=479;
+			display_transfer_mode=16;
+			break;
+		case SSD1963_800:
+			disp_x_size=479;
+			disp_y_size=799;
+			display_transfer_mode=16;
+			break;
+		case SSD1963_800ALT:
+			disp_x_size=479;
+			disp_y_size=799;
+			display_transfer_mode=16;
+			break;
+		case S6D1121_8:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=8;
+			break;
+		case S6D1121_16:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case SSD1289LATCHED:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=LATCHED_16;
+			break;
+		case ILI9320_8:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=8;
+			break;
+		case ILI9320_16:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=16;
+			break;
+		case SSD1289_8:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=8;
+			break;
+		case ILI9481:
+			disp_x_size=319;
+			disp_y_size=479;
+			display_transfer_mode=16;
+			break;
+		case S6D0164:
+			disp_x_size=175;
+			disp_y_size=219;
+			display_transfer_mode=8;
+			break;
+		case ILI9341_S5P:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_5PIN;
+			break;
+		case ILI9341_S4P:
+			disp_x_size=239;
+			disp_y_size=319;
+			display_transfer_mode=1;
+			display_serial_mode=SERIAL_4PIN;
+			break;
 	}
-	if (display_transfer_mode == SERIAL_5PIN)
-	{
-		display_transfer_mode=1;
-		display_serial_mode=SERIAL_5PIN;
-	}
+	display_model=model;
 
 	if (display_transfer_mode!=1)
 	{
@@ -134,10 +247,15 @@ UTFT::UTFT(byte model, int RS, int WR, int CS, int RST, int SER)
 		{
 			P_ALE	= portOutputRegister(digitalPinToPort(SER));
 			B_ALE	= digitalPinToBitMask(SER);
+			pinMode(SER,OUTPUT);
 			cbi(P_ALE, B_ALE);
 			pinMode(8,OUTPUT);
 			digitalWrite(8, LOW);
 		}
+		pinMode(RS,OUTPUT);
+		pinMode(WR,OUTPUT);
+		pinMode(CS,OUTPUT);
+		pinMode(RST,OUTPUT);
 	}
 	else
 	{
@@ -147,16 +265,18 @@ UTFT::UTFT(byte model, int RS, int WR, int CS, int RST, int SER)
 		B_SCL	= digitalPinToBitMask(WR);
 		P_CS	= portOutputRegister(digitalPinToPort(CS));
 		B_CS	= digitalPinToBitMask(CS);
-		if (RST != NOTINUSE)
-		{
-			P_RST	= portOutputRegister(digitalPinToPort(RST));
-			B_RST	= digitalPinToBitMask(RST);
-		}
+		P_RST	= portOutputRegister(digitalPinToPort(RST));
+		B_RST	= digitalPinToBitMask(RST);
 		if (display_serial_mode!=SERIAL_4PIN)
 		{
 			P_RS	= portOutputRegister(digitalPinToPort(SER));
 			B_RS	= digitalPinToBitMask(SER);
+			pinMode(SER,OUTPUT);
 		}
+		pinMode(RS,OUTPUT);
+		pinMode(WR,OUTPUT);
+		pinMode(CS,OUTPUT);
+		pinMode(RST,OUTPUT);
 	}
 }
 
@@ -207,16 +327,6 @@ void UTFT::InitLCD(byte orientation)
 	orient=orientation;
 	_hw_special_init();
 
-	pinMode(__p1,OUTPUT);
-	pinMode(__p2,OUTPUT);
-	pinMode(__p3,OUTPUT);
-	if (__p4 != NOTINUSE)
-		pinMode(__p4,OUTPUT);
-	if ((display_transfer_mode==LATCHED_16) or ((display_transfer_mode==1) and (display_serial_mode==SERIAL_5PIN)))
-		pinMode(__p5,OUTPUT);
-	if (display_transfer_mode!=1)
-		_set_direction_registers(display_transfer_mode);
-
 	sbi(P_RST, B_RST);
 	delay(5);
 	cbi(P_RST, B_RST);
@@ -253,10 +363,7 @@ void UTFT::InitLCD(byte orientation)
 	#include "tft_drivers/hx8340b/s/initlcd.h"
 #endif
 #ifndef DISABLE_ST7735
-	#include "tft_drivers/st7735/std/initlcd.h"
-#endif
-#ifndef DISABLE_ST7735_ALT
-	#include "tft_drivers/st7735/alt/initlcd.h"
+	#include "tft_drivers/st7735/initlcd.h"
 #endif
 #ifndef DISABLE_PCF8833
 	#include "tft_drivers/pcf8833/initlcd.h"
@@ -279,6 +386,9 @@ void UTFT::InitLCD(byte orientation)
 #ifndef DISABLE_S6D1121
 	#include "tft_drivers/s6d1121/initlcd.h"
 #endif
+#ifndef DISABLE_ILI9320
+	#include "tft_drivers/ili9320/initlcd.h"
+#endif
 #ifndef DISABLE_ILI9481
 	#include "tft_drivers/ili9481/initlcd.h"
 #endif
@@ -294,18 +404,6 @@ void UTFT::InitLCD(byte orientation)
 #ifndef DISABLE_ILI9341_S5P
 	#include "tft_drivers/ili9341/s5p/initlcd.h"
 #endif
-#ifndef DISABLE_R61581
-	#include "tft_drivers/r61581/initlcd.h"
-#endif
-#ifndef DISABLE_ILI9486
-	#include "tft_drivers/ili9486/initlcd.h"
-#endif
-#ifndef DISABLE_CPLD
-	#include "tft_drivers/cpld/initlcd.h"
-#endif
-#ifndef DISABLE_HX8353C
-	#include "tft_drivers/hx8353c/initlcd.h"
-#endif
 	}
 
 	sbi (P_CS, B_CS);
@@ -318,6 +416,8 @@ void UTFT::InitLCD(byte orientation)
 
 void UTFT::setXY(word x1, word y1, word x2, word y2)
 {
+	int tmp;
+
 	if (orient==LANDSCAPE)
 	{
 		swap(word, x1, y1);
@@ -357,10 +457,7 @@ void UTFT::setXY(word x1, word y1, word x2, word y2)
 	#include "tft_drivers/hx8340b/s/setxy.h"
 #endif
 #ifndef DISABLE_ST7735
-	#include "tft_drivers/st7735/std/setxy.h"
-#endif
-#ifndef DISABLE_ST7735_ALT
-	#include "tft_drivers/st7735/alt/setxy.h"
+	#include "tft_drivers/st7735/setxy.h"
 #endif
 #ifndef DISABLE_S1D19122
 	#include "tft_drivers/s1d19122/setxy.h"
@@ -380,6 +477,9 @@ void UTFT::setXY(word x1, word y1, word x2, word y2)
 #ifndef DISABLE_S6D1121
 	#include "tft_drivers/s6d1121/setxy.h"
 #endif
+#ifndef DISABLE_ILI9320
+	#include "tft_drivers/ili9320/setxy.h"
+#endif
 #ifndef DISABLE_ILI9481
 	#include "tft_drivers/ili9481/setxy.h"
 #endif
@@ -395,18 +495,6 @@ void UTFT::setXY(word x1, word y1, word x2, word y2)
 #ifndef DISABLE_ILI9341_S5P
 	#include "tft_drivers/ili9341/s5p/setxy.h"
 #endif
-#ifndef DISABLE_R61581
-	#include "tft_drivers/r61581/setxy.h"
-#endif
-#ifndef DISABLE_ILI9486
-	#include "tft_drivers/ili9486/setxy.h"
-#endif
-#ifndef DISABLE_CPLD
-	#include "tft_drivers/cpld/setxy.h"
-#endif
-#ifndef DISABLE_HX8353C
-	#include "tft_drivers/hx8353c/setxy.h"
-#endif
 	}
 }
 
@@ -420,6 +508,8 @@ void UTFT::clrXY()
 
 void UTFT::drawRect(int x1, int y1, int x2, int y2)
 {
+	int tmp;
+
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -437,6 +527,8 @@ void UTFT::drawRect(int x1, int y1, int x2, int y2)
 
 void UTFT::drawRoundRect(int x1, int y1, int x2, int y2)
 {
+	int tmp;
+
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -460,6 +552,8 @@ void UTFT::drawRoundRect(int x1, int y1, int x2, int y2)
 
 void UTFT::fillRect(int x1, int y1, int x2, int y2)
 {
+	int tmp;
+
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -507,6 +601,8 @@ void UTFT::fillRect(int x1, int y1, int x2, int y2)
 
 void UTFT::fillRoundRect(int x1, int y1, int x2, int y2)
 {
+	int tmp;
+
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -905,10 +1001,10 @@ void UTFT::printChar(byte c, int x, int y)
 				ch=pgm_read_byte(&cfont.font[temp+zz]);
 				for(i=0;i<8;i++)
 				{
+					setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
 
 					if((ch&(1<<(7-i)))!=0)
 					{
-						setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
 						setPixel((fch<<8)|fcl);
 					}
 				}
@@ -1077,7 +1173,7 @@ void UTFT::printNumF(double num, byte dec, int x, int y, char divider, int lengt
 
 	if (divider != '.')
 	{
-		for (uint8_t i=0; i<sizeof(st); i++)
+		for (int i=0; i<sizeof(st); i++)
 			if (st[i]=='.')
 				st[i]=divider;
 	}
@@ -1087,13 +1183,13 @@ void UTFT::printNumF(double num, byte dec, int x, int y, char divider, int lengt
 		if (neg)
 		{
 			st[0]='-';
-			for (uint8_t i=1; i<sizeof(st); i++)
+			for (int i=1; i<sizeof(st); i++)
 				if ((st[i]==' ') || (st[i]=='-'))
 					st[i]=filler;
 		}
 		else
 		{
-			for (uint8_t i=0; i<sizeof(st); i++)
+			for (int i=0; i<sizeof(st); i++)
 				if (st[i]==' ')
 					st[i]=filler;
 		}
@@ -1130,6 +1226,7 @@ void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int sca
 {
 	unsigned int col;
 	int tx, ty, tc, tsx, tsy;
+	byte r, g, b;
 
 	if (scale==1)
 	{
@@ -1203,6 +1300,7 @@ void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int deg
 {
 	unsigned int col;
 	int tx, ty, newx, newy;
+	byte r, g, b;
 	double radian;
 	radian=deg*0.0175;
 
@@ -1235,10 +1333,6 @@ void UTFT::lcdOff()
 	case PCF8833:
 		LCD_Write_COM(0x28);
 		break;
-	case CPLD:
-		LCD_Write_COM_DATA(0x01,0x0000);
-		LCD_Write_COM(0x0F);
-		break;
 	}
 	sbi(P_CS, B_CS);
 }
@@ -1250,10 +1344,6 @@ void UTFT::lcdOn()
 	{
 	case PCF8833:
 		LCD_Write_COM(0x29);
-		break;
-	case CPLD:
-		LCD_Write_COM_DATA(0x01,0x0010);
-		LCD_Write_COM(0x0F);
 		break;
 	}
 	sbi(P_CS, B_CS);
@@ -1287,46 +1377,4 @@ int UTFT::getDisplayYSize()
 		return disp_y_size+1;
 	else
 		return disp_x_size+1;
-}
-
-void UTFT::setBrightness(byte br)
-{
-	cbi(P_CS, B_CS);
-	switch (display_model)
-	{
-	case CPLD:
-		if (br>16) br=16;
-		LCD_Write_COM_DATA(0x01,br);
-		LCD_Write_COM(0x0F);
-		break;
-	}
-	sbi(P_CS, B_CS);
-}
-
-void UTFT::setDisplayPage(byte page)
-{
-	cbi(P_CS, B_CS);
-	switch (display_model)
-	{
-	case CPLD:
-		if (page>7) page=7;
-		LCD_Write_COM_DATA(0x04,page);
-		LCD_Write_COM(0x0F);
-		break;
-	}
-	sbi(P_CS, B_CS);
-}
-
-void UTFT::setWritePage(byte page)
-{
-	cbi(P_CS, B_CS);
-	switch (display_model)
-	{
-	case CPLD:
-		if (page>7) page=7;
-		LCD_Write_COM_DATA(0x05,page);
-		LCD_Write_COM(0x0F);
-		break;
-	}
-	sbi(P_CS, B_CS);
 }

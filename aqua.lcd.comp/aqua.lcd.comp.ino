@@ -18,10 +18,14 @@ RTC_DS1307 RTC;
 DateTime now;
 NewTime  newTime;
 
-Thermistor t0(A0);
-Thermistor t1(A1);
-Thermistor t2(A2);
-Thermistor t3(A3);
+// temperature of board
+Thermistor t0(A0, 0, 100000, 3950);
+// main temp.
+Thermistor t1(A1, 0, 10000,  3380);
+
+// other
+Thermistor t2(A2, 0, 10000,  3380);
+Thermistor t3(A3, 0, 10000,  3380);
 
 float te0, te1, te2, te3;
 
@@ -48,6 +52,7 @@ volatile uint8_t switchMode;
 volatile uint8_t pressedButton;
 volatile uint8_t flashWrote;
 volatile uint8_t i2cReadTimeCounter;
+volatile uint8_t showTemp;
 
 volatile int timerCounter2 = 0;
 volatile int temperatureReadTimeCounter;
@@ -207,9 +212,13 @@ ISR(TIMER2_OVF_vect) {
     // return to homepage
     if (timerCounter2 > RETURN_DELAY) {
         timerCounter2 = 0;
-
         if (page != PAGE_HOME) {
             page = PAGE_RETURN_MOME;
+        }
+
+        showTemp++;
+        if (showTemp == TEMP_NONE) {
+            showTemp = TEMP_0;
         }
     }
 
@@ -265,7 +274,7 @@ ISR(TIMER2_OVF_vect) {
 
     if (now.hour() == 0 && flashWrote == false) {
         // write array into EEEPROM
-        EEPROM_writeAnything(128, tempDataTable);
+        //EEPROM_writeAnything(128, tempDataTable);
         flashWrote = true;
     }
     if (now.hour() == 2) {
@@ -274,15 +283,15 @@ ISR(TIMER2_OVF_vect) {
 }
 
 void setTempButton(uint8_t id) {
-    sprintf (str, "TE%01d", id + 1);
+    sprintf (str, "TE%01d", id);
 
     if (temperatureSenzorStatus[id] > 1) {
         temperatureSenzorStatus[id] = 0;
     }
     if (temperatureSenzorStatus[id] == 0) {
-        myButtons.relabelButton(id, str, true, VGA_GRAY);
+        myButtons.relabelButton(id - 2, str, true, VGA_GRAY);
     } else {
-        myButtons.relabelButton(id, str, true);
+        myButtons.relabelButton(id - 2, str, true);
     }
 }
 
@@ -344,14 +353,13 @@ void drawTempScreen() {
 
     myButtons.addButton(2,   197, 50,  30, "", 0, VGA_GRAY);
     myButtons.addButton(55,  197, 50,  30, "", 0, VGA_GRAY);
-    myButtons.addButton(108, 197, 50,  30, "", 0, VGA_GRAY);
-    myButtons.addButton(161, 197, 50,  30, "", 0, VGA_GRAY);
+    //myButtons.addButton(108, 197, 50,  30, "", 0, VGA_GRAY);
 
     myButtons.addButton(240, 197, 70,  30, "HOME");
 
     myButtons.drawButtons();
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 2; i < 4; i++) {
         setTempButton(i);
     }
 }
@@ -387,7 +395,6 @@ void drawCo2Screen() {
     myButtons.addButton(62,  85, 22,  30, "<");
     myButtons.addButton(88,  85, 22,  30, ">");
     myButtons.addButton(116, 85, 34,  30, "");
-
 
     sprintf (strDate, "%02dh:%02dm.", co2hour[2], co2minute[2]);
     myGLCD.setColor(VGA_WHITE);
@@ -546,21 +553,21 @@ void drawHomeScreen() {
     sprintf (strTime, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
     myGLCD.setColor(COLOR_TIME);
     myGLCD.setFont(GroteskBold24x48);
-    myGLCD.print(strTime, CENTER, 27);
+    myGLCD.print(strTime, CENTER, 15);
 
     sumDateNow = now.day() + now.month() + now.year();
     if (dateNow != sumDateNow) {
         sprintf (strDate, "%02d.%02d.%02d", now.day(), now.month(), now.year());
         myGLCD.setColor(225, 225, 225);
         myGLCD.setFont(BigFont);
-        myGLCD.print(strDate, CENTER, 80);
+        myGLCD.print(strDate, CENTER, 65);
     }
 
     dtostrf(te1, 2, 1, strTemp);
     myGLCD.setColor(VGA_AQUA);
     myGLCD.setFont(GroteskBold24x48);
-    myGLCD.print(strTemp, 100, 110);
-    myGLCD.print("C", 205, 110);
+    myGLCD.print(strTemp, 100, 95);
+    myGLCD.print("C", 205, 95);
 
     myGLCD.setColor(210, 210, 210);
     myGLCD.setFont(BigFont);
@@ -571,20 +578,38 @@ void drawHomeScreen() {
         } else {
             sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightState]);
         }
-        myGLCD.print(str, CENTER, 165);
+        myGLCD.print(str, CENTER, 150);
         lightStatesNow = actualLightState;
     }
 
     if (actualCo2state == CO2_OFF) {
-        sprintf (str, "  CO2:%s", co2Str[CO2_OFF]);
+        sprintf (str, "CO2:%s", co2Str[CO2_OFF]);
     } else {
-        sprintf (str, "  CO2:%s", co2Str[CO2_ON]);
+        sprintf (str, "CO2:%s", co2Str[CO2_ON]);
     }
-    myGLCD.print(str, LEFT, 190);
+    if (t0.isEnabled()) {
+        dtostrf (te0, 2, 1, strTemp);
+        sprintf (str, "%s TB:%sC ", str, strTemp);
+    } else {
+        sprintf (str, "%s TB:--   ", str);
+    }
+    myGLCD.print(str, CENTER, 170);
 
-    dtostrf (te2, 2, 1, strTemp);
-    sprintf (str, "T1:%sC  ", strTemp);
-    myGLCD.print(str, RIGHT, 190);
+    if (t2.isEnabled()) {
+        dtostrf (te2, 2, 1, strTemp);
+        sprintf (str, "T1:%sC", strTemp);
+    } else {
+        sprintf (str, "T1:--   ");
+    }
+    myGLCD.print(str, 30, 190);
+
+    if (t3.isEnabled()) {
+        dtostrf (te3, 2, 1, strTemp);
+        sprintf (str, "T2:%sC ", strTemp);
+    } else {
+        sprintf (str, "T2:--   ");
+    }
+    myGLCD.print(str, 175, 190);
 
     if (actualCW > targetCW || actualCW < targetCW) {
         myGLCD.setColor(255, 255, 255);
@@ -618,25 +643,25 @@ void drawSelectScreen() {
 void drawSlidersCC() {
     // Draws the positioners Cool White
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xC, 42, (xC + 4), 53); // Positioner
+    myGLCD.fillRect(xC, 41, (xC + 4), 52); // Positioner
 
     myGLCD.setColor(255, 255, 255);
-    myGLCD.fillRect(41, 42, (xC - 1),  53); // first rect
+    myGLCD.fillRect(41, 41, (xC - 1),  52); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xC + 5), 42, 308, 53); // second rect
+    myGLCD.fillRect((xC + 5), 41, 308, 52); // second rect
 }
 
 void drawSlidersWC() {
     // Draws the positioners Warm White
     myGLCD.setColor(0, 0, 255);
-    myGLCD.fillRect(xW, 72, (xW + 4), 83); // Positioner
+    myGLCD.fillRect(xW, 68, (xW + 4), 79); // Positioner
 
     myGLCD.setColor(255, 223, 143);
-    myGLCD.fillRect(41, 72, (xW - 1),  83); // first rect
+    myGLCD.fillRect(41, 68, (xW - 1),  79); // first rect
 
     myGLCD.setColor(0, 0, 0);
-    myGLCD.fillRect((xW + 5), 72, 308, 83); // second rect
+    myGLCD.fillRect((xW + 5), 68, 308, 79); // second rect
 }
 
 void drawSlidersRC() {
@@ -679,8 +704,8 @@ void drawLightControl() {
     myGLCD.setColor(VGA_WHITE);
     myGLCD.setFont(BigFont);
     myGLCD.print("Light controler", CENTER, 10);
-    myGLCD.print("CW", 2,  40);
-    myGLCD.print("WW", 2,  70);
+    myGLCD.print("CW", 2,  39);
+    myGLCD.print("WW", 2,  66);
     myGLCD.print("R:", 10, 106);
     myGLCD.print("G:", 10, 136);
     myGLCD.print("B:", 10, 166);
@@ -688,9 +713,9 @@ void drawLightControl() {
     myGLCD.drawLine(0, 30, 319, 30);
 
     myGLCD.setColor(VGA_WHITE);
-    myGLCD.drawRect(40,  41, 310,  54); // CW  slider
-    myGLCD.drawRect(40,  71, 310,  84); // WW  slider
-    myGLCD.drawRect(40, 106, 310, 121); // Red   slider
+    myGLCD.drawRect(40,  40, 310,  53); // CW  slider
+    myGLCD.drawRect(40,  67, 310,  80); // WW  slider
+    myGLCD.drawRect(40, 106, 310, 119); // Red   slider
     myGLCD.drawRect(40, 136, 310, 149); // Green slider
     myGLCD.drawRect(40, 166, 310, 179); // Blue  slider
 
@@ -759,7 +784,7 @@ void drawTouchLedArea() {
             xR = 304;
         }
         xRC = map(xR, 304, 42, 0, 255);
-        analogWrite(LED_RED,   xRC);
+        analogWrite(LED_RED, xRC);
     }
 
     // Area of the Green color slider
@@ -954,8 +979,8 @@ void eepromRead() {
     co2minute[4] = 59;
     co2minute[5] = 0;
 
-    temperatureSenzorStatus[0] = EEPROM.read(42);
-    temperatureSenzorStatus[1] = EEPROM.read(43);
+    temperatureSenzorStatus[0] = 1;//EEPROM.read(42);
+    temperatureSenzorStatus[1] = 1;//EEPROM.read(43);
     temperatureSenzorStatus[2] = EEPROM.read(44);
     temperatureSenzorStatus[3] = EEPROM.read(45);
 
@@ -999,11 +1024,10 @@ void debug() {
     //         xRC, xGC, xBC, xWC, xCC);
     //myGLCD.print(str, CENTER, 215);
     //
-    //sprintf (str, "Ww a:%03d-t:%03d, Co: a%03d-t:%03d SM:%d",
-    //         actualWW, targetWW, actualCW, targetCW, switchMode);
-
     //sprintf (str, "Temp avg:%3d-t:%03d, Co: a%03d-t:%03d SM:%d",
     //         actualWW, targetWW, actualCW, targetCW, switchMode);
+
+    //sprintf (str, "SM:%03d, BTN:%03d", switchMode, pressedButton);
 
     //sprintf (str, "NeT:%01d Tp:%02d Tmp:%02d TS:%04d 74:%03d",
     //         newTemperature, tempPointer, tempMinPointer, (int)tempSum, (int)tempDataTable[74]);
@@ -1016,11 +1040,19 @@ void debug() {
     //sprintf (str, "x: %d, y: %d, page: %d, btn: %d, W: %d, R: %d, G: %d, B: %d",
     //         x, y, page, pressedButton, xWC, xRC, xGC, xBC);
 
-    sprintf (str, "T0:%03d T1:%03d T2:%03d T3:%03d",
-             (int)(te0*10), (int)(te1*10), (int)(te2*10), (int)(te3*10));
+    sprintf (str, "A1:%04d A2:%04d A3:%04d", t1.getAdc(), t2.getAdc(), t3.getAdc());
+    myGLCD.print(str, CENTER, 215);
 
-    //dtostrf(t, 2, 1, str);
+    sprintf (str, "A1:%d A2:%d A3:%d", t1.isEnabled(), t2.isEnabled(), t3.isEnabled());
     myGLCD.print(str, CENTER, 228);
+
+    //sprintf (str, "T0:%03d T1:%03d T2:%03d T3:%03d",
+             //         (int)(te0*10), (int)(te1*10), (int)(te2*10), (int)(te3*10));
+
+    //sprintf (str, "B: %d NO: %d ADC: %d",
+    //         t1.getBcoefficient(), t1.getThermistornominal(), t1.getAdc()
+    //         );
+    //myGLCD.print(str, CENTER, 228);
 }
 
 void drawRegDebug() {
@@ -1060,6 +1092,7 @@ void drawRegDebug() {
     myGLCD.setFont(SmallFont);
     myGLCD.print(str, LEFT, 85);
 
+    /*
     int posy = 105;
     int posx = 0;
     for (int i = 1; i < 61; i++) {
@@ -1072,7 +1105,13 @@ void drawRegDebug() {
         dtostrf(temperatureHour[i - 1], 4, 1, str);
         myGLCD.print(str, posx, posy);
         posx += 35;
+        }*/
 
+    for (int i = 0; i < 10; i++) {
+        //float a = t0.getSamples();
+
+        //dtostrf(a[i], 4, 1, str);
+        //myGLCD.print(str, LEFT, 100);
     }
 }
 #endif
@@ -1086,10 +1125,10 @@ void setup() {
 
     RTC.begin();
 
-    //if (!RTC.isrunning()) {
-    //    Serial.println("RTC is NOT running!");
-    //    RTC.adjust(DateTime(__DATE__, __TIME__));
-    //}
+    if (!RTC.isrunning()) {
+        Serial.println("RTC is NOT running!");
+        RTC.adjust(DateTime(__DATE__, __TIME__));
+    }
 
     t0.begin();
     t1.begin();
@@ -1102,8 +1141,8 @@ void setup() {
     myGLCD.InitLCD(LANDSCAPE);
     myGLCD.clrScr();
     myGLCD.setBackColor(0, 0, 0);
-    myButtons.setButtonColors(VGA_WHITE, VGA_WHITE, VGA_WHITE,
-                              VGA_RED, VGA_BLUE, VGA_GRAY);
+    //myButtons.setButtonColors(VGA_WHITE, VGA_WHITE, VGA_WHITE,
+    //                          VGA_RED, VGA_BLUE, VGA_GRAY);
     myButtons.setTextFont(BigFont);
 
     myTouch.InitTouch(LANDSCAPE);
@@ -1395,27 +1434,17 @@ void loop() {
             pressedButton = myButtons.checkButtons();
 
             if (pressedButton == 0) {
-                temperatureSenzorStatus[0]++;
-                setTempButton(0);
-                EEPROM.write(42, temperatureSenzorStatus[0]);
-            }
-            if (pressedButton == 1) {
-                temperatureSenzorStatus[1]++;
-                setTempButton(1);
-                EEPROM.write(43, temperatureSenzorStatus[1]);
-            }
-            if (pressedButton == 2) {
                 temperatureSenzorStatus[2]++;
                 setTempButton(2);
                 EEPROM.write(44, temperatureSenzorStatus[2]);
             }
-            if (pressedButton == 3) {
+            if (pressedButton == 1) {
                 temperatureSenzorStatus[3]++;
                 setTempButton(3);
                 EEPROM.write(45, temperatureSenzorStatus[3]);
             }
 
-            if (pressedButton == 4) {
+            if (pressedButton == 2) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
