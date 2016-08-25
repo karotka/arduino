@@ -1105,14 +1105,8 @@ void drawRegDebug() {
         dtostrf(temperatureHour[i - 1], 4, 1, str);
         myGLCD.print(str, posx, posy);
         posx += 35;
-        }*/
-
-    for (int i = 0; i < 10; i++) {
-        //float a = t0.getSamples();
-
-        //dtostrf(a[i], 4, 1, str);
-        //myGLCD.print(str, LEFT, 100);
     }
+    */
 }
 #endif
 
