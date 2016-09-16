@@ -1368,7 +1368,7 @@ endif
 # Note: setting -D to disable flash erase before programming may cause issues
 # with some boards like attiny84a, making the program not "take",
 # so we do not set it by default.
-AVRDUDE_ISP_OPTS = -c $(ISP_PROG) -b $(AVRDUDE_ISP_BAUDRATE)
+AVRDUDE_ISP_OPTS = -D -c $(ISP_PROG) -b $(AVRDUDE_ISP_BAUDRATE)
 
 ifndef $(ISP_PORT)
     ifneq ($(strip $(ISP_PROG)),$(filter $(ISP_PROG), arduino usbasp usbtiny gpio linuxgpio avrispmkii dragon_isp dragon_dw))
