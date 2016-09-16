@@ -42,22 +42,22 @@ public:
     void load(void);
 
     int coolValue;
-    int coolByte;
+    uint8_t coolByte;
 
     int warmValue;
-    int warmByte;
+    uint8_t warmByte;
 
     int yellowValue;
-    int yellowByte;
+    uint8_t yellowByte;
 
     int redValue;
-    int redByte;
+    uint8_t redByte;
 
     int greenValue;
-    int greenByte;
+    uint8_t greenByte;
 
     int blueValue;
-    int blueByte;
+    uint8_t blueByte;
 
     uint8_t flag;
 };

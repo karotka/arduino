@@ -35,9 +35,7 @@ Thermistor t3(A3, 0, 10000,  3380);
 
 float te0, te1, te2, te3;
 
-
 volatile int x, y;
-volatile int actualWW, actualCW, targetWW, targetCW;
 
 uint8_t lightStates[8];
 uint8_t hourStates[8];
@@ -107,14 +105,6 @@ void switchLight(int i) {
         if (lightStates[i] == MODE_NIGHT) {
             actualLightValues = &nightValues;
         }
-        /*
-        analogWrite(LED_COOL_WHITE, actualLightValues->coolByte);
-        analogWrite(LED_WHITE,      actualLightValues->warmByte);
-        analogWrite(LED_YELLOW,     actualLightValues->yellowByte);
-        analogWrite(LED_RED,   actualLightValues->redByte);
-        analogWrite(LED_GREEN, actualLightValues->greenByte);
-        analogWrite(LED_BLUE,  actualLightValues->blueByte);
-        */
     }
 }
 
@@ -186,14 +176,42 @@ ISR(TIMER2_OVF_vect) {
         checkTimer();
         checkCo2();
 
-        // dimming process
-        if ( > actualLightValues->coolByte) {
-            ;
+        if (OCR1A > actualLightValues->coolByte) {
+            OCR1A--;
+        }
+        if (OCR1B > actualLightValues->warmByte) {
+            OCR1B--;
+        }
+        if (OCR0A > actualLightValues->yellowByte) {
+            OCR0A--;
+        }
+        if (OCR2A > actualLightValues->redByte) {
+            OCR2A--;
+        }
+        if (OCR2B > actualLightValues->greenByte) {
+            OCR2B--;
+        }
+        if (OCR4C > actualLightValues->greenByte) {
+            OCR4C--;
         }
 
-        // dimming reverze process
-        if (->coolByte < ->coolByte) {
-            ;
+        if (OCR1A < actualLightValues->coolByte) {
+            OCR1A++;
+        }
+        if (OCR1B < actualLightValues->warmByte) {
+            OCR1B++;
+        }
+        if (OCR0A < actualLightValues->yellowByte) {
+            OCR0A++;
+        }
+        if (OCR2A < actualLightValues->redByte) {
+            OCR2A++;
+        }
+        if (OCR2B < actualLightValues->greenByte) {
+            OCR2B++;
+        }
+        if (OCR4C < actualLightValues->greenByte) {
+            OCR4C++;
         }
 
         timerCounter1 = 0;
@@ -586,19 +604,6 @@ void drawHomeScreen() {
         sprintf (str, "T2:--   ");
     }
     myGLCD.print(str, 175, 190);
-
-    if (actualCW > targetCW || actualCW < targetCW) {
-        myGLCD.setColor(255, 255, 255);
-        myGLCD.fillRect(30, 215, 285 - actualCW, 215);
-        myGLCD.setColor(0, 0, 0);
-        myGLCD.fillRect(284 - actualCW, 213, 285, 216);
-    }
-    if (actualWW > targetWW || actualWW < targetWW) {
-        myGLCD.setColor(255, 223, 143);
-        myGLCD.fillRect(30, 222, 285 - actualWW, 222);
-        myGLCD.setColor(0, 0, 0);
-        myGLCD.fillRect(284 - actualWW, 220, 285, 223);
-    }
 }
 
 void drawSelectScreen() {
@@ -965,8 +970,9 @@ void debug() {
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(SmallFont);
 
-    //sprintf (str, "BTN:%02d, PG:%d, R:%03d G:%03d B:%03d W:%03d",
-    //         pressedButton, page, xRC, xGC, xBC, xWC);
+    sprintf (str, "C:%03d W:%03d Y:%03d R:%03d G:%03d B:%03d",
+             OCR1A, OCR1B, OCR0A, OCR2A, OCR2B, OCR4C);
+    myGLCD.print(str, CENTER, 215);
 
     sprintf (str, "F:%d C:%03d W:%03d Y:%03d R:%03d G:%03d B:%03d",
              actualLightValues->flag, actualLightValues->coolByte, actualLightValues->warmByte,
@@ -981,9 +987,6 @@ void debug() {
     //         xRC, xGC, xBC, xWC, xCC);
     //myGLCD.print(str, CENTER, 215);
     //
-    //sprintf (str, "A:%03d-T:%03d, A:%03d-T:%03d SM:%d BTN:%d",
-    //         actualWW, targetWW, actualCW, targetCW, switchMode, pressedButton);
-
     //sprintf (str, "SM:%03d, BTN:%03d", switchMode, pressedButton);
 
     //sprintf (str, "NeT:%01d Tp:%02d Tmp:%02d TS:%04d 74:%03d",
@@ -1001,7 +1004,7 @@ void debug() {
     //myGLCD.print(str, CENTER, 215);
 
     //sprintf (str, "A1:%d A2:%d A3:%d", t1.isEnabled(), t2.isEnabled(), t3.isEnabled());
-    myGLCD.print(str, CENTER, 228);
+    //myGLCD.print(str, CENTER, 228);
 
     //sprintf (str, "T0:%03d T1:%03d T2:%03d T3:%03d",
              //         (int)(te0*10), (int)(te1*10), (int)(te2*10), (int)(te3*10));
@@ -1277,7 +1280,6 @@ void loop() {
                 // set light to day
                 actualLightValues->save();
                 actualLightValues = &dayValues;
-                actualLightValues->load();
                 redrawSliders();
                 analogSwitch();
                 setMode();
@@ -1287,24 +1289,22 @@ void loop() {
                 // set light to off
                 actualLightValues->save();
                 actualLightValues = &offValues;
-                actualLightValues->load();
                 redrawSliders();
                 analogSwitch();
                 setMode();
             } else
 
             if (pressedButton == 2) {
-                // set light to night
+                // set light to NIGHT
                 actualLightValues->save();
                 actualLightValues = &nightValues;
-                actualLightValues->load();
                 redrawSliders();
                 analogSwitch();
                 setMode();
             } else
 
             if (pressedButton == 3) {
-                // set light mode
+                // set light mode to AUTO
                 actualLightValues->save();
                 switchMode++;
                 if (switchMode == 2) {
