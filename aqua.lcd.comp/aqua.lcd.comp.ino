@@ -51,8 +51,6 @@ uint8_t temperatureSenzorStatus[4];
 
 volatile uint8_t page;
 volatile uint8_t actualCo2state;
-volatile uint8_t lightStatesNow;
-volatile uint8_t actualLightState;
 volatile uint8_t switchMode;
 volatile uint8_t pressedButton;
 volatile uint8_t flashWrote;
@@ -102,38 +100,21 @@ void switchLight(int i) {
 
         if (lightStates[i] == MODE_OFF) {
             actualLightValues = &offValues;
-            // set off
-            actualWW = OCR1B;
-            actualCW = OCR1A;
-            targetWW = 255;
-            targetCW = 255;
-            analogWrite(LED_RED,   255);
-            analogWrite(LED_GREEN, 255);
-            analogWrite(LED_BLUE,  255);
         }
         if (lightStates[i] == MODE_DAY) {
             actualLightValues = &dayValues;
-            // set day
-            actualWW = OCR1B;
-            actualCW = OCR1A;
-            targetWW = actualLightValues->warmByte;
-            targetCW = actualLightValues->coolByte;
-            analogWrite(LED_RED,   255);
-            analogWrite(LED_GREEN, 255);
-            analogWrite(LED_BLUE,  255);
         }
         if (lightStates[i] == MODE_NIGHT) {
             actualLightValues = &nightValues;
-
-            // set night
-            actualWW = OCR1B;
-            actualCW = OCR1A;
-            targetWW = 255;
-            targetCW = 255;
-            analogWrite(LED_RED,   actualLightValues->redByte);
-            analogWrite(LED_GREEN, actualLightValues->greenByte);
-            analogWrite(LED_BLUE,  actualLightValues->blueByte);
         }
+        /*
+        analogWrite(LED_COOL_WHITE, actualLightValues->coolByte);
+        analogWrite(LED_WHITE,      actualLightValues->warmByte);
+        analogWrite(LED_YELLOW,     actualLightValues->yellowByte);
+        analogWrite(LED_RED,   actualLightValues->redByte);
+        analogWrite(LED_GREEN, actualLightValues->greenByte);
+        analogWrite(LED_BLUE,  actualLightValues->blueByte);
+        */
     }
 }
 
@@ -206,18 +187,15 @@ ISR(TIMER2_OVF_vect) {
         checkCo2();
 
         // dimming process
-        if (actualCW > targetCW) {
-            analogWrite(LED_COOL_WHITE, actualCW--);
+        if ( > actualLightValues->coolByte) {
+            ;
         }
-        if (actualCW < targetCW) {
-            analogWrite(LED_COOL_WHITE, ++actualCW);
+
+        // dimming reverze process
+        if (->coolByte < ->coolByte) {
+            ;
         }
-        if (actualWW > targetWW) {
-            analogWrite(LED_WHITE, actualWW--);
-        }
-        if (actualWW < targetWW) {
-            analogWrite(LED_WHITE, ++actualWW);
-        }
+
         timerCounter1 = 0;
     }
 
@@ -571,16 +549,14 @@ void drawHomeScreen() {
 
     myGLCD.setColor(210, 210, 210);
     myGLCD.setFont(BigFont);
-    if (actualLightState != lightStatesNow) {
+
         myGLCD.print("                   ", CENTER, 185);
         if (switchMode == MODE_MANUAL) {
-            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightState]);
+            sprintf (str, "MODE:MANUAL (%s)", dateStr[actualLightValues->flag]);
         } else {
-            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightState]);
+            sprintf (str, "MODE:AUTO (%s)", dateStr[actualLightValues->flag]);
         }
         myGLCD.print(str, CENTER, 150);
-        lightStatesNow = actualLightState;
-    }
 
     if (actualCo2state == CO2_OFF) {
         sprintf (str, "CO2:%s", co2Str[CO2_OFF]);
@@ -993,11 +969,6 @@ void debug() {
     //         pressedButton, page, xRC, xGC, xBC, xWC);
 
     sprintf (str, "F:%d C:%03d W:%03d Y:%03d R:%03d G:%03d B:%03d",
-             offValues.flag, offValues.coolByte, offValues.warmByte, offValues.yellowByte,
-             offValues.redByte, offValues.greenByte, offValues.blueByte);
-    myGLCD.print(str, CENTER, 215);
-
-    sprintf (str, "F:%d C:%03d W:%03d Y:%03d R:%03d G:%03d B:%03d",
              actualLightValues->flag, actualLightValues->coolByte, actualLightValues->warmByte,
              actualLightValues->yellowByte, actualLightValues->redByte,
              actualLightValues->greenByte, actualLightValues->blueByte);
@@ -1178,7 +1149,6 @@ void loop() {
     case PAGE_RETURN_MOME:
         myButtons.deleteAllButtons();
         myGLCD.clrScr();
-        lightStatesNow = 3;
         page = PAGE_HOME;
         break;
 
@@ -1255,7 +1225,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
 #if DEBUG == 1
@@ -1282,7 +1251,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -1350,7 +1318,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -1433,7 +1400,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -1459,7 +1425,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
@@ -1625,7 +1590,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
 
@@ -1863,7 +1827,6 @@ void loop() {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawHomeScreen();
-                lightStatesNow = 3;
                 page = PAGE_HOME;
             }
         }
