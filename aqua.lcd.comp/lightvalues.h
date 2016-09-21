@@ -18,12 +18,12 @@ enum {
     MODE_NONE
 };
 
-#define LED_YELLOW          13
-#define LED_WHITE           12
-#define LED_COOL_WHITE      11
-#define LED_RED             10
-#define LED_GREEN           9
-#define LED_BLUE            8
+#define LED_YELLOW          13  // OC0A
+#define LED_WHITE           12  // OC1B
+#define LED_COOL_WHITE      11  // OC1A
+#define LED_RED             10  // OC2A
+#define LED_GREEN           9   // OC2B
+#define LED_BLUE            8   // OC4C
 
 
 class LigthValues_t {
@@ -33,11 +33,19 @@ public:
     LigthValues_t(uint8_t flag);
 
     void setCoolValue(int value);
+    void setCoolByte(uint8_t value);
+
     void setWarmValue(int value);
+    void setWarmByte(uint8_t value);
+
     void setYellowValue(int value);
+
     void setRedValue(int value);
+
     void setGreenValue(int value);
+
     void setBlueValue(int value);
+
     void save(void);
     void load(void);
 

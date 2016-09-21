@@ -1,5 +1,6 @@
 #include "lightvalues.h"
 
+
 //LigthValues_t::LigthValues_t() {}
 
 LigthValues_t::LigthValues_t(uint8_t flag) : flag(flag) {
@@ -12,10 +13,22 @@ void LigthValues_t::setCoolValue(int value) {
     analogWrite(LED_COOL_WHITE, coolByte);
 }
 
+void LigthValues_t::setCoolByte(uint8_t value) {
+    coolByte = value;
+    coolValue = map(value, 0, 255, X_TOUCH_AREA_MIN, X_TOUCH_AREA_MAX);
+    analogWrite(LED_COOL_WHITE, value);
+}
+
 void LigthValues_t::setWarmValue(int value) {
     warmValue = value;
     warmByte = map(value, X_TOUCH_AREA_MAX, X_TOUCH_AREA_MIN, 0, 255);
     analogWrite(LED_WHITE, warmByte);
+}
+
+void LigthValues_t::setWarmByte(uint8_t value) {
+    warmByte = value;
+    warmValue = map(value, 0, 255, X_TOUCH_AREA_MIN, X_TOUCH_AREA_MAX);
+    analogWrite(LED_COOL_WHITE, value);
 }
 
 void LigthValues_t::setYellowValue(int value) {
