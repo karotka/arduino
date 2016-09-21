@@ -69,6 +69,7 @@ extern uint8_t GroteskBold24x48[];
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
+int dimmingSpeed = 30;
 
 void pinInit(void) {
     DDRK = 0xff;
@@ -153,15 +154,20 @@ void checkCo2() {
     }
 }
 
+
 ISR(TIMER2_OVF_vect) {
     timerCounter1++;
     timerCounter2++;
     i2cReadTimeCounter++;
     temperatureReadTimeCounter++;
 
-    if (switchMode == MODE_AUTO && timerCounter1 > 550) {
+    if (switchMode == MODE_AUTO) {
         checkTimer();
         checkCo2();
+    }
+
+    //switchMode == MODE_AUTO &&
+    if (timerCounter1 > dimmingSpeed) {
 
         if (OCR1A > actualLightValues->coolByte) {
             analogWrite(LED_COOL_WHITE, --OCR1A);
@@ -183,22 +189,22 @@ ISR(TIMER2_OVF_vect) {
         }
 
         if (OCR1A < actualLightValues->coolByte) {
-            analogWrite(LED_COOL_WHITE, OCR1A++);
+            analogWrite(LED_COOL_WHITE, ++OCR1A);
         }
         if (OCR1B < actualLightValues->warmByte) {
-            analogWrite(LED_WHITE, OCR1B++);
+            analogWrite(LED_WHITE, ++OCR1B);
         }
         if (OCR0A < actualLightValues->yellowByte) {
-            analogWrite(LED_YELLOW, OCR0A++);
+            analogWrite(LED_YELLOW, ++OCR0A);
         }
         if (OCR2A < actualLightValues->redByte) {
-            analogWrite(LED_RED, OCR2A++);
+            analogWrite(LED_RED, ++OCR2A);
         }
         if (OCR2B < actualLightValues->greenByte) {
-            analogWrite(LED_GREEN, OCR2B++);
+            analogWrite(LED_GREEN, ++OCR2B);
         }
         if (OCR4C < actualLightValues->blueByte) {
-            analogWrite(LED_BLUE, OCR4C++);
+            analogWrite(LED_BLUE, ++OCR4C);
         }
         timerCounter1 = 0;
     }
@@ -1120,33 +1126,37 @@ void loop() {
 
             if (pressedButton == 0) {
                 // set light to day
+                dimmingSpeed = 30;
                 actualLightValues->save();
                 actualLightValues = &dayValues;
                 redrawSliders();
-                analogSwitch();
+                //analogSwitch();
                 setMode();
             } else
 
             if (pressedButton == 1) {
                 // set light to off
+                dimmingSpeed = 30;
                 actualLightValues->save();
                 actualLightValues = &offValues;
                 redrawSliders();
-                analogSwitch();
+                //analogSwitch();
                 setMode();
             } else
 
             if (pressedButton == 2) {
                 // set light to NIGHT
+                dimmingSpeed = 30;
                 actualLightValues->save();
                 actualLightValues = &nightValues;
                 redrawSliders();
-                analogSwitch();
+                //analogSwitch();
                 setMode();
             } else
 
             if (pressedButton == 3) {
                 // set light mode to AUTO
+                dimmingSpeed = 500;
                 actualLightValues->save();
                 switchMode++;
                 if (switchMode == 2) {
