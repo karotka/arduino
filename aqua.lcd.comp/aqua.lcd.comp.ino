@@ -69,7 +69,7 @@ extern uint8_t GroteskBold24x48[];
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 
-int dimmingSpeed = 30;
+int dimmingSpeed = DIMMING_SPEED_MIN;
 
 void pinInit(void) {
     DDRK = 0xff;
@@ -154,7 +154,6 @@ void checkCo2() {
     }
 }
 
-
 ISR(TIMER2_OVF_vect) {
     timerCounter1++;
     timerCounter2++;
@@ -166,8 +165,7 @@ ISR(TIMER2_OVF_vect) {
         checkCo2();
     }
 
-    //switchMode == MODE_AUTO &&
-    if (timerCounter1 > dimmingSpeed) {
+    if (timerCounter1 > DIMMING_SPEED_MAX) {
 
         if (OCR1A > actualLightValues->coolByte) {
             analogWrite(LED_COOL_WHITE, --OCR1A);
@@ -320,15 +318,6 @@ void drawCo2Screen() {
     myButtons.drawButtons();
 }
 
-void analogSwitch() {
-    analogWrite(LED_COOL_WHITE, actualLightValues->coolByte);
-    analogWrite(LED_WHITE,      actualLightValues->warmByte);
-    analogWrite(LED_YELLOW,     actualLightValues->yellowByte);
-    analogWrite(LED_RED,        actualLightValues->redByte);
-    analogWrite(LED_GREEN,      actualLightValues->greenByte);
-    analogWrite(LED_BLUE,       actualLightValues->blueByte);
-}
-
 void setMode() {
     if (switchMode == MODE_AUTO) {
         myButtons.relabelButton(3, "AUT", true);
@@ -451,13 +440,13 @@ void drawHomeScreen() {
     myGLCD.setColor(210, 210, 210);
     myGLCD.setFont(BigFont);
 
-    myGLCD.print("MODE:", 25, 150);
+    myGLCD.print("MODE:", 15, 150);
     if (switchMode == MODE_MANUAL) {
         sprintf (str, "MANUAL (%s)", dateStr[actualLightValues->flag]);
     } else {
         sprintf (str, "AUTO (%s)", dateStr[actualLightValues->flag]);
     }
-    myGLCD.print(str, 105, 150);
+    myGLCD.print(str, 95, 150);
 
     if (actualCo2state == CO2_OFF) {
         sprintf (str, "CO2:%s", co2Str[CO2_OFF]);
@@ -817,15 +806,6 @@ void eepromRead() {
     // from 64 to 90 LigthValues_t
 }
 
-void defaultLights() {
-    analogWrite(LED_COOL_WHITE, actualLightValues->coolByte);
-    analogWrite(LED_WHITE,      actualLightValues->warmByte);
-    analogWrite(LED_YELLOW,     actualLightValues->yellowByte);
-    analogWrite(LED_RED,        actualLightValues->redByte);
-    analogWrite(LED_GREEN,      actualLightValues->greenByte);
-    analogWrite(LED_BLUE,       actualLightValues->blueByte);
-}
-
 #if DEBUG == 1
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)  \
@@ -1077,6 +1057,7 @@ void loop() {
             if (pressedButton == 5) {
                 returnHome();
             }
+
 #if DEBUG == 1
             else
             if (pressedButton == 6) {
@@ -1124,39 +1105,36 @@ void loop() {
                 checkTouchLedArea();
             } else
 
+            // set light to DAY
             if (pressedButton == 0) {
-                // set light to day
-                dimmingSpeed = 30;
+                dimmingSpeed = DIMMING_SPEED_MIN;
                 actualLightValues->save();
                 actualLightValues = &dayValues;
                 redrawSliders();
-                //analogSwitch();
                 setMode();
             } else
 
+            // set light to OFF
             if (pressedButton == 1) {
-                // set light to off
-                dimmingSpeed = 30;
+                dimmingSpeed = DIMMING_SPEED_MIN;
                 actualLightValues->save();
                 actualLightValues = &offValues;
                 redrawSliders();
-                //analogSwitch();
                 setMode();
             } else
 
+            // set light to NIGHT
             if (pressedButton == 2) {
-                // set light to NIGHT
-                dimmingSpeed = 30;
+                dimmingSpeed = DIMMING_SPEED_MIN;
                 actualLightValues->save();
                 actualLightValues = &nightValues;
                 redrawSliders();
-                //analogSwitch();
                 setMode();
             } else
 
+            // set light mode to AUTO
             if (pressedButton == 3) {
-                // set light mode to AUTO
-                dimmingSpeed = 500;
+                dimmingSpeed = DIMMING_SPEED_MAX;
                 actualLightValues->save();
                 switchMode++;
                 if (switchMode == 2) {
@@ -1212,7 +1190,7 @@ void loop() {
                 newTime.day--;
                 if (newTime.day < 1) newTime.day = 31;
                 drawNewTime();
-            }
+            } else
             if (pressedButton == 7) {
                 newTime.day++;
                 if (newTime.day > 31) newTime.day = 1;

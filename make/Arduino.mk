@@ -169,7 +169,7 @@
 # You need to specify some details of your ISP programmer and might
 # also need to specify the fuse values:
 #
-     ISP_PROG	   = stk500v2
+#     ISP_PROG	   = stk500v2
 #     ISP_PORT     = /dev/ttyACM0
 #
 # You might also need to set the fuse bits, but typically they'll be

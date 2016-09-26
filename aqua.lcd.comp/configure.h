@@ -9,8 +9,10 @@
 
 #define RETURN_DELAY        5000 // 11s
 #define RELE_PIN            14
-
 #define COLOR_TIME 255, 60, 60
+#define DIMMING_SPEED_MIN   25
+#define DIMMING_SPEED_MAX   600
+
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
