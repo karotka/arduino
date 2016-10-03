@@ -28,7 +28,7 @@ LigthValues_t *actualLightValues;
 
 // temperature of board
 Thermistor t0(A0, 0, 100000, 3950);
-// main temp.
+// main temp
 Thermistor t1(A1, 0, 10000,  3380);
 // other
 Thermistor t2(A2, 0, 10000,  3380);
@@ -113,9 +113,9 @@ void checkTimer() {
     int minutes, nextMinutes, realMinute;
     realMinute = now.minute() + (now.hour() * 60);
 
-    for(uint8_t i = 0; i < 8; i++) {
+    for(uint8_t i = 0; i < 10; i++) {
         uint8_t j = i + 1;
-        if (i == 7) { j = 0; }
+        if (i == 9) { j = 0; }
 
         minutes     = minuteStates[i] + (hourStates[i] * 60);
         nextMinutes = minuteStates[j] + (hourStates[j] * 60);
@@ -860,8 +860,8 @@ void eepromRead() {
     co2minute[4] = 59;
     co2minute[5] = 0;
 
-    temperatureSenzorStatus[0] = 1;//EEPROM.read(42);
-    temperatureSenzorStatus[1] = 1;//EEPROM.read(43);
+    temperatureSenzorStatus[0] = 1;
+    temperatureSenzorStatus[1] = 1;
     temperatureSenzorStatus[2] = EEPROM.read(44);
     temperatureSenzorStatus[3] = EEPROM.read(45);
 
@@ -1026,9 +1026,9 @@ void loop() {
         te0 = t0.getCelsius();
         myRound(&te0);
 
+        t1.readTemperature();
         te1 = t1.getCelsius();
         myRound(&te1);
-        t1.readTemperature();
 
         if (temperatureSenzorStatus[2] == 1) {
             te2 = t2.getCelsius();
