@@ -5,13 +5,13 @@
 #include <ITDB02_Touch.h>
 #include <UTFT_Buttons.h>
 
-#define DEBUG               1
+#define DEBUG               0
 
 #define RETURN_DELAY        5000 // 11s
 #define RELE_PIN            14
-#define COLOR_TIME 255, 60, 60
-#define DIMMING_SPEED_MIN   25
-#define DIMMING_SPEED_MAX   600
+#define COLOR_TIME          255, 60, 60
+#define DIMMING_SPEED_FAST  10
+#define DIMMING_SPEED_SLOW  1000
 
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
@@ -19,7 +19,7 @@ ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
 UTFT_Buttons  myButtons(&myGLCD, &myTouch);
 
 const char* co2Str[2]  = {"OFF", "ON"};
-const char* dateStr[4] = {"OFF", "DAY", "NIGHT", "NONE"};
+const char* dateStr[6] = {"OFF", "DAY1", "DAY2", "NIGHT1", "NIGHT2", "NONE"};
 
 enum {
     TEMP_0 = 0,

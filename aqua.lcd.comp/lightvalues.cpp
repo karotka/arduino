@@ -65,7 +65,7 @@ void LigthValues_t::save(void) {
         EEPROM.write(69, blueByte);
     }
 
-    if (flag == MODE_DAY) {
+    if (flag == MODE_DAY1) {
         EEPROM.write(70, coolByte);
         EEPROM.write(71, warmByte);
         EEPROM.write(72, yellowByte);
@@ -74,13 +74,31 @@ void LigthValues_t::save(void) {
         EEPROM.write(75, blueByte);
     }
 
-    if (flag == MODE_NIGHT) {
+    if (flag == MODE_DAY2) {
         EEPROM.write(76, coolByte);
         EEPROM.write(77, warmByte);
         EEPROM.write(78, yellowByte);
         EEPROM.write(79, redByte);
         EEPROM.write(80, greenByte);
         EEPROM.write(81, blueByte);
+    }
+
+    if (flag == MODE_NIGHT1) {
+        EEPROM.write(82, coolByte);
+        EEPROM.write(83, warmByte);
+        EEPROM.write(84, yellowByte);
+        EEPROM.write(85, redByte);
+        EEPROM.write(86, greenByte);
+        EEPROM.write(87, blueByte);
+    }
+
+    if (flag == MODE_NIGHT2) {
+        EEPROM.write(88, coolByte);
+        EEPROM.write(89, warmByte);
+        EEPROM.write(90, yellowByte);
+        EEPROM.write(91, redByte);
+        EEPROM.write(92, greenByte);
+        EEPROM.write(93, blueByte);
     }
 }
 
@@ -94,7 +112,7 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(69);
     }
 
-    if (flag == MODE_DAY) {
+    if (flag == MODE_DAY1) {
         coolByte   = EEPROM.read(70);
         warmByte   = EEPROM.read(71);
         yellowByte = EEPROM.read(72);
@@ -103,13 +121,31 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(75);
     }
 
-    if (flag == MODE_NIGHT) {
+    if (flag == MODE_DAY2) {
         coolByte   = EEPROM.read(76);
         warmByte   = EEPROM.read(77);
         yellowByte = EEPROM.read(78);
         redByte    = EEPROM.read(79);
         greenByte  = EEPROM.read(80);
         blueByte   = EEPROM.read(81);
+    }
+
+    if (flag == MODE_NIGHT1) {
+        coolByte   = EEPROM.read(82);
+        warmByte   = EEPROM.read(83);
+        yellowByte = EEPROM.read(84);
+        redByte    = EEPROM.read(85);
+        greenByte  = EEPROM.read(86);
+        blueByte   = EEPROM.read(87);
+    }
+
+    if (flag == MODE_NIGHT2) {
+        coolByte   = EEPROM.read(88);
+        warmByte   = EEPROM.read(89);
+        yellowByte = EEPROM.read(90);
+        redByte    = EEPROM.read(91);
+        greenByte  = EEPROM.read(92);
+        blueByte   = EEPROM.read(93);
     }
 
     coolValue   = map(coolByte,   0, 255, X_TOUCH_AREA_MAX, X_TOUCH_AREA_MIN);

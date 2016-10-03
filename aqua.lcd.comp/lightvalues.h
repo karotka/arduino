@@ -13,9 +13,10 @@
 
 enum {
     MODE_OFF = 0,
-    MODE_DAY,
-    MODE_NIGHT,
-    MODE_NONE
+    MODE_DAY1,
+    MODE_DAY2,
+    MODE_NIGHT1,
+    MODE_NIGHT2
 };
 
 #define LED_YELLOW          13  // OC0A

@@ -39,7 +39,7 @@
 	#error : You will need UTFT v2.41 or higher to use this add-on library...
 #endif
 
-#define MAX_BUTTONS	32	// Maximum number of buttons available at one time
+#define MAX_BUTTONS	45	// Maximum number of buttons available at one time
 
 // Define presets for button status
 #define BUTTON_DISABLED			0x0001
