@@ -900,7 +900,11 @@ void debug() {
     //         t0.getAdc(), t1.getAdc(), t2.getAdc(), t3.getAdc());
     //myGLCD.print(str, CENTER, 4);
 
-    sprintf (str, "S:%d", switchMode);
+
+    //sprintf(str, "TCCR2A:" BYTE_TO_BINARY_PATTERN " TCCR2B:" BYTE_TO_BINARY_PATTERN,
+    //        BYTE_TO_BINARY(TCCR2A), BYTE_TO_BINARY(TCCR2B));
+    sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
+            BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));
     myGLCD.print(str, CENTER, 228);
 
     //sprintf (str, "B: %d NO: %d ADC: %d",
@@ -1007,6 +1011,11 @@ void setup() {
     timer2set();
 
     page = PAGE_HOME;
+
+    //TCCR0B =  0b0000010;
+    //TCCR1B =  0b0000010;
+    //TCCR2B =  0b0000010;
+    //TCCR2B =  0b0000010;
 }
 
 void returnHome() {
