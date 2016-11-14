@@ -1,6 +1,6 @@
 /**
- * Graphical interface for Arduino Aquarium Computer
- *
+ * simple 7 segment cabin clock for Ice Hockey team Hvezda Praha
+ * It show time, date and temperarue
  */
 #include "configure.h"
 #include <Wire.h>
@@ -16,19 +16,22 @@ NewTime  newTime;
 dht DHT;
 
 volatile char digitsc[4];
-volatile int timerCounter0 = 0;
+volatile int position = 0;
 volatile int timerCounterSec = 0;
 volatile int timerCounterShow = 0;
 volatile int showState = SHOW_TIME;
-bool showDot = false;
-unsigned int dot = 0b0000;
+volatile int set = SET_NONE;
+volatile int timerCounterBlink = 0;
 
-int showLimit = SHOW_TIME_TIME;
+unsigned int dot = 0b0000;
+int showDelay = SHOW_TIME_TIME;
 
 unsigned int i = 0;
 char str[4];
 
+
 void pinInit(void) {
+    // Port B as Output
     DDRB = 0xff;
     PORTB = 0xff;
 
@@ -36,7 +39,7 @@ void pinInit(void) {
     SEVEN_SEGMENT_DDR=0xff;
 
     // Turn off all segments
-    SEVEN_SEGMENT_PORT=0xff;
+    SEVEN_SEGMENT_PORT=0x00;
 }
 
 void timer2set(void) {
@@ -112,7 +115,49 @@ ISR(TIMER2_OVF_vect) {
     PORTB &= ~(1 << PB1);
     PORTB &= ~(1 << PB2);
     PORTB &= ~(1 << PB3);
-    PORTB |= (1 << timerCounter0);
+
+    switch (set) {
+
+    case SET_HOUR:
+        showState = SHOW_TIME;
+        if (position == 0 || position == 1) {
+            if (timerCounterBlink < 100) {
+                PORTB |= (1 << position);
+            }
+        }
+        break;
+
+    case SET_MINUTE:
+        showState = SHOW_TIME;
+        if (position == 2 || position == 3) {
+            if (timerCounterBlink < 100) {
+                PORTB |= (1 << position);
+            }
+        }
+        break;
+
+    case SET_DAY:
+        showState = SHOW_DATE;
+        if (position == 0 || position == 1) {
+            if (timerCounterBlink < 100) {
+                PORTB |= (1 << position);
+            }
+        }
+        break;
+
+    case SET_MONTH:
+        showState = SHOW_DATE;
+        if (position == 2 || position == 3) {
+            if (timerCounterBlink < 100) {
+                PORTB |= (1 << position);
+            }
+        }
+        break;
+
+    default:
+        PORTB |= (1 << position);
+        break;
+    }
 
     if (showState == SHOW_TIME) {
         if (timerCounterSec < 307) {
@@ -122,37 +167,41 @@ ISR(TIMER2_OVF_vect) {
         }
     }
 
-    if (CHECK_BIT(dot, timerCounter0)) {
-        sevenSegmentChar(digitsc[timerCounter0], 1);
+    if (CHECK_BIT(dot, position)) {
+        sevenSegmentChar(digitsc[position], 1);
     } else {
-        sevenSegmentChar(digitsc[timerCounter0], 0);
+        sevenSegmentChar(digitsc[position], 0);
     }
 
     // reset timers if necessary
     if (showState == SHOW_TIME) {
         timerCounterSec++;
     }
-    timerCounter0++;
+    position++;
     timerCounterShow++;
+    timerCounterBlink++;
 
     if (timerCounterSec == 614) {
         timerCounterSec = 0;
     }
-    if (timerCounter0 == 4) {
-        timerCounter0 = 0;
+    if (position == 4) {
+        position = 0;
     }
 
-    if (timerCounterShow > showLimit) {
+    if (set == SET_NONE && timerCounterShow > showDelay) {
         showState++;
         if (showState > SHOW_TEMP) {
             showState = SHOW_TIME;
         }
         timerCounterShow = 0;
     }
+
+    if (timerCounterBlink == 300) {
+        timerCounterBlink = 0;
+    }
 }
 
 void setup() {
-
     RTC.begin();
     if (!RTC.isrunning()) {
         RTC.adjust(DateTime(__DATE__, __TIME__));
@@ -161,12 +210,74 @@ void setup() {
     timer2set();
 }
 
+void setNewTime() {
+    newTime.hour   = now.hour();
+    newTime.minute = now.minute();
+    newTime.day    = now.day();
+    newTime.month  = now.month();
+}
+
 void loop() {
+
+    if (analogRead(2) < 200) {
+        delay(50);
+        if (set == SET_NONE) {
+            set = SET_HOUR;
+        } else {
+            set++;
+        }
+        if (set == SET_NONE) {
+            timerCounterShow = 0;
+            showState = SHOW_TIME;
+        }
+    }
+
+    switch (set) {
+    case SET_HOUR:
+        if (analogRead(1) < 200) {
+            delay(50);
+            setNewTime();
+            newTime.hour++;
+            if (newTime.hour > 23) newTime.hour = 0;
+            RTC.adjust(newTime);
+        }
+        break;
+
+    case SET_MINUTE:
+        if (analogRead(1) < 200) {
+            delay(50);
+            setNewTime();
+            newTime.minute++;
+            if (newTime.minute > 59) newTime.minute = 0;
+            RTC.adjust(newTime);
+        }
+        break;
+
+    case SET_DAY:
+        if (analogRead(1) < 200) {
+            delay(50);
+            setNewTime();
+            newTime.day++;
+            if (newTime.day > 31) newTime.day = 0;
+            RTC.adjust(newTime);
+        }
+        break;
+
+    case SET_MONTH:
+        if (analogRead(1) < 200) {
+            delay(50);
+            setNewTime();
+            newTime.month++;
+            if (newTime.month > 12) newTime.month = 1;
+            RTC.adjust(newTime);
+        }
+        break;
+    }
 
     switch (showState) {
 
     case SHOW_TIME:
-        showLimit = SHOW_TIME_TIME;
+        showDelay = SHOW_TIME_TIME;
         now = RTC.now();
         if (now.hour() < 10) {
             sprintf (str, "% 2d%02d", now.hour(), now.minute());
@@ -177,10 +288,10 @@ void loop() {
         break;
 
     case SHOW_DATE:
-        dot = 0b0101;
-        showLimit = SHOW_DATE_TIME;
+        dot = 0b1010;
+        showDelay = SHOW_DATE_TIME;
         now = RTC.now();
-        if (now.hour() < 10) {
+        if (now.day() < 10) {
             sprintf (str, "% 2d%02d", now.day(), now.month());
         } else {
             sprintf (str, "%02d%02d", now.day(), now.month());
@@ -189,20 +300,20 @@ void loop() {
         break;
 
     case SHOW_TEMP:
-        dot = 0b0100;
+        dot = 0b0010;
         int chk = DHT.read22(DHT22_PIN);
-        int temp = (int)(DHT.temperature * 10);
+        int temp = (int)((DHT.temperature - 0.7) * 10);
         if (chk == DHTLIB_OK) {
             sprintf (str, "%03dC", temp);
         } else {
             sprintf (str, "%s", "-- C");
         }
-        showLimit = SHOW_TEMP_TIME;
+        showDelay = SHOW_TEMP_TIME;
         timerCounterSec = 0;
         printChr(str);
-        delay(1000);
+        delay(500);
         break;
     }
 
-    delay(250);
+    delay(200);
 }

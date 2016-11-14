@@ -5,7 +5,7 @@ PROJECT_DIR   = /Users/karotka/Arduino
 USER_LIB_PATH := $(PROJECT_DIR)/libraries
 AVRDUDE_ISP_BAUDRATE = 57600
 
-ISP_PROG     = stk500
+ISP_PROG     = stk500v1
 ISP_PORT      = /dev/tty.wchusbserial1410
 MCU           = atmega328p
 
