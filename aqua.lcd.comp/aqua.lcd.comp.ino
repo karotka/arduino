@@ -1015,7 +1015,6 @@ void setup() {
     //TCCR0B =  0b0000010;
     //TCCR1B =  0b0000010;
     //TCCR2B =  0b0000010;
-    //TCCR2B =  0b0000010;
 }
 
 void returnHome() {
