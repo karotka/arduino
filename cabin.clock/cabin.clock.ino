@@ -6,11 +6,13 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <DHTlib.h>
+#include <Dimmer.h>
 
 RTC_DS1307 RTC;
 DateTime now;
 NewTime  newTime;
 dht DHT;
+Dimmer d(3);
 
 volatile char digitsc[4];
 volatile int position = 0;
@@ -21,9 +23,15 @@ volatile int showState = SHOW_TIME;
 volatile int set = SET_NONE;
 volatile unsigned int dot = 0b0000;
 volatile unsigned int showDelay = SHOW_TIME_TIME;
+volatile int temperature;
 
+unsigned int divider = 0;
+unsigned int condition = 0;
 unsigned int i = 0;
 char str[4];
+
+unsigned int dimmer = 7;
+int senstorState;
 
 void pinInit(void) {
     // Port B as Output
@@ -112,12 +120,18 @@ void sevenSegmentChar(char ch, uint8_t dp) {
     }
 }
 
-unsigned int pos = 0;
-unsigned int dimmer = 7;
 
 ISR(TIMER2_OVF_vect) {
 
-    if (((pos + 1) % 8) == 0) {
+    condition = (divider + 1) % 8;
+    if (condition == dimmer) {
+        PORTB &= ~(1 << PB0);
+        PORTB &= ~(1 << PB1);
+        PORTB &= ~(1 << PB2);
+        PORTB &= ~(1 << PB3);
+    }
+
+    if (condition == 0) {
 
         switch (set) {
 
@@ -176,19 +190,13 @@ ISR(TIMER2_OVF_vect) {
             sevenSegmentChar(digitsc[position], 0);
         }
         position++;
+
+        if (position == 4) {
+            position = 0;
+        }
     }
 
-    pos++;
-    if ((pos % 8) == dimmer) {
-        PORTB &= ~(1 << PB0);
-        PORTB &= ~(1 << PB1);
-        PORTB &= ~(1 << PB2);
-        PORTB &= ~(1 << PB3);
-    }
-
-    if (position == 4) {
-        position = 0;
-    }
+    divider++;
 
     if (showState == SHOW_TIME) {
         timerCounterSec++;
@@ -213,6 +221,8 @@ ISR(TIMER2_OVF_vect) {
 }
 
 void setup() {
+    d.begin();
+
     RTC.begin();
     if (!RTC.isrunning()) {
         RTC.adjust(DateTime(__DATE__, __TIME__));
@@ -228,11 +238,8 @@ void setNewTime() {
     newTime.month  = now.month();
 }
 
-int v;
-int chk;
-int temp;
-
 void loop() {
+    d.read();
 
     if (analogRead(2) < 200) {
         delay(50);
@@ -289,8 +296,6 @@ void loop() {
         break;
     }
 
-    v = analogRead(3);
-
     //showState = SHOW_LIGHT;
     switch (showState) {
 
@@ -319,10 +324,10 @@ void loop() {
 
     case SHOW_TEMP:
         dot = 0b0010;
-        chk = DHT.read22(DHT22_PIN);
-        temp = (int)((DHT.temperature - TEMP_CORRECTION) * 10);
-        if (chk == DHTLIB_OK) {
-            sprintf (str, "%03dC", temp);
+        senstorState = DHT.read22(DHT22_PIN);
+        temperature = (int)((DHT.temperature - TEMP_CORRECTION) * 10);
+        if (senstorState == DHTLIB_OK) {
+            sprintf (str, "%03dC", temperature);
         } else {
             sprintf (str, "%s", "-- C");
         }
@@ -334,34 +339,34 @@ void loop() {
 
 //    case SHOW_LIGHT:
 //        dot = 0b0000;
-//        sprintf (str, "%04dC", v);
+//        sprintf (str, "%04dC", value);
 //        printChr(str);
 //        delay(500);
 //        break;
 //
     }
 
-    if (v <= 920) {
+    int value = d.getValue();
+    if (value <= 920) {
         dimmer = 7;
     } else
-    if (v > 920 && v <= 940) {
+    if (value > 920 && value <= 940) {
         dimmer = 6;
     } else
-    if (v > 940 && v <= 950) {
+    if (value > 940 && value <= 950) {
         dimmer = 5;
     } else
-    if (v > 950 && v <= 970) {
+    if (value > 950 && value <= 970) {
         dimmer = 4;
     } else
-    if (v > 970 && v <= 990) {
+    if (value > 970 && value <= 990) {
         dimmer = 3;
     } else
-    if (v > 990 && v <= 1010) {
+    if (value > 990 && value <= 1010) {
         dimmer = 2;
     } else
-    if (v > 1010) {
+    if (value > 1010) {
         dimmer = 1;
     }
-
-    delay(100);
+    delay(150);
 }

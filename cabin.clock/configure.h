@@ -8,7 +8,7 @@ enum {
     SHOW_TIME = 0,
     SHOW_DATE,
     SHOW_TEMP
-    //    SHOW_LIGHT
+    //SHOW_LIGHT
 };
 
 enum {
