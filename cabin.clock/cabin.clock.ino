@@ -197,6 +197,9 @@ ISR(TIMER2_OVF_vect) {
     }
 
     divider++;
+    if (divider == 8) {
+        divider = 0;
+    }
 
     if (showState == SHOW_TIME) {
         timerCounterSec++;
