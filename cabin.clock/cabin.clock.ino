@@ -25,13 +25,18 @@ volatile unsigned int dot = 0b0000;
 volatile unsigned int showDelay = SHOW_TIME_TIME;
 volatile int temperature;
 
+unsigned int dimmer = 7;
 unsigned int divider = 0;
 unsigned int condition = 0;
 unsigned int i = 0;
 char str[4];
 
-unsigned int dimmer = 7;
-int senstorState;
+int timerTime = 1;
+int timerState = TIMER_05;
+unsigned long previousMillis1 = 0;
+unsigned long previousMillis2 = 0;
+unsigned long previousMillis3 = 0;
+int ms = 9;
 
 void pinInit(void) {
     // Port B as Output
@@ -210,7 +215,9 @@ ISR(TIMER2_OVF_vect) {
 
     timerCounterShow++;
     timerCounterBlink++;
-    if (set == SET_NONE && timerCounterShow > showDelay) {
+    // automaticaly change date, time and temperature
+    // if not in state set or timer
+    if (set == SET_NONE && showState != SHOW_TIMER && timerCounterShow > showDelay) {
         showState++;
         if (showState > SHOW_TEMP) {
             showState = SHOW_TIME;
@@ -243,9 +250,18 @@ void setNewTime() {
 
 void loop() {
     d.read();
+    unsigned long currentMillis = millis();
 
     if (analogRead(2) < 200) {
-        delay(50);
+        delay(250);
+
+        // return to clock
+        if (showState == SHOW_TIMER) {
+            delay(100);
+            showState = SHOW_TIME;
+            return;
+        }
+
         if (set == SET_NONE) {
             set = SET_HOUR;
         } else {
@@ -257,10 +273,21 @@ void loop() {
         }
     }
 
+    if (analogRead(0) < 200) {
+        delay(200);
+        showState = SHOW_TIMER;
+        timerRun = TIMER_SET;
+        timerState++;
+        if (timerState > TIMER_05) {
+            timerState = TIMER_20;
+        }
+        timerTime = timerValues[timerState];
+    }
+
     switch (set) {
     case SET_HOUR:
         if (analogRead(1) < 200) {
-            delay(50);
+            delay(200);
             setNewTime();
             newTime.hour++;
             if (newTime.hour > 23) newTime.hour = 0;
@@ -270,7 +297,7 @@ void loop() {
 
     case SET_MINUTE:
         if (analogRead(1) < 200) {
-            delay(50);
+            delay(200);
             setNewTime();
             newTime.minute++;
             if (newTime.minute > 59) newTime.minute = 0;
@@ -280,17 +307,17 @@ void loop() {
 
     case SET_DAY:
         if (analogRead(1) < 200) {
-            delay(50);
+            delay(200);
             setNewTime();
             newTime.day++;
-            if (newTime.day > 31) newTime.day = 0;
+            if (newTime.day > 31) newTime.day = 1;
             RTC.adjust(newTime);
         }
         break;
 
     case SET_MONTH:
         if (analogRead(1) < 200) {
-            delay(50);
+            delay(200);
             setNewTime();
             newTime.month++;
             if (newTime.month > 12) newTime.month = 1;
@@ -299,7 +326,10 @@ void loop() {
         break;
     }
 
-    //showState = SHOW_LIGHT;
+    //    showState = SHOW_LIGHT;
+    int value = d.getValue();
+    int sensorState = 0;
+
     switch (showState) {
 
     case SHOW_TIME:
@@ -318,18 +348,18 @@ void loop() {
         showDelay = SHOW_DATE_TIME;
         now = RTC.now();
         if (now.day() < 10) {
-            sprintf (str, "% 2d%02d", now.day(), now.month());
+            sprintf (str, "% d%02d", now.day(), now.month());
         } else {
-            sprintf (str, "%02d%02d", now.day(), now.month());
+            sprintf (str, "%d%02d", now.day(), now.month());
         }
         printChr(str);
         break;
 
     case SHOW_TEMP:
         dot = 0b0010;
-        senstorState = DHT.read22(DHT22_PIN);
+        sensorState = DHT.read22(DHT22_PIN);
         temperature = (int)((DHT.temperature - TEMP_CORRECTION) * 10);
-        if (senstorState == DHTLIB_OK) {
+        if (sensorState == DHTLIB_OK) {
             sprintf (str, "%03dC", temperature);
         } else {
             sprintf (str, "%s", "-- C");
@@ -340,6 +370,86 @@ void loop() {
         delay(500);
         break;
 
+    case SHOW_TIMER:
+
+        // start timer
+        if (analogRead(1) < 500) {
+            delay(100);
+            timerRun = TIMER_RUN;
+        }
+
+        switch (timerRun) {
+        case TIMER_SET:
+            if (timerTime / 60 < 10) {
+                sprintf (str, " %d%02d", timerTime / 60, timerTime % 60);
+            } else {
+                sprintf (str, "%02d%02d", timerTime / 60, timerTime % 60);
+            }
+            break;
+
+        case TIMER_RUN:
+            if ((unsigned long)(currentMillis - previousMillis1) >= 1000) {
+                previousMillis1 = currentMillis;
+                timerTime--;
+            }
+            if ((unsigned long)(currentMillis - previousMillis2) >= 250) {
+                previousMillis2 = currentMillis;
+                dot ^= (1 << 1);
+            }
+            if (timerTime < 60) {
+                timerRun = TIMER_LASTMIN;
+            }
+            if (timerTime / 60 < 10) {
+                sprintf (str, " %d%02d", timerTime / 60, timerTime % 60);
+            } else {
+                sprintf (str, "%02d%02d", timerTime / 60, timerTime % 60);
+            }
+            break;
+
+        case TIMER_LASTMIN:
+            if ((unsigned long)(currentMillis - previousMillis1) >= 1000) {
+                previousMillis1 = currentMillis;
+                timerTime--;
+            }
+            if ((unsigned long)(currentMillis - previousMillis2) >= 250) {
+                previousMillis2 = currentMillis;
+                dot ^= (1 << 1);
+            }
+            if ((unsigned long)(currentMillis - previousMillis3) >= 100) {
+                previousMillis3 = currentMillis;
+                ms--;
+                if (ms < 0) {
+                    ms = 9;
+                }
+            }
+            if (timerTime == 0) {
+                timerRun = TIMER_FINISHED;
+            }
+            if (timerTime % 60 < 10) {
+                sprintf (str, " %d%d ", timerTime % 60, ms);
+            } else {
+                sprintf (str, "%02d%d ", timerTime % 60, ms);
+            }
+            break;
+
+        case TIMER_FINISHED:
+            if ((unsigned long)(currentMillis - previousMillis1) >= 10000) {
+                timerRun = TIMER_SET;
+                showState = SHOW_TIME;
+            }
+            if ((unsigned long)(currentMillis - previousMillis2) >= 250) {
+                previousMillis2 = currentMillis;
+            } else {
+                if ((unsigned long)(currentMillis - previousMillis2) <= 150) {
+                    sprintf (str, "0000");
+                } else {
+                    sprintf (str, "----");
+                }
+            }
+            break;
+        }
+        printChr(str);
+
 //    case SHOW_LIGHT:
 //        dot = 0b0000;
 //        sprintf (str, "%04dC", value);
@@ -349,27 +459,26 @@ void loop() {
 //
     }
 
-    int value = d.getValue();
-    if (value <= 920) {
+    if (value <= 995) {
         dimmer = 7;
     } else
-    if (value > 920 && value <= 940) {
+    if (value > 995 && value <= 1000) {
         dimmer = 6;
     } else
-    if (value > 940 && value <= 950) {
+    if (value > 1000 && value <= 1005) {
         dimmer = 5;
     } else
-    if (value > 950 && value <= 970) {
+    if (value > 1005 && value <= 1010) {
         dimmer = 4;
     } else
-    if (value > 970 && value <= 990) {
+    if (value > 1014 && value <= 1018) {
         dimmer = 3;
     } else
-    if (value > 990 && value <= 1010) {
+    if (value > 1018 && value <= 1021) {
         dimmer = 2;
     } else
-    if (value > 1010) {
+    if (value >= 1022) {
         dimmer = 1;
     }
-    delay(150);
+    //delay(250);
 }
