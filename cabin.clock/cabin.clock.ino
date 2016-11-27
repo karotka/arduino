@@ -1,6 +1,6 @@
 /**
  * simple 7 segment cabin clock for Ice Hockey team Hvezda Praha
- * It show time, date and temperarue
+ * It can show time, date, temperarue and three timers
  */
 #include "configure.h"
 #include <Wire.h>
