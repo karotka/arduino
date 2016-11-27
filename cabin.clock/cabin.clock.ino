@@ -17,26 +17,25 @@ Dimmer d(3);
 volatile char digitsc[4];
 volatile int position = 0;
 volatile int timerCounterSec = 0;
-volatile unsigned int timerCounterShow = 0;
 volatile int timerCounterBlink = 0;
 volatile int showState = SHOW_TIME;
 volatile int set = SET_NONE;
 volatile unsigned int dot = 0b0000;
 volatile unsigned int showDelay = SHOW_TIME_TIME;
-volatile int temperature;
+volatile unsigned int timerCounterShow = 0;
+volatile unsigned int dimmer = 7;
+volatile unsigned int divider = 0;
 
-unsigned int dimmer = 7;
-unsigned int divider = 0;
-unsigned int condition = 0;
-unsigned int i = 0;
-char str[4];
-
+int temperature;
 int timerTime = 1;
 int timerState = TIMER_05;
+
 unsigned long previousMillis1 = 0;
 unsigned long previousMillis2 = 0;
 unsigned long previousMillis3 = 0;
 int ms = 9;
+
+char str[4];
 
 void pinInit(void) {
     // Port B as Output
@@ -63,6 +62,7 @@ void timer2set(void) {
 }
 
 void printChr(char c[]) {
+    unsigned int i;
     for(i = 0; i < 4; i++) {
         digitsc[i] = c[i];
     }
@@ -128,7 +128,7 @@ void sevenSegmentChar(char ch, uint8_t dp) {
 
 ISR(TIMER2_OVF_vect) {
 
-    condition = (divider + 1) % 8;
+    unsigned int condition = (divider + 1) % 8;
     if (condition == dimmer) {
         PORTB &= ~(1 << PB0);
         PORTB &= ~(1 << PB1);

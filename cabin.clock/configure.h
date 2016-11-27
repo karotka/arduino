@@ -17,7 +17,7 @@ enum {
     TIMER_10,
     TIMER_05
 };
-unsigned int timerValues [3] = {500, 400, 65};
+unsigned int timerValues [3] = {1200, 600, 300};
 
 enum {
     TIMER_SET = 0,
