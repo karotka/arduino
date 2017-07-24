@@ -425,10 +425,10 @@ void loop() {
             if (timerTime == 0) {
                 timerRun = TIMER_FINISHED;
             }
-            if (timerTime % 60 < 10) {
-                sprintf (str, " %d%d ", timerTime % 60, ms);
+            if (timerTime < 10) {
+                sprintf (str, " %1d%1d ", timerTime % 60, ms);
             } else {
-                sprintf (str, "%02d%d ", timerTime % 60, ms);
+                sprintf (str, "%02d%1d ", timerTime % 60, ms);
             }
             break;
 
