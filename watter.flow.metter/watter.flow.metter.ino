@@ -4,13 +4,11 @@
 #include "U8glib.h"
 
 
-
 U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NONE);   // I2C / TWI
 //U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_FAST); // Dev 0, Fast I2C / TWI
 //U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_NO_ACK); // Display which does not send ACK
 
 RTC_DS3231 rtc;
-
 
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -19,7 +17,6 @@ void setup () {
 
     u8g.setFont(u8g_font_unifont);
     u8g.setColorIndex(1); // Instructs the display to draw with a pixel on.
-
 
     Serial.begin(9600);
 

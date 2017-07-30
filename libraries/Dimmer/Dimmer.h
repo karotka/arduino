@@ -9,7 +9,8 @@ public:
 
     void begin();
     void read();
-    float getValue();
+    int dimm(short dimtable[][2], int NUMDSTEPS);
+    int getValue();
     int getAdc() { return adc; };
 
 protected:
@@ -17,5 +18,6 @@ protected:
     float samples[NUMSAMPLES];
     float average;
     int adc;
+    int value;
     uint8_t pointer;
 };

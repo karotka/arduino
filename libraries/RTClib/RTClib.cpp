@@ -55,7 +55,7 @@ const uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 static uint16_t date2days(uint16_t y, uint8_t m, uint8_t d) {
     if (y >= 2000)
         y -= 2000;
-    uint16_t days = d;
+    uint8_t days = d;
     for (uint8_t i = 1; i < m; ++i)
         days += pgm_read_byte(daysInMonth + i - 1);
     if (m > 2 && y % 4 == 0)
@@ -193,6 +193,10 @@ long DateTime::secondstime(void) const {
   uint16_t days = date2days(yOff, m, d);
   t = time2long(days, hh, mm, ss);
   return t;
+}
+
+uint8_t DateTime::dayOfTheYear() const {
+    return date2days(yOff, m, d);
 }
 
 DateTime DateTime::operator+(const TimeSpan& span) {
