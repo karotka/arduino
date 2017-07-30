@@ -8,7 +8,7 @@ Dimmer::Dimmer(uint8_t pin)
 void Dimmer::begin() {
 }
 
-float Dimmer::getValue() {
+int Dimmer::getValue() {
     if (pointer != NUMSAMPLES) {
         return 0;
     }
@@ -17,7 +17,8 @@ float Dimmer::getValue() {
     for (uint8_t i = 0; i < NUMSAMPLES; i++) {
         average += samples[i];
     }
-    return average /= NUMSAMPLES;
+    value = average /= NUMSAMPLES;
+    return value;
 }
 
 void Dimmer::read() {
@@ -32,5 +33,16 @@ void Dimmer::read() {
 
     if (pointer > NUMSAMPLES) {
         pointer = NUMSAMPLES;
+    }
+}
+
+int Dimmer::dimm(short dimtable[][2], int NUMDSTEPS) {
+    read();
+    getValue();
+
+    for (int i = 0; i < NUMDSTEPS; i++) {
+        if (value < dimtable[i][0]) {
+            return dimtable[i][1];
+        }
     }
 }
