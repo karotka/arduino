@@ -31,7 +31,6 @@ volatile byte dot;
 String chars = "";
 
 int x = 1;
-int dimmer;
 unsigned long oldTime;
 
 
@@ -41,7 +40,7 @@ void setup() {
     // initialize the LED matrix
     matrix.begin();
     // set the brightness; max = 255
-    matrix.setBrightness(60);
+    matrix.setBrightness(10);
     matrix.setTextWrap(false);
     matrix.setTextColor(blue);
 
@@ -56,12 +55,10 @@ void setup() {
 }
 
 void loop() {
-    dimmer = d.dimm(dimtable, NUMDSTEPS);
-
     if((millis() - oldTime) > 2000) {
         now = rtc.now();
+        matrix.setBrightness(d.dimm(dimtable, NUMDSTEPS););
         oldTime = millis();
-        matrix.setBrightness(dimmer);
     }
 
     switch (show) {
