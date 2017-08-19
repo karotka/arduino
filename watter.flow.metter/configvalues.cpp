@@ -52,7 +52,6 @@ void ConfigValues_t::save() {
     address += sizeof(float);
 
     EEPROM.put(address, totalLitres);
-
 };
 
 void ConfigValues_t::load() {

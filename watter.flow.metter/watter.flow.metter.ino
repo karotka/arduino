@@ -4,84 +4,38 @@
 #include "configvalues.h"
 #include "logo.h"
 
-#define DELAY 10
-#define RETURN_TIMEOUT 10
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE|U8G_I2C_OPT_DEV_0);
+RTC_DS3231 rtc;
+DateTime now;
+ConfigValues_t configValues;
 
+volatile unsigned int delayCount = 0;
+volatile byte pulseCount;
 unsigned int returnStatus = 0;
-float frac;
-int x = 0;
-int y = 0;
 
 int *minute;
 int *hour;
 int *st;
 
-volatile unsigned int delayCount = 0;
-volatile byte pulseCount;
-enum {
-    SET_NONE = 0,
-    SET_A,
-    SET_B,
-    SET_HOUR,
-    SET_MINUTE,
-    SET_DAY,
-    SET_MONTH,
-    SET_YEAR,
-    SET_T1_HOUR,
-    SET_T1_MIN,
-    SET_T1_ST,
-    SET_T2_HOUR,
-    SET_T2_MIN,
-    SET_T2_ST,
-    SET_T3_HOUR,
-    SET_T3_MIN,
-    SET_T3_ST,
-    SET_T4_HOUR,
-    SET_T4_MIN,
-    SET_T4_ST,
-    SET_T5_HOUR,
-    SET_T5_MIN,
-    SET_T5_ST,
-    SET_T6_HOUR,
-    SET_T6_MIN,
-    SET_T6_ST,
-    SET_T7_HOUR,
-    SET_T7_MIN,
-    SET_T7_ST,
-    SET_T8_HOUR,
-    SET_T8_MIN,
-    SET_T8_ST,
-    SET_T9_HOUR,
-    SET_T9_MIN,
-    SET_T9_ST,
-    SET_END
-};
-
-enum {
-    PAGE_FIRST = 0,
-    PAGE_SECOND
-};
-
-const char *status[3] = {"OFF", "ON", "NO"};
+const char *status[3] = {"OFF", "ON", "AUT"};
 
 byte setDateStatus = SET_NONE;
 byte sensorInterrupt = 0;  // 0 = digital pin 2
 byte page = PAGE_FIRST;
-
-U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NONE|U8G_I2C_OPT_DEV_0);
-RTC_DS3231 rtc;
-DateTime now;
-ConfigValues_t configValues;
+bool ddot;
+bool relayOn = true;
 
 // The hall-effect flow sensor outputs approximately 4.5 pulses per second per
 // litre/minute of flow.
 float calibrationFactor = 9;
 float flowRate;
 float flowMilliLitres;
+float frac;
+int x = 0;
+int y = 0;
+
 unsigned long oldReadTime;
 unsigned long oldTime;
-
-bool ddot;
 
 char buf[20];
 char fl[9];
@@ -93,7 +47,9 @@ void setTimer1();
  */
 void pulseCounter() {
     pulseCount++;
-    delayCount = DELAY;
+    if (!relayOn) {
+        delayCount = DELAY;
+    }
 }
 
 ISR(TIMER1_COMPA_vect) {  // timer compare interrupt service routine
@@ -130,7 +86,10 @@ void checkTimer() {
         nextMinutes = configValues.minutes[j] + (configValues.hours[j] * 60);
 
         if (minutes <= realMinute && realMinute < nextMinutes) {
+            relayOn = false;
             if (configValues.statuses[i] == 1) delayCount = DELAY;
+            else
+            if (configValues.statuses[i] == 0) relayOn = true;
             break;
         }
     }
@@ -254,14 +213,16 @@ void draw(void) {
             u8g.drawStr(0, x + 11 + (i * 13), buf);
         }
 
-        if (y == 0) {
+        switch (y) {
+        case 0:
             u8g.drawFrame(23, 0, 18, 12);
-        }
-        if (y == 1) {
+            break;
+        case 1:
             u8g.drawFrame(47, 0, 18, 12);
-        }
-        if (y == 2) {
+            break;
+        case 2:
             u8g.drawFrame(71, 0, 27, 12);
+            break;
         }
 
     }
@@ -273,12 +234,13 @@ void setHour(int *hour) {
     if (digitalRead(9) == LOW) {
         *hour = *hour - 1;
         returnStatus = 0;
-    }
+    } else
     if (digitalRead(10) == LOW) {
         *hour = *hour + 1;
         returnStatus = 0;
     }
     if (*hour > 23) *hour = 0;
+    else
     if (*hour < 0) *hour = 23;
 }
 
@@ -286,12 +248,13 @@ void setMinute(int *minute) {
     if (digitalRead(9) == LOW) {
         *minute = *minute - 1;
         returnStatus = 0;
-    }
+    } else
     if (digitalRead(10) == LOW) {
         *minute = *minute + 1;
         returnStatus = 0;
     }
     if (*minute > 59) *minute = 0;
+    else
     if (*minute < 0) *minute = 59;
 }
 
@@ -309,7 +272,6 @@ void loop(void) {
     }
 
     if((millis() - oldTime) > 1000) {    // Only process counters once per second
-
         detachInterrupt(sensorInterrupt);
         flowRate = ((1000.0 / (millis() - oldTime)) * pulseCount) / calibrationFactor;
         oldTime = millis();
@@ -512,42 +474,34 @@ void loop(void) {
         st = &configValues.statuses[0];
         setStatus(st);
         break;
-
     case SET_T2_ST:
         st = &configValues.statuses[1];
         setStatus(st);
         break;
-
     case SET_T3_ST:
         st = &configValues.statuses[2];
         setStatus(st);
         break;
-
     case SET_T4_ST:
         st = &configValues.statuses[3];
         setStatus(st);
         break;
-
     case SET_T5_ST:
         st = &configValues.statuses[4];
         setStatus(st);
         break;
-
     case SET_T6_ST:
         st = &configValues.statuses[5];
         setStatus(st);
         break;
-
     case SET_T7_ST:
         st = &configValues.statuses[6];
         setStatus(st);
         break;
-
     case SET_T8_ST:
         st = &configValues.statuses[7];
         setStatus(st);
         break;
-
     case SET_T9_ST:
         st = &configValues.statuses[8];
         setStatus(st);
