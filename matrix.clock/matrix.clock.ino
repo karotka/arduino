@@ -57,7 +57,7 @@ void setup() {
 void loop() {
     if((millis() - oldTime) > 2000) {
         now = rtc.now();
-        matrix.setBrightness(d.dimm(dimtable, NUMDSTEPS););
+        matrix.setBrightness(d.dimm(dimtable, NUMDSTEPS));
         oldTime = millis();
     }
 
@@ -100,8 +100,7 @@ void setTimer1() {
     interrupts();             // enable all interrupts
 }
 
-ISR(TIMER1_COMPA_vect)          // timer compare interrupt service routine
-{
+ISR(TIMER1_COMPA_vect) {          // timer compare interrupt service routine
     switchTimer++;
     if (switchTimer > 20) {
         switchTimer = 0;
