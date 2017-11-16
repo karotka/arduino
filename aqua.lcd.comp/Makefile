@@ -6,7 +6,7 @@ USER_LIB_PATH := $(PROJECT_DIR)/libraries
 AVRDUDE_ISP_BAUDRATE = 115200
 
 ISP_PROG     = stk500v2
-ISP_PORT      = /dev/tty.usbmodem1411
+ISP_PORT      = /dev/tty.wchusbserial*
 BOARD_TAG     = mega
 MCU           = atmega2560
 

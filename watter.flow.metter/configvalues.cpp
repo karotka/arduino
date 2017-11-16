@@ -44,14 +44,6 @@ void ConfigValues_t::save() {
     EEPROM.write(address + 26, statuses[8]);
 
     address = address + 32;
-
-    EEPROM.put(address, totalLitresA);
-    address += sizeof(float);
-
-    EEPROM.put(address, totalLitresB);
-    address += sizeof(float);
-
-    EEPROM.put(address, totalLitres);
 };
 
 void ConfigValues_t::load() {
@@ -95,13 +87,13 @@ void ConfigValues_t::load() {
 
     address = address + 32;
 
-    EEPROM.get(address, totalLitresA);
+    EEPROM.get(address, totalLitres[0]);
     address += sizeof(float);
 
-    EEPROM.get(address, totalLitresB);
+    EEPROM.get(address, totalLitres[1]);
     address += sizeof(float);
 
-    EEPROM.get(address, totalLitres);
+    EEPROM.get(address, totalLitres[2]);
 
     //totalLitresA = 0.0;
     //totalLitresB = 0.0;
@@ -117,3 +109,22 @@ void ConfigValues_t::load() {
     //statuses[8] = 2;
 
 };
+
+void ConfigValues_t::saveLitres() {
+    /*
+    pointer++;
+
+    address = 128 + pointer;
+    EEPROM.put(address, totalLitresA);
+    address += sizeof(float);
+
+
+    EEPROM.put(address, totalLitresB);
+    address += sizeof(float);
+
+    EEPROM.put(address, totalLitres);
+    if (pointer == 32) {
+        pointer = 0;
+    }
+    */
+}

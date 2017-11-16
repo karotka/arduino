@@ -54,16 +54,18 @@ class ConfigValues_t {
 
     ConfigValues_t();
 
+    int pointer = 0;
+
     int minutes[9];
     int hours[9];
     int statuses[9];
 
-    float totalLitres;
-    float totalLitresA;
-    float totalLitresB;
+    float totalLitres[3];
 
     void save();
+    void saveLitres();
     void load();
+    void loadLitres();
 };
 
 #endif

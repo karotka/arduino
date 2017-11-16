@@ -21,10 +21,9 @@
 #define LIME    0x07E0
 
 enum {
-    SET_NONE = 0,
-    SET_FIRST,
-    SET_SECOND,
-    SET_END
+    SCORE_NONE = 0,
+    SCORE_MINUS,
+    SCORE_END
 };
 
 enum {

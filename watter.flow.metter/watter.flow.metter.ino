@@ -167,15 +167,15 @@ void draw(void) {
             u8g.drawHLine(97, 52, 30);
         }
 
-        dtostrf(configValues.totalLitresA, 7, 2, fl);
+        dtostrf(configValues.totalLitres[0], 7, 2, fl);
         sprintf(buf, "MeA: %s Ltr", fl);
         u8g.drawStr(0, 11, buf);
 
-        dtostrf(configValues.totalLitresB, 7, 2, fl);
+        dtostrf(configValues.totalLitres[1], 7, 2, fl);
         sprintf(buf, "MeB: %s Ltr", fl);
         u8g.drawStr(0, 24, buf);
 
-        dtostrf(configValues.totalLitres, 7, 2, fl);
+        dtostrf(configValues.totalLitres[2], 7, 2, fl);
         sprintf(buf, "Tot: %s Ltr", fl);
         u8g.drawStr(0, 37, buf);
 
@@ -277,9 +277,9 @@ void loop(void) {
         oldTime = millis();
 
         flowMilliLitres = flowRate / 60;
-        configValues.totalLitres  += flowMilliLitres;
-        configValues.totalLitresA += flowMilliLitres;
-        configValues.totalLitresB += flowMilliLitres;
+        configValues.totalLitres[2] += flowMilliLitres;
+        configValues.totalLitres[0] += flowMilliLitres;
+        configValues.totalLitres[1] += flowMilliLitres;
         frac = (flowRate - int(flowRate)) * 10;
         pulseCount = 0;
 
@@ -311,13 +311,13 @@ void loop(void) {
     switch (setDateStatus) {
     case SET_A:
         if (digitalRead(10) == LOW) {
-            configValues.totalLitresA = 0;
+            configValues.totalLitres[0] = 0;
         }
         break;
 
     case SET_B:
         if (digitalRead(10) == LOW) {
-            configValues.totalLitresB = 0;
+            configValues.totalLitres[1] = 0;
         }
         break;
 

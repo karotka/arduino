@@ -1,7 +1,6 @@
 // Include libraries for the LED matrix
-#include <EEPROM.h>
 #include "configure.h"
-//#include <gamma.h>
+#include <EEPROM.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
@@ -15,7 +14,7 @@ Score_t score;
 char str[6];
 
 int mode = MODE_SCORE;
-int set = SET_NONE;
+int set = SCORE_NONE;
 int setModes = SETUP_MODE;
 int brighness = 100;
 int colorIndex = 2;
@@ -89,7 +88,7 @@ void setup() {
         }
 
         counter++;
-        delay(250);
+        delay(300);
     }
 }
 
@@ -106,19 +105,16 @@ void handleScore() {
     matrix.setCursor(0, 0);
     matrix.print(str);
 
-    if (set == SET_FIRST) {
-        matrix.drawLine(0, 7, 10, 7, BLUE);
-    } else
-    if (set == SET_SECOND) {
-        matrix.drawLine(18, 7, 28, 7, BLUE);
+    if (set == SCORE_MINUS) {
+        matrix.drawLine(0, 7, 29, 7, BLUE);
     }
     matrix.show();
 
     if (digitalRead(10) == LOW) {
-        if (set == SET_FIRST) {
+        if (set == SCORE_MINUS) {
             score.first--;
         } else
-        if (set == SET_NONE) {
+        if (set == SCORE_NONE) {
             score.first++;
         }
         if (score.first > 99) {
@@ -128,23 +124,22 @@ void handleScore() {
 
     if (digitalRead(9) == LOW) {
         set++;
-        if (set == SET_END) {
-            set = SET_NONE;
+        if (set == SCORE_END) {
+            set = SCORE_NONE;
         }
     }
 
     if (digitalRead(8) == LOW) {
-        if (set == SET_SECOND) {
+        if (set == SCORE_MINUS) {
             score.second--;
         } else
-        if (set == SET_NONE) {
+        if (set == SCORE_NONE) {
             score.second++;
         }
         if (score.second > 99) {
             score.second = 0;
         }
     }
-
 }
 
 void loop() {
