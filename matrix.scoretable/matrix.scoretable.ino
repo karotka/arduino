@@ -103,7 +103,6 @@ void setup() {
     }
 }
 
-
 void handleScore() {
 
     if (score.first < 10) {
@@ -121,7 +120,7 @@ void handleScore() {
     }
     matrix.show();
 
-    if (digitalRead(10) == LOW) {
+    if (notBounce(&PINB, PB2) == LOW) {
         if (set == SCORE_MINUS) {
             score.first--;
         } else
@@ -130,14 +129,14 @@ void handleScore() {
         }
     }
 
-    if (digitalRead(9) == LOW) {
+    if (notBounce(&PINB, PB1) == LOW) {
         set++;
         if (set == SCORE_END) {
             set = SCORE_NONE;
         }
     }
 
-    if (digitalRead(8) == LOW) {
+    if (notBounce(&PINB, PB0) == LOW) {
         if (set == SCORE_MINUS) {
             score.second--;
         } else
@@ -147,22 +146,24 @@ void handleScore() {
     }
 
     if (debounce(&PIND, PD3) == HIGH) {
-        //if (digitalRead(3) == HIGH) {
-        score.first--;
-    }
-    if (debounce(&PIND, PD4) == HIGH) {
-        //if (digitalRead(4) == HIGH) {
-        score.second--;
-    }
-    if (debounce(&PIND, PD5) == HIGH) {
-        //if (digitalRead(5) == HIGH) {
         score.first++;
     }
-    if (debounce(&PIND, PD6) == HIGH) {
-        //if (digitalRead(6) == HIGH) {
+    if (debounce(&PIND, PD4) == HIGH) {
         score.second++;
     }
+    if (debounce(&PIND, PD5) == HIGH) {
+        score.first--;
+    }
+    if (debounce(&PIND, PD6) == HIGH) {
+        score.second--;
+    }
 
+    if (score.first > 99) {
+        score.first = 0;
+    }
+    if (score.first < 0) {
+        score.first = 0;
+    }
     if (score.second > 99) {
         score.second = 0;
     }
@@ -178,8 +179,7 @@ void loop() {
         handleScore();
         break;
     case MODE_TIME:
-        //handleTime();
         break;
     }
-    delay(500);
+    delay(100);
 }

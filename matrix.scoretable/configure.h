@@ -60,7 +60,15 @@ const unsigned int colors[14] = {
 
 inline unsigned int debounce(volatile uint8_t *port, uint8_t pin) {
     if (!(*port & (1 << pin))) {
-        _delay_ms(100);
+        _delay_ms(50);
+        return HIGH;
+    }
+    return LOW;
+}
+
+inline unsigned int notBounce(volatile uint8_t *port, uint8_t pin) {
+    if ((*port & (1 << pin))) {
+        _delay_ms(50);
         return HIGH;
     }
     return LOW;
