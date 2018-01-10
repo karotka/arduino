@@ -2,7 +2,7 @@
 #define CONFIGURE_H
 
 // Define the pin which is used as DataIn on the LED matrix
-#define MATRIX_PIN 6
+#define MATRIX_PIN 7
 
 // define some color codes
 #define WHITE   0XFFFF
@@ -36,10 +36,11 @@ enum {
     SETUP_MODE = 0,
     SETUP_BRIG,
     SETUP_COLOR,
+    SETUP_VOLTAGE,
     SETUP_NONE
 };
 
-const char *modes[3] = {"SETUP", "BRIGH", "COLOR" };
+const char *modes[4] = {"SETUP", "BRIGH", "COLOR", "V" };
 const unsigned int colors[14] = {
     WHITE,
     GREEN,
@@ -56,6 +57,14 @@ const unsigned int colors[14] = {
     OLIVE,
     LIME
 };
+
+inline unsigned int debounce(volatile uint8_t *port, uint8_t pin) {
+    if (!(*port & (1 << pin))) {
+        _delay_ms(100);
+        return HIGH;
+    }
+    return LOW;
+}
 
 class Score_t {
 

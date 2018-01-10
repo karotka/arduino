@@ -20,6 +20,14 @@ int brighness = 100;
 int colorIndex = 2;
 
 void setup() {
+    pinMode(4,  INPUT);
+    pinMode(5,  INPUT);
+    pinMode(6,  INPUT);
+    pinMode(7,  OUTPUT);
+    pinMode(8,  INPUT);
+    pinMode(9,  INPUT);
+    pinMode(10, INPUT);
+
     // initialize the LED matrix
     matrix.begin();
 
@@ -32,10 +40,13 @@ void setup() {
     matrix.setTextSize(1);
     int counter = 0;
 
-    while (counter < 15) {
-
+    while (counter < 15 || setModes == SETUP_VOLTAGE) {
         matrix.fillScreen(0);
-        sprintf(str, "%s", modes[setModes]);
+        if (setModes == SETUP_VOLTAGE) {
+            sprintf(str, "V%.2f",  analogRead(A0) * (4.9 / 1023.0));
+        } else {
+            sprintf(str, "%s", modes[setModes]);
+        }
 
         if (digitalRead(8) == LOW) {
             counter = 0;
@@ -117,9 +128,6 @@ void handleScore() {
         if (set == SCORE_NONE) {
             score.first++;
         }
-        if (score.first > 99) {
-            score.first = 0;
-        }
     }
 
     if (digitalRead(9) == LOW) {
@@ -136,9 +144,30 @@ void handleScore() {
         if (set == SCORE_NONE) {
             score.second++;
         }
-        if (score.second > 99) {
-            score.second = 0;
-        }
+    }
+
+    if (debounce(&PIND, PD3) == HIGH) {
+        //if (digitalRead(3) == HIGH) {
+        score.first--;
+    }
+    if (debounce(&PIND, PD4) == HIGH) {
+        //if (digitalRead(4) == HIGH) {
+        score.second--;
+    }
+    if (debounce(&PIND, PD5) == HIGH) {
+        //if (digitalRead(5) == HIGH) {
+        score.first++;
+    }
+    if (debounce(&PIND, PD6) == HIGH) {
+        //if (digitalRead(6) == HIGH) {
+        score.second++;
+    }
+
+    if (score.second > 99) {
+        score.second = 0;
+    }
+    if (score.second < 0) {
+        score.second = 0;
     }
 }
 
