@@ -13,6 +13,8 @@
 #define DIMMING_SPEED_FAST  10
 #define DIMMING_SPEED_SLOW  1000
 
+#define FEED_PIN_SW      18
+#define FEED_PIN_POWER   19
 
 UTFT          myGLCD(ITDB32S, 38, 39, 40, 41);
 ITDB02_Touch  myTouch(6, 5, 4, 3, 2);
@@ -36,6 +38,7 @@ enum {
     PAGE_SET_TIMER,
     PAGE_SET_TIME,
     PAGE_SET_CO2,
+    PAGE_SET_FEED,
     PAGE_TEMP,
     PAGE_DEBUG,
     PAGE_RETURN_MOME

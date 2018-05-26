@@ -7,6 +7,8 @@ import time
 import serial
 import sys
 import select
+import thread
+
 
 print ('Select the serial port')
 devs = [f for f in os.listdir('/dev/') if re.match(r'tty\.|ttyU', f)]
@@ -17,29 +19,31 @@ for dev in devs:
 
 input = input()
 port = "/dev/%s" % devs[int(input)-1]
-
 print (port)
+
 # configure the serial connections (the parameters differs on the device you are connecting to)
 ser = serial.Serial(
     port=port,
+    #baudrate=250000,
     baudrate=115200,
-    parity=serial.PARITY_ODD,
-    stopbits=serial.STOPBITS_TWO,
-    bytesize=serial.SEVENBITS
+    #parity=serial.PARITY_ODD,
+    #stopbits=serial.STOPBITS_TWO,
+    #bytesize=serial.SEVENBITS
 )
 
 def readed(line):
     line = line.strip()
     if line == "exit":
         sys.exit(1)
+    ser.write("%s\n" % line)
     print('sending line:', line)
-    ser.write(line)
 
 if ser.isOpen():
     ser.close()
 ser.open()
 
 print ('Enter your commands below or insert "exit" to leave the application.')
+
 
 while 1 :
     out = ''

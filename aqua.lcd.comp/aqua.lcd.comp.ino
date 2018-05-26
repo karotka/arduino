@@ -46,7 +46,12 @@ uint8_t co2states[8];
 uint8_t co2hour[8];
 uint8_t co2minute[8];
 
+uint8_t feedhour[8];
+uint8_t feedminute[8];
+
 uint8_t temperatureSenzorStatus[4];
+int feedDone = 0;
+int lastRun = 0;
 
 volatile uint8_t page;
 volatile uint8_t actualCo2state;
@@ -58,6 +63,7 @@ volatile uint8_t showTemp;
 volatile int timerCounter1 = 0;
 volatile int timerCounter2 = 0;
 volatile int temperatureReadTimeCounter;
+volatile int timerCounterFeed = 500;
 
 volatile int sumDateNow = 0;
 volatile int dateNow = 0;
@@ -76,6 +82,9 @@ int dimmingSpeed = DIMMING_SPEED_FAST;
 void pinInit(void) {
     DDRK = 0xff;
     PORTK = 0x0;
+
+    pinMode(FEED_PIN_SW, INPUT);
+    pinMode(FEED_PIN_POWER, OUTPUT);
 }
 
 void timer2set(void) {
@@ -162,6 +171,49 @@ void checkCo2() {
     }
 }
 
+void checkFeed() {
+
+    int minutes, realMinute;
+    realMinute = now.minute() + (now.hour() * 60);
+
+    if (lastRun < realMinute) {
+        feedDone = 0;
+    }
+
+    for(uint8_t i = 0; i < 6; i++) {
+
+        minutes = feedminute[i] + (feedhour[i] * 60);
+
+        // check interval
+        if (minutes == realMinute) {
+            // if interval is done, run feed and
+            // set done for this period of time
+            if(feedDone == 0) {
+                lastRun = realMinute;
+                feedDone = 1;
+                timerCounterFeed = 500;
+            }
+            break;
+        }
+    }
+}
+
+/**
+ * Feed is runnig when timerCounterFeed > 0
+ */
+void processFeed() {
+    if (timerCounterFeed) {
+        timerCounterFeed--;
+        digitalWrite(FEED_PIN_POWER, HIGH); // working
+    } else {
+        if (digitalRead(FEED_PIN_SW)) {
+            digitalWrite(FEED_PIN_POWER, LOW);  // endstop
+        } else {
+            digitalWrite(FEED_PIN_POWER, HIGH); // working
+        }
+    }
+}
+
 ISR(TIMER2_OVF_vect) {
     timerCounter1++;
     timerCounter2++;
@@ -171,10 +223,13 @@ ISR(TIMER2_OVF_vect) {
     if (switchMode == MODE_AUTO) {
         checkTimer();
         checkCo2();
+        checkFeed();
         dimmingSpeed = DIMMING_SPEED_SLOW;
     } else {
         dimmingSpeed = DIMMING_SPEED_FAST;
     }
+
+    processFeed();
 
     if (timerCounter1 > dimmingSpeed) {
 
@@ -273,6 +328,54 @@ void setCo2Button(int btn, int id) {
     }
 }
 
+void drawFeedScreen() {
+    sprintf (strDate, "%02dh:%02dm.", feedhour[0], feedminute[0]);
+    myGLCD.setColor(VGA_WHITE);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 10, 8);
+
+    myButtons.addButton(2,   28, 22,  30, "<");
+    myButtons.addButton(28,  28, 22,  30, ">");
+    myButtons.addButton(62,  28, 22,  30, "<");
+    myButtons.addButton(88,  28, 22,  30, ">");
+
+    sprintf (strDate, "%02dh:%02dm.", feedhour[1], feedminute[1]);
+    myGLCD.setColor(VGA_WHITE);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 10, 64);
+
+    myButtons.addButton(2,   85, 22,  30, "<");
+    myButtons.addButton(28,  85, 22,  30, ">");
+    myButtons.addButton(62,  85, 22,  30, "<");
+    myButtons.addButton(88,  85, 22,  30, ">");
+
+    sprintf (strDate, "%02dh:%02dm.", feedhour[2], feedminute[2]);
+    myGLCD.setColor(VGA_WHITE);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 176, 8);
+
+    myButtons.addButton(166, 28, 22,  30, "<");
+    myButtons.addButton(192, 28, 22,  30, ">");
+    myButtons.addButton(226, 28, 22,  30, "<");
+    myButtons.addButton(252, 28, 22,  30, ">");
+
+    sprintf (strDate, "%02dh:%02dm.", feedhour[3], feedminute[3]);
+    myGLCD.setColor(VGA_WHITE);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, 176, 64);
+
+    myButtons.addButton(166, 85, 22,  30, "<");
+    myButtons.addButton(192, 85, 22,  30, ">");
+    myButtons.addButton(226, 85, 22,  30, "<");
+    myButtons.addButton(252, 85, 22,  30, ">");
+
+    myButtons.addButton(8 ,  197, 87,  30, "SAVE", 0, VGA_RED);
+    myButtons.addButton(99,  197, 138, 30, "FEED NOW");
+    myButtons.addButton(241, 197, 70,  30, "HOME");
+
+    myButtons.drawButtons();
+}
+
 void drawCo2Screen() {
     sprintf (strDate, "%02dh:%02dm.", co2hour[0], co2minute[0]);
     myGLCD.setColor(VGA_WHITE);
@@ -367,6 +470,13 @@ void setTimerTime(int id, int x, int y) {
 
 void setCo2TimerTime(int id, int x, int y) {
     sprintf (strDate, "%02dh:%02dm.", co2hour[id], co2minute[id]);
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.setFont(BigFont);
+    myGLCD.print(strDate, x, y);
+}
+
+void setFeedTimerTime(int id, int x, int y) {
+    sprintf (strDate, "%02dh:%02dm.", feedhour[id], feedminute[id]);
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(BigFont);
     myGLCD.print(strDate, x, y);
@@ -513,6 +623,8 @@ void drawSelectScreen() {
     myButtons.addButton(10,  140, 90,  30, "CO2");
     myButtons.addButton(115, 140, 90,  30, "TEMP");
     myButtons.addButton(220, 140, 90,  30, "HOME");
+
+    myButtons.addButton(10, 190, 90,  30, "FEED");
 
 #if DEBUG == 1
     myButtons.addButton(115, 190, 90,  30, "DEBUG");
@@ -865,7 +977,21 @@ void eepromRead() {
     temperatureSenzorStatus[2] = EEPROM.read(44);
     temperatureSenzorStatus[3] = EEPROM.read(45);
 
-    // from 64 to 90 LigthValues_t
+    // from 64 to 93 LigthValues_t
+
+    feedhour[0] = EEPROM.read(94);
+    feedhour[1] = EEPROM.read(95);
+    feedhour[2] = EEPROM.read(96);
+    feedhour[3] = EEPROM.read(97);
+    feedhour[4] = 23;
+    feedhour[5] = 0;
+
+    feedminute[0] = EEPROM.read(98);
+    feedminute[1] = EEPROM.read(99);
+    feedminute[2] = EEPROM.read(100);
+    feedminute[3] = EEPROM.read(101);
+    feedminute[4] = 59;
+    feedminute[5] = 0;
 }
 
 #if DEBUG == 1
@@ -881,11 +1007,14 @@ void eepromRead() {
     (byte & 0x01 ? '1' : '0')
 
 void debug() {
-    char str[62];
+    char str[255];
 
     myGLCD.setColor(255, 255, 255);
     myGLCD.setFont(SmallFont);
 
+    sprintf (str, "BTN:%03d TCF:%03d FD:%03d LR:%03d RM:%03d",
+             pressedButton, timerCounterFeed, feedDone, lastRun,
+             now.minute() + (now.hour() * 60));
     //sprintf (str, "Y:%03d W:%03d C:%03d R:%03d G:%03d B:%03d",
     //         OCR0A, OCR1B, OCR1A, OCR2A, OCR2B, OCR4C);
     //myGLCD.print(str, CENTER, 215);
@@ -903,8 +1032,8 @@ void debug() {
 
     //sprintf(str, "TCCR2A:" BYTE_TO_BINARY_PATTERN " TCCR2B:" BYTE_TO_BINARY_PATTERN,
     //        BYTE_TO_BINARY(TCCR2A), BYTE_TO_BINARY(TCCR2B));
-    sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
-            BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));
+    //sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
+    //        BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));
     myGLCD.print(str, CENTER, 228);
 
     //sprintf (str, "B: %d NO: %d ADC: %d",
@@ -914,6 +1043,19 @@ void debug() {
 }
 
 void drawRegDebug() {
+    myGLCD.setColor(255, 255, 255);
+    myGLCD.setFont(SmallFont);
+
+    int minutes, realMinute;
+    realMinute = now.minute() + (now.hour() * 60);
+
+    for(uint8_t i = 0; i < 6; i++) {
+        char str[60];
+        minutes = feedminute[i] + (feedhour[i] * 60);
+        sprintf(str, "Minute: %06d-%06d", minutes, realMinute);
+        myGLCD.print(str, LEFT, 10 + i * 20);
+    }
+
     //sprintf(str, "TCCR0A:" BYTE_TO_BINARY_PATTERN " TCCR0B:" BYTE_TO_BINARY_PATTERN,
     //    BYTE_TO_BINARY(TCCR0A), BYTE_TO_BINARY(TCCR0B));
     //myGLCD.setColor(255, 255, 255);
@@ -950,26 +1092,26 @@ void drawRegDebug() {
     //myGLCD.setFont(SmallFont);
     //myGLCD.print(str, LEFT, 85);
 
-    myGLCD.setColor(255, 255, 255);
-    myGLCD.setFont(SmallFont);
+    //myGLCD.setColor(255, 255, 255);
+    //myGLCD.setFont(SmallFont);
 
-    myGLCD.print("OFF", LEFT, 85);
-    sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
-            EEPROM.read(64), EEPROM.read(65), EEPROM.read(66),
-            EEPROM.read(67), EEPROM.read(68), EEPROM.read(69));
-    myGLCD.print(str, LEFT, 100);
+    //myGLCD.print("OFF", LEFT, 85);
+    //sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
+    //        EEPROM.read(64), EEPROM.read(65), EEPROM.read(66),
+    //        EEPROM.read(67), EEPROM.read(68), EEPROM.read(69));
+    //myGLCD.print(str, LEFT, 100);
 
-    myGLCD.print("DAY", LEFT, 115);
-    sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
-            EEPROM.read(70), EEPROM.read(71), EEPROM.read(72),
-            EEPROM.read(73), EEPROM.read(74), EEPROM.read(75));
-    myGLCD.print(str, LEFT, 130);
+    //myGLCD.print("DAY", LEFT, 115);
+    //sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
+    //        EEPROM.read(70), EEPROM.read(71), EEPROM.read(72),
+    //        EEPROM.read(73), EEPROM.read(74), EEPROM.read(75));
+    //myGLCD.print(str, LEFT, 130);
 
-    myGLCD.print("NIGHT", LEFT, 145);
-    sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
-            EEPROM.read(76), EEPROM.read(77), EEPROM.read(78),
-            EEPROM.read(79), EEPROM.read(80), EEPROM.read(81));
-    myGLCD.print(str, LEFT, 160);
+    //myGLCD.print("NIGHT", LEFT, 145);
+    //sprintf(str, "C:%03d  W:%03d  Y:%03d  R:%03d  G:%03d  B:%03d",
+    //        EEPROM.read(76), EEPROM.read(77), EEPROM.read(78),
+    //        EEPROM.read(79), EEPROM.read(80), EEPROM.read(81));
+    //myGLCD.print(str, LEFT, 160);
 }
 #endif
 
@@ -1125,14 +1267,19 @@ void loop() {
                 drawTempScreen();
                 page = PAGE_TEMP;
             } else
-
             if (pressedButton == 5) {
                 returnHome();
+            } else
+            if (pressedButton == 6) {
+                myButtons.deleteAllButtons();
+                myGLCD.clrScr();
+                drawFeedScreen();
+                page = PAGE_SET_FEED;
             }
 
 #if DEBUG == 1
             else
-            if (pressedButton == 6) {
+            if (pressedButton == 7) {
                 myButtons.deleteAllButtons();
                 myGLCD.clrScr();
                 drawRegDebug();
@@ -1492,6 +1639,153 @@ void loop() {
 
             // home button
             if (pressedButton == 21) {
+                returnHome();
+            }
+
+        }
+        break;
+
+    case PAGE_SET_FEED:
+        if (myTouch.dataAvailable() == true) {
+            timerCounter2 = 0;
+            pressedButton = myButtons.checkButtons();
+
+            // first timer
+            if (pressedButton == 0) {
+                feedhour[0]--;
+                if (feedhour[0] == 255) {
+                    feedhour[0] = 23;
+                }
+                setFeedTimerTime(0, 10, 8);
+            } else
+            if (pressedButton == 1) {
+                feedhour[0]++;
+                if (feedhour[0] > 23) {
+                    feedhour[0] = 0;
+                }
+                setFeedTimerTime(0, 10, 8);
+            } else
+            if (pressedButton == 2) {
+                feedminute[0]--;
+                if (feedminute[0] == 255) {
+                    feedminute[0] = 59;
+                }
+                setFeedTimerTime(0, 10, 8);
+            } else
+            if (pressedButton == 3) {
+                feedminute[0]++;
+                if (feedminute[0] > 59) {
+                    feedminute[0] = 0;
+                }
+                setFeedTimerTime(0, 10, 8);
+            } else
+
+            if (pressedButton == 4) {
+                feedhour[1]--;
+                if (feedhour[1] == 255) {
+                    feedhour[1] = 23;
+                }
+                setFeedTimerTime(1, 10, 64);
+            } else
+            if (pressedButton == 5) {
+                feedhour[1]++;
+                if (feedhour[1] > 23) {
+                    feedhour[1] = 0;
+                }
+                setFeedTimerTime(1, 10, 64);
+            } else
+            if (pressedButton == 6) {
+                feedminute[1]--;
+                if (feedminute[1] == 255) {
+                    feedminute[1] = 59;
+                }
+                setFeedTimerTime(1, 10, 64);
+            } else
+            if (pressedButton == 7) {
+                feedminute[1]++;
+                if (feedminute[1] > 59) {
+                    feedminute[1] = 0;
+                }
+                setFeedTimerTime(1, 10, 64);
+            } else
+
+            // second column
+            if (pressedButton == 8) {
+                feedhour[2]--;
+                if (feedhour[2] == 255) {
+                    feedhour[2] = 23;
+                }
+                setFeedTimerTime(2, 176, 8);
+            } else
+            if (pressedButton == 9) {
+                feedhour[2]++;
+                if (feedhour[2] > 23) {
+                    feedhour[2] = 0;
+                }
+                setFeedTimerTime(2, 176, 8);
+            } else
+            if (pressedButton == 10) {
+                feedminute[2]--;
+                if (feedminute[2] == 255) {
+                    feedminute[2] = 59;
+                }
+                setFeedTimerTime(2, 176, 8);
+            } else
+            if (pressedButton == 11) {
+                feedminute[2]++;
+                if (feedminute[2] > 59) {
+                    feedminute[2] = 0;
+                }
+                setFeedTimerTime(2, 176, 8);
+            } else
+            if (pressedButton == 12) {
+                feedhour[3]--;
+                if (feedhour[3] == 255) {
+                    feedhour[3] = 23;
+                }
+                setFeedTimerTime(3, 176, 64);
+            } else
+            if (pressedButton == 13) {
+                feedhour[3]++;
+                if (feedhour[3] > 23) {
+                    feedhour[3] = 0;
+                }
+                setFeedTimerTime(3, 176, 64);
+            } else
+            if (pressedButton == 14) {
+                feedminute[3]--;
+                if (feedminute[3] == 255) {
+                    feedminute[3] = 59;
+                }
+                setFeedTimerTime(3, 176, 64);
+            } else
+            if (pressedButton == 15) {
+                feedminute[3]++;
+                if (feedminute[3] > 59) {
+                    feedminute[3] = 0;
+                }
+                setFeedTimerTime(3, 176, 64);
+            } else
+            if (pressedButton == 17) {
+                timerCounterFeed = 500;
+                feedDone = 0;
+            } else
+
+            // save values
+            if (pressedButton == 16) {
+                EEPROM.write(94, feedhour[0]);
+                EEPROM.write(95, feedhour[1]);
+                EEPROM.write(96, feedhour[2]);
+                EEPROM.write(97, feedhour[3]);
+
+                EEPROM.write(98, feedminute[0]);
+                EEPROM.write(99, feedminute[1]);
+                EEPROM.write(100, feedminute[2]);
+                EEPROM.write(101, feedminute[3]);
+            } else
+
+            // home button
+            if (pressedButton == 18) {
                 returnHome();
             }
 
