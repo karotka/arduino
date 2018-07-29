@@ -46,8 +46,8 @@ uint8_t co2states[8];
 uint8_t co2hour[8];
 uint8_t co2minute[8];
 
-uint8_t feedhour[8];
-uint8_t feedminute[8];
+uint8_t feedhour[4];
+uint8_t feedminute[4];
 
 uint8_t temperatureSenzorStatus[4];
 int feedDone = 0;
@@ -180,11 +180,11 @@ void checkFeed() {
         feedDone = 0;
     }
 
-    for(uint8_t i = 0; i < 6; i++) {
+    for(uint8_t i = 0; i < 4; i++) {
 
         minutes = feedminute[i] + (feedhour[i] * 60);
 
-        // check interval
+        // check time
         if (minutes == realMinute) {
             // if interval is done, run feed and
             // set done for this period of time
@@ -625,9 +625,10 @@ void drawSelectScreen() {
     myButtons.addButton(220, 140, 90,  30, "HOME");
 
     myButtons.addButton(10, 190, 90,  30, "FEED");
+    myButtons.addButton(115, 190, 90,  30, "FAN");
 
 #if DEBUG == 1
-    myButtons.addButton(115, 190, 90,  30, "DEBUG");
+    myButtons.addButton(220, 190, 90,  30, "DEBUG");
 #endif
     myButtons.drawButtons();
 }
@@ -983,15 +984,15 @@ void eepromRead() {
     feedhour[1] = EEPROM.read(95);
     feedhour[2] = EEPROM.read(96);
     feedhour[3] = EEPROM.read(97);
-    feedhour[4] = 23;
-    feedhour[5] = 0;
+    //feedhour[4] = 23;
+    //feedhour[5] = 0;
 
     feedminute[0] = EEPROM.read(98);
     feedminute[1] = EEPROM.read(99);
     feedminute[2] = EEPROM.read(100);
     feedminute[3] = EEPROM.read(101);
-    feedminute[4] = 59;
-    feedminute[5] = 0;
+    //feedminute[4] = 59;
+    //feedminute[5] = 0;
 }
 
 #if DEBUG == 1
@@ -1049,7 +1050,7 @@ void drawRegDebug() {
     int minutes, realMinute;
     realMinute = now.minute() + (now.hour() * 60);
 
-    for(uint8_t i = 0; i < 6; i++) {
+    for(uint8_t i = 0; i < 4; i++) {
         char str[60];
         minutes = feedminute[i] + (feedhour[i] * 60);
         sprintf(str, "Minute: %06d-%06d", minutes, realMinute);
