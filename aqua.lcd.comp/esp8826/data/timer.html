@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title></title>
+  <link rel='stylesheet' href='jquery-ui.css'>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+  <script src='jquery-1.12.4.js'></script>
+  <script src='jquery-ui.js'></script>
+  <script>
+    url = "data.php";
+    $(document).ready(function() {
+      $("button, input").click(function(event) {
+        $.ajax({
+          url: url,
+          data : event.target.id,
+          success : function(data) {
+            //console.log(data.key);
+
+            if (data.key) {
+              $("#" + data.key)[0].value = data.value;
+            } else {
+              $("#" + data.id).html(data.hour + "h:" + data.min + "m");
+            }
+          }
+        })
+      })
+
+      $.ajax({
+        url: url,
+        data : "TILO",
+        success : function(data) {
+          //console.log(data);
+          for (val of data.span) {
+            $("#" + val.id).html(val.value);
+          }
+          for (val of data.btn) {
+            //console.log($("#" + val.id)[0].value);
+            $("#" + val.id)[0].value = val.value;
+          }
+        }
+      })
+    })
+  </script>
+</head>
+<body>
+  <div id='main'>
+    <p>
+      <span id="t1"></span> &nbsp; <span id="t5"></span>
+    </p>
+    <p>
+      <input type='button' id='T1HD' class='btnsmall blue' value='<'>
+      <input type='button' id='T1HU' class='btnsmall blue' value='>'>
+      <input type='button' id='T1MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T1MD' class='btnsmall blue' value='>'>
+      <input type='button' id='T1MO' class='btnmedium blue' value=''>
+        &nbsp;
+      <input type='button' id='T5MD' class='btnsmall blue' value='<'>
+      <input type='button' id='T5MU' class='btnsmall blue' value='>'>
+      <input type='button' id='T5MD' class='btnsmall blue' value='<'>
+      <input type='button' id='T5MU' class='btnsmall blue' value='>'>
+      <input type='button' id='T5MO' class='btnmedium blue' value=''>
+    </p>
+
+    <p>
+      <span id="t2"></span> &nbsp; <span id="t6"></span>
+    </p>
+    <p>
+      <input type='button' id='T2HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T2HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T2MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T2MD' class='btnsmall blue' value='>'>
+      <input type='button' id='T2MO' class='btnmedium blue' value='N1'>
+        &nbsp;
+      <input type='button' id='T6HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T6HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T6MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T6HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T6MO' class='btnmedium blue' value='D2'>
+    </p>
+
+    <p>
+      <span id="t3"></span> &nbsp; <span id="t7"></span>
+    </p>
+    <p>
+      <input type='button' id='T3HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T3HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T3MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T3HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T3MO' class='btnmedium blue' value='N1'>
+        &nbsp;
+      <input type='button' id='T7HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T7HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T7MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T7MD' class='btnsmall blue' value='>'>
+      <input type='button' id='T7MO' class='btnmedium blue' value='D2'>
+    </p>
+
+    <p>
+      <span id="t4"></span> &nbsp; <span id="t8"></span>
+    </p>
+    <p>
+      <input type='button' id='T4HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T4HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T4MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T4MD' class='btnsmall blue' value='>'>
+      <input type='button' id='T4MO' class='btnmedium blue' value='N1'>
+        &nbsp;
+      <input type='button' id='T8HU' class='btnsmall blue' value='<'>
+      <input type='button' id='T8HD' class='btnsmall blue' value='>'>
+      <input type='button' id='T8MU' class='btnsmall blue' value='<'>
+      <input type='button' id='T8MD' class='btnsmall blue' value='>'>
+      <input type='button' id='T8MO' class='btnmedium blue' value='D2'>
+    </p>
+
+    <p>
+      <input type='button' id='TISV' class='btnbig red' value='SAVE'>
+      <input type='button' class='btnbig blue' value='HOME' onClick='location.href="index.html"'>
+    </p>
+  </div>
+</body>
+
+</html>

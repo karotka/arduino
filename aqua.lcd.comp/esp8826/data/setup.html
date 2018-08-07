@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <form action='/saveData' method='post'>
+    <span>
+      <label for='ssid' class='lbl'>SSID</label>
+      <input id='ssid' name='ssid' type='text' value=''>
+    </span>
+    <span>
+      <label for='password' class='lbl'>Password</label>
+      <input id='password' name='password' type='text' value=''>
+    </span>
+    <span>
+      <label for='ip' class='lbl'>IP</label>
+      <input id='ip' name='ip' type='text' value=''>
+    </span>
+    <span>
+      <label for='gw' class='lbl'>Gateway</label>
+      <input id='gateway' name='gateway' type='text' value=''>
+    </span>
+    <span>
+      <label for='nmask' class='lbl'>Netmask</label>
+      <input id='subnet' name='subnet' type='text' value=''>
+    </span>
+    <div>
+      <input type='submit' value='Save'>
+      <input type='button' id='btn1' value='Connect'>
+      <input type='button' id='btn2' value='AP mode'>
+    </div>
+  </form>
+<script>
+document.getElementById("btn1").addEventListener("click", btn1Click);
+document.getElementById("btn2").addEventListener("click", btn2Click);
+
+var req = new XMLHttpRequest();
+req.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var js = JSON.parse(this.responseText);
+        document.getElementById("ip").value = js.ip;
+        document.getElementById("gateway").value = js.gateway;
+        document.getElementById("subnet").value = js.subnet;
+        document.getElementById("ssid").value = js.ssid;
+        document.getElementById("password").value = js.password;
+    }
+};
+req.open("GET", "/setupData", true);
+req.send();
+
+function btn1Click() {
+    window.location.href = "/connect";
+}
+function btn2Click() {
+    window.location.href = "/apmode";
+}
+</script>
+</body>
+</html>

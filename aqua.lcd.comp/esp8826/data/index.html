@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title></title>
+  <link rel='stylesheet' href='jquery-ui.css'>
+  <link href='styles.css' rel='stylesheet' type='text/css'>
+  <script src='jquery-1.12.4.js'></script>
+  <script src='jquery-ui.js'></script>
+  <script>
+    url = "data.php";
+    $(document).ready(function() {
+        setInterval("ajaxd()", 1000);
+    });
+
+    function ajaxd() {
+      $.ajax({
+        url: url,
+        data : "HOLO",
+        success : function(data) {
+          for (val of data) {
+            $("." + val.cl).html(val.value);
+          }
+        }
+      })
+    }
+  </script>
+</head>
+<body>
+  <div id='main' onClick='location.href="select.html"'>
+    <p class="time"></p>
+    <p class="date"></p>
+    <p class="temp1"></p>
+    <p class="mode"></p>
+    <p class="co2"></p>
+    <p class="temp2"></p>
+  </div>
+</body>
+
+</html>
