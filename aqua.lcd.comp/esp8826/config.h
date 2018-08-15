@@ -3,8 +3,7 @@
 
 #include "EEPROM.h"
 
-int CS = D8;
-byte POT_ADDRESS = 0x11;
+#define SERIAL_READ_TIMEOUT 300
 
 class Config_t {
 

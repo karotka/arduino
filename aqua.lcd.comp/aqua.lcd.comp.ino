@@ -1167,6 +1167,17 @@ void returnHome() {
     page = PAGE_HOME;
 }
 
+String rxParams;
+String send() {
+    String data = Serial.readString();
+    char ret[256];
+
+    if (rxParams == "HOLO") {
+        sprintf(ret, clTime, now.hour(), now.minute(), now.second());
+    }
+    Serial.println(ret);
+}
+
 void loop() {
     //PORTK &= ~(1 << PK7);
     //PORTK |= (1 << PK7);

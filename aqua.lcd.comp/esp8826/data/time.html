@@ -4,17 +4,17 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title></title>
-  <link rel='stylesheet' href='jquery-ui.css'>
-  <link href='styles.css' rel='stylesheet' type='text/css'>
-  <script src='jquery-1.12.4.js'></script>
-  <script src='jquery-ui.js'></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+  <link href="styles.css" rel="stylesheet" type="text/css">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
   <script>
-    url = "data.php";
+    url = "read";
     $(document).ready(function() {
       $("button, input").click(function(event) {
         $.ajax({
           url: url,
-          data : event.target.id,
+          data : {"p" : "TMSA", "v" : event.target.id},
           success : function(data) {
             //console.log(data.key);
 
@@ -29,7 +29,7 @@
 
       $.ajax({
         url: url,
-        data : "TMLO",
+        data : "p=TMLO",
         success : function(data) {
           //console.log(data);
           for (val of data) {
@@ -62,8 +62,7 @@
     <p> &nbsp; </p>
 
     <p>
-      <input type='button' class='btnbig red' value='SAVE'>
-      <input type='button' class='btnbig blue' value='HOME' onClick='location.href="index.html"'>
+      <input type='button' class='btnbig blue' value='HOME' onClick='location.href="/"'>
     </p>
 
   </div>

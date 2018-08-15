@@ -4,12 +4,12 @@
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <title></title>
-  <link rel='stylesheet' href='jquery-ui.css'>
-  <link href='styles.css' rel='stylesheet' type='text/css'>
-  <script src='jquery-1.12.4.js'></script>
-  <script src='jquery-ui.js'></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+  <link href="styles.css" rel="stylesheet" type="text/css">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
   <script>
-    url = "data.php";
+    url = "read";
     $(document).ready(function() {
         setInterval("ajaxd()", 1000);
     });
@@ -17,7 +17,7 @@
     function ajaxd() {
       $.ajax({
         url: url,
-        data : "HOLO",
+        data : "p=HOLO",
         success : function(data) {
           for (val of data) {
             $("." + val.cl).html(val.value);
@@ -39,7 +39,7 @@
     <p>
       <input type='button' class='btnbig blue' value='CO2' onClick='location.href="co2.html"'>
       <input type='button' class='btnbig blue' value='TEMP' onClick='location.href="temp.html"'>
-      <input type='button' class='btnbig blue' value='HOME' onClick='location.href="index.html"'>
+      <input type='button' class='btnbig blue' value='HOME' onClick='location.href="/"'>
     </p>
     <p>
       <input type='button' class='btnbig blue' value='FEED' onClick='location.href="feed.html"'>
