@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link href="styles.css" rel="stylesheet" type="text/css">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
+  <script>
+
+    url = "read.php";
+
+    $(document).ready(function() {
+
+      $("#ok,#H1U,#H2U,#H3U,#H4U,#H1D,#H2D,#H3D,#H4D,#M1U,#M2U,#M3U,#M4U,#M1D,#M2D,#M3D,#M4D").click(function(event) {
+        $.ajax({
+          url: url,
+          data : {"p" : "FDSA", "v" : event.currentTarget.id},
+          success : function(data) {
+            //console.log(data.key);
+            if (data.key) {
+              $("#" + data.key)[0].value = data.value;
+            } else {
+              $("#" + data.id).html(data.hour + "h:" + data.min + "m");
+            }
+          }
+        })
+      })
+
+      $.ajax({
+        url: url,
+        data : "p=FDLO",
+        success : function(data) {
+          console.log(data);
+            for (val of data) {
+              if (val.id.startsWith("m")) {
+                  $("#" + val.id).html(val.v + "m");
+              } else {
+                  $("#" + val.id).html(val.v + "h");
+              }
+          }
+        }
+      })
+
+      $( function() {
+          $("#main").tabs({"active" : 0});
+      });
+    })
+  </script>
+
+</head>
+<body>
+  <div id="main" class="co">
+
+    <div id="head">
+      <div id="cl" onclick="location.href='/index.html'">
+        <img widht="25px" height="25px" src="/close.svg">
+      </div>
+      <div id="tb">
+        <ul>
+          <li><a href="#tabs-1">Co2 switch 1-4</a></li>
+        </ul>
+      </div>
+      <div id="ok"><img widht="25px" height="25px" src="/ok.svg"></div>
+    </div>
+
+  <div id="tabs-1">
+    <div id="fr">
+      <div class="fixsp">&nbsp</div>
+      <div class="fix" id="H1U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fix" id="M1U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fixsp">&nbsp</div>
+      <div class="fix" id="H2U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fix" id="M2U"><img widht="20px" height="20px" src="/up.svg"></div>
+    </div>
+    <div id="se">
+      <div class="fixsp">1.</div>
+      <div class="fix dark" id="h1"></div>
+      <div class="fix dark" id="m1"></div>
+      <div class="fixsp">2.</div>
+      <div class="fix dark" id="h2"></div>
+      <div class="fix dark" id="m2"></div>
+    </div>
+    <div id="tr">
+      <div class="fixsp">&nbsp</div>
+      <div class="fix" id="H1D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fix" id="M1D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="H2D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fix" id="M2D"><img widht="20px" height="20px" src="/down.svg"></div>
+    </div>
+
+    <div id="fr">
+      <div class="fixsp">&nbsp</div>
+      <div class="fix" id="H3U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fix" id="M3U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="H4U"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fix" id="M4U"><img widht="20px" height="20px" src="/up.svg"></div>
+    </div>
+    <div id="se">
+      <div class="fixsp">3.</div>
+      <div class="fix dark" id="h3"></div>
+      <div class="fix dark" id="m3"></div>
+      <div class="fixsp">4.</div>
+      <div class="fix dark" id="h4"></div>
+      <div class="fix dark" id="m4"></div>
+    </div>
+    <div id="tr">
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="H3D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fix" id="M3D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="H4D"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fix" id="M4D"><img widht="20px" height="20px" src="/down.svg"></div>
+    </div>
+  </div>
+
+  </div>
+</body>
+
+</html>

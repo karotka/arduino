@@ -1,16 +1,46 @@
 #include "SPI.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <SoftwareSerial.h>
 #include "config.h"
 #include <FS.h>
 #include "EEPROM.h"
-#include <SoftwareSerial.h>
 #include "util.h"
 
 Config_t config;
 ESP8266WebServer server(80);
 SoftwareSerial ESPserial(D7, D8); // RX | TX
 
+int getlen(const char* buffer) {
+    int len = 0;
+    char c = buffer[len];
+    while(c != '\0'){
+        ++len;
+        c = buffer[len];
+    }
+    return len;
+}
+
+int split(char* buffer, const char delimiter, char** strs, int n) {
+
+    //obtain len
+    int len = getlen(buffer);
+    int split = 0;
+    strs[split] = buffer;
+
+    for(int i = 0; i < len; ++i){
+        if (buffer[i] == delimiter){
+            buffer[i] = '\0';
+            if( i + 1 != len){
+                ++split;
+                strs[split] = &buffer[i+1];
+                if(split == n - 1)
+                    break;
+            }
+        }
+    }
+    return split + 1;
+}
 
 inline int SERIALREAD(char* serialRxBuffer) {
 
@@ -25,6 +55,8 @@ inline int SERIALREAD(char* serialRxBuffer) {
 
     do {
         char ch = Serial.read();
+        ESPserial.print("ch:");
+        ESPserial.println(ch);
 
         if (ch == '\n') {
             break;
@@ -189,12 +221,12 @@ String responseHolo(char* data) {
     char *spl[2];
     int c = split(data, '\t', spl, sizeof(spl));
     return String(
-        "[{\"cl\":\"time\",\"value\":\"" + String(spl[1]) + "\"}," +
-        "{\"cl\":\"date\",\"value\":\"" + String(spl[0]) + "\"}," +
-        "{\"cl\":\"temp1\",\"value\":\"23.0 C\"}," +
-        "{\"cl\":\"mode\",\"value\":\"MODE: AUTO (OFF)\"}," +
-        "{\"cl\":\"co2\",\"value\":\"CO2: OFF &nbsp; TB: 26.8C\"}," +
-        "{\"cl\":\"temp2\",\"value\":\"T1: 0.0C T2: 0.0C\"}]"
+        "[{\"cl\":\"time\",\"v\":\"" + String(spl[1]) + "\"}," +
+        "{\"cl\":\"date\",\"v\":\"" + String(spl[0]) + "\"}," +
+        "{\"cl\":\"temp1\",\"v\":\"23.0 C\"}," +
+        "{\"cl\":\"mode\",\"v\":\"MODE: AUTO (OFF)\"}," +
+        "{\"cl\":\"co2\",\"v\":\"CO2: OFF &nbsp; TB: 26.8C\"}," +
+        "{\"cl\":\"temp2\",\"v\":\"T1: 0.0C T2: 0.0C\"}]"
     );
 }
 
@@ -202,8 +234,8 @@ String responseTmlo(char* data) {
     char *spl[2];
     int c = split(data, '\t', spl, sizeof(spl));
     return String(
-        "[{\"id\":\"time\",\"value\":\"" + String(spl[1]) + "\"}," +
-        "{\"id\":\"date\",\"value\":\"" + String(spl[0]) + "\"}]"
+        "[{\"id\":\"time\",\"v\":\"" + String(spl[1]) + "\"}," +
+        "{\"id\":\"date\",\"v\":\"" + String(spl[0]) + "\"}]"
     );
 }
 
@@ -231,17 +263,26 @@ String responseTilo(char* data) {
     );
 }
 
-String responseCllo(char* data) {
-    char *spl[6];
+String responseLilo(char* data) {
+    char *spl[12];
+    //ESPserial.print("data:");
+    //ESPserial.println(data);
     int c = split(data, '\t', spl, sizeof(spl));
     return String(
-        "[{\"id\":\"cool\",\"value\":\"" + String(spl[0]) + "\"}," +
-        "{\"id\":\"warm\",\"value\":\"" + String(spl[1]) + "\"}," +
-        "{\"id\":\"yellow\",\"value\":\"" + String(spl[2]) + "\"}," +
-        "{\"id\":\"red\",\"value\":\"" + String(spl[3]) + "\"}," +
-        "{\"id\":\"green\",\"value\":\"" + String(spl[4]) + "\"}," +
-        "{\"id\":\"blue\",\"value\":\"" + String(spl[5]) + "\"}]"
-    );
+        "[{\"id\":\"cool\",\"v\":\""+ String(spl[0]) +"\"},"
+        "{\"id\":\"warm\",\"v\":\""+ String(spl[1]) +"\"},"
+        "{\"id\":\"yellow\",\"v\":\""+ String(spl[2]) +"\"},"
+        "{\"id\":\"red\",\"v\":\""+ String(spl[3]) +"\"},"
+        "{\"id\":\"green\",\"v\":\""+ String(spl[4]) +"\"},"
+        "{\"id\":\"blue\",\"v\":\""+ String(spl[5]) +"\"},"
+
+        "{\"id\":\"B0\",\"v\":\""+ String(spl[6]) +"\"},"
+        "{\"id\":\"B1\",\"v\":\""+ String(spl[7]) +"\"},"
+        "{\"id\":\"B2\",\"v\":\""+ String(spl[8]) +"\"},"
+        "{\"id\":\"B3\",\"v\":\""+ String(spl[9]) +"\"},"
+        "{\"id\":\"B4\",\"v\":\""+ String(spl[10]) +"\"},"
+        "{\"id\":\"B5\",\"v\":\""+ String(spl[11]) +"\"}]"
+        );
 }
 
 String responseLcw(char* data) {
@@ -276,13 +317,16 @@ void handleRead() {
     String value = server.arg("v");
 
     Serial.print(params + '\t' + value + '\n');
-    Serial.flush(); // wait for a serial string to be finished sending
+    //Serial.flush(); // wait for a serial string to be finished sending
 
     char data[80];
     if (!SERIALREAD(data)) {
         server.setContentLength(2);
         server.send(204, "application/json", "{}");
     }
+
+    ESPserial.print("params:");
+    ESPserial.println(params);
 
     String ret;
     if (params == "HOLO") {
@@ -291,11 +335,11 @@ void handleRead() {
     if (params == "TMLO") {
         ret = responseTmlo(data);
     } else
+    if (params == "LILO") {
+        ret = responseLilo(data);
+    } else
     if (params == "TILO") {
         ret = responseTilo(data);
-    } else
-    if (params == "CLLO") {
-        ret = responseCllo(data);
     } else
     if (params == "LCW") {
         ret = responseLight(data);
@@ -327,8 +371,9 @@ void setup() {
     Serial.begin(115200);
     ESPserial.begin(115200);
 
-    while (!Serial);
+    //while (!Serial);
     delay(10);
+    //Serial.write('\n');
 
     SPIFFS.begin();
 
@@ -366,4 +411,6 @@ void setup() {
 
 void loop() {
     server.handleClient();
+    //ESPserial.println("Ahoj");
+    //delay(1000);
 }

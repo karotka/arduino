@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+  <link href="styles.css" rel="stylesheet" type="text/css">
+  <script src="//code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
+  <script>
+  var url = "read.php";
+
+  $(document).ready(function() {
+    $("#cool,#warm,#yellow,#red,#green,#blue").slider({
+      orientation: "horizontal",
+      range: "min",
+      max: 100
+    });
+
+    $("#cool").slider({
+    slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LCW", "v": JSON.stringify(ui.value)}})
+        $("#cool").children(".amount").remove();
+        $("#cool").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+    $("#warm").slider({
+      slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LWW", "v" : JSON.stringify(ui.value)}})
+        $("#warm").children(".amount").remove();
+        $("#warm").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+    $("#yellow").slider({
+      slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LYE", "v" : JSON.stringify(ui.value)}})
+        $("#yellow").children(".amount").remove();
+        $("#yellow").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+    $("#red").slider({
+      slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LRE", "v" : JSON.stringify(ui.value)}})
+        $("#red").children(".amount").remove();
+        $("#red").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+    $("#green").slider({
+      slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LGR", "v" : JSON.stringify(ui.value)}})
+        $("#green").children(".amount").remove();
+        $("#green").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+    $("#blue").slider({
+      slide: function(event, ui) {
+        $.ajax({
+          url: url,
+            data : {"p" : "LBL", "v" : JSON.stringify(ui.value)}})
+        $("#blue").children(".amount").remove();
+        $("#blue").append("<span class='amount'>"+ ui.value +"%</span>");
+    }})
+
+    var btns = "#B0, #B1, #B2, #B3, #B4, #B5";
+    $(btns).click(function(event) {
+      $.ajax({
+        url: url,
+        data : {"p" : "LISA", "v" : event.target.id},
+        success : function(data, status, hr) {
+          if(hr.status == 200) {
+            if (data.id == "B5") {
+              setAutoMode(data);
+            } else {
+              var el = $("#"+data.id)[0];
+              if (el.className == "fix") {
+                el.className = "fix on";
+              } else {
+                el.className = "fix";
+              }
+              for (val of $(btns)) {
+                if (val.id == data.id) continue;
+                else val.className = "fix";
+              }
+            }
+          }
+        }
+      })
+    });
+
+    ajaxd();
+  });
+
+  function setAutoMode(data) {
+    var el = $("#B5")[0];
+    if (el.className == "fix") {
+      el.className = "fix on";
+      $("#B4").hide();
+      $("#B3").hide();
+      $("#B2").hide();
+      $("#B1").hide();
+      $("#B0").hide();
+    } else {
+      el.className = "fix";
+      $("#B4").show();
+      $("#B3").show();
+      $("#B2").show();
+      $("#B1").show();
+      $("#B0").show();
+    }
+  }
+
+  function ajaxd() {
+    $.ajax({
+      url: url,
+      data : "p=LILO",
+      success : function(data, status, hr) {
+      if(hr.status == 200) {
+        for (val of data) {
+          if (val.id.startsWith("B")) {
+            var el =  $("#" + val.id)[0];
+            if (val.v) {
+                if (val.id == "B5") {
+                    setAutoMode(val);
+                 } else {
+                   if (val.v) {
+                     el.className = "fix on";
+                   } else {
+                     el.className = "fix";
+                   }
+                 }
+               }
+             } else {
+               $("#" + val.id).slider("value", val.v)
+               $("#" + val.id).children(".amount").remove();
+               $("#" + val.id).append("<span class='amount'>"+ val.v +"%</span>");
+            }
+          }
+        }
+        setTimeout(ajaxd, 5000);
+      }
+    })
+  }
+  </script>
+</head>
+<body>
+  <div id="main" class="lig">
+
+    <div id="head">
+      <div id="cl" onclick="location.href='/index.html'">
+        <img widht="25px" height="25px" src="/close.svg">
+      </div>
+      <div id="tb">
+        <ul>
+          <li><a href="#tabs-1">Co2 switch 1-4</a></li>
+        </ul>
+      </div>
+      <div id="ok"><img widht="25px" height="25px" src="/ok.svg"></div>
+    </div>
+
+    <div id="tabs-1">
+      <div class="lisl">
+        <div class="lbl">Channel 1</div>
+        <div id="cool"></div>
+        <div class="lbl">Channel 2</div>
+        <div id="warm"></div>
+        <div class="lbl">Channel 3</div>
+        <div id="yellow"></div>
+        <div class="lbl">Channel 4</div>
+        <div id="red"></div>
+        <div class="lbl">Channel 5</div>
+        <div id="green"></div>
+        <div class="lbl">Channel 6</div>
+        <div id="blue"></div>
+      </div>
+      <div class="libt">
+        <div class="fix" id="B5">AUT</div>
+        <div class="fix" id="B0">D1</div>
+        <div class="fix" id="B1">D2</div>
+        <div class="fix" id="B2">N1</div>
+        <div class="fix" id="B3">N2</div>
+        <div class="fix" id="B4">OFF</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+*{margin:0;padding:0;}
+body{background:#000;font-family:Open Sans;color:white;}
+#main{width:480px;height:320px;color:#fff;border:1px solid #fdfdfd;}
+
+#dt{float:left;height:98px;width:200px;font-family:Arial;color:white;margin:7px 0px 0px 7px;background-color:#2A128D;padding:0px;font-size:14px;}
+#dt .tm{float:left;margin:12px;}
+#dt .t{text-align:left;padding-top:8px;}
+#dt .mo{font-size:20px;}
+#dt .day{font-size:60px;width:85px;float:right;}
+#dt .dow{padding-left:120px;}
+
+.temp{float:left;height:98px;width:257px;font-family:Arial;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#9C26B0;}
+.temp #m{float:left;margin-left:10px;width:40px;}
+.temp #dg{float:right;font-size:55px;padding:3px 16px;}
+.temp #t{font-size:14px;padding-left:75px;}
+
+.light{float:left;height:98px;width:300px;font-family:Arial;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#019115;}
+.light #m{float:left;margin:15px 8px;}
+.light #t{font-size:30px;padding:6px 20px 0px 0px;}
+.light #t1{font-size:12px;margin:4px;line-height:1.2;}
+.light #t1 .s1{float:left;width:105px;text-align:left;}
+.light #t1 .s2{float:right;width:105px;text-align:left;}
+.light span{width:80px;border-bottom:solid 2px white;display: inline-block;}
+
+.co2{float:left;height:98px;width:157px;font-family:Arial;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#FEC107;}
+.co2 #m{float:left;margin:17px;width:50px;}
+.co2 #t{font-size:30px;margin:30px 12px;}
+
+.ser{float:left;height:98px;width:228px;font-family:Arial; color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#E91D62;}
+.ser #m{float:left;margin:17px;width:50px;}
+
+.feed{float:left;height:98px;width:228px;font-family:Arial; color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#02A8F4;}
+.feed #m{float:left;margin:17px;width:50px;}
+.feed #t{font-size:14px;padding:13px 0px 0px 95px;}
+.feed #t p{text-align:left;}
+
+#head #cl {width:55px;float:left;padding:7px 0px 0px 8px;}
+#head #tb {width:370px;height:40px;float:left;}
+#head #ok {float:left;padding-top:7px;}
+#head ul {list-style-type:none;height:100%;margin:0;padding: 0;overflow: hidden;}
+#head li {float:left;height:39px;}
+#head ul li a {padding: 12px 20px 0px 20px;color:white;vertical-align:middle;text-decoration:none;}
+
+#fr {margin: 0 auto;display: table;}
+#fr .fix {margin:4px 4px 0px 4px;float:left;width:60px;text-align:center;}
+#fr .fixsp {float:left;width:35px;}
+#se {margin: 0 auto;display:table;table-layout: fixed;}
+#se .fix {margin:4px 4px 0px 4px;float:left;width:60px;height:60px;font-size:20px;text-align:center;vertical-align: middle;line-height:50px;}
+#se .fixsp {float:left;width:35px;height:60px;text-align:center;line-height:60px;}
+#tr {max-height:40px;margin: 0 auto;display: table;}
+#tr .fix {margin:4px 4px 0px 4px;float:left;width:60px;text-align:center;}
+#tr .fixsp {float:left;width:35px;}
+
+.dat {background-color:#2A128D;}
+.dat #head {background-color:#2A12CF;height:40px;}
+.dat .ui-state-active, .ui-state-hover {background-color: #2A128D;}
+.dat .dark {background-color:#2A12CF;}
+
+.fe {background-color:#02A8F4;}
+.fe #head {background-color:#0189C7;height:40px;}
+.fe .ui-state-active, .ui-state-hover {background-color: #02A8F4;}
+.fe .dark {background-color:#0189C7;}
+
+.ti {background-color:#019115;}
+.ti #head {background-color:#016F15;height:40px;}
+.ti .ui-state-active, .ui-state-hover {background-color: #019115;}
+.ti .dark {background-color:#016F15;}
+
+.co {background-color:#FEC107;}
+.co #head {background-color:#D7A508;height:40px;}
+.co .ui-state-active, .ui-state-hover {background-color: #FEC107;}
+.co .dark {background-color:#D7A508;}
+
+.lig {background-color:#019115;}
+.lig #head {background-color:#016F15;height:40px;}
+.lig .ui-state-active, .ui-state-hover {background-color: #019115;}
+.lig .dark {background-color:#016F15;}
+.lig li {background-color:#019115;}
+
+.lbl {font-size:14px;margin: 7px 0px 0px 17px;}
+#cool .ui-slider-range{background:#fff;}
+#cool .ui-slider-handle{border-color:#fff;}
+#warm .ui-slider-range{background:#fdfdc9;}
+#warm .ui-slider-handle{border-color:#fdfdc9;}
+#yellow .ui-slider-range{background:#fdf600;}
+#yellow .ui-slider-handle{border-color:#fdf600;}
+#red .ui-slider-range{background:red;}
+#red .ui-slider-handle{border-color:red;}
+#green .ui-slider-range{background:green;}
+#green .ui-slider-handle{border-color:green;}
+#blue .ui-slider-range{background:blue;}
+#blue .ui-slider-handle{border-color:blue;}
+
+.lisl {float:left;width:400px;}
+.lisl .amount {float:right;margin:-33px 0px;font-size:12px;}
+.libt {float:left;width:60px;margin-top:2px;}
+.lig .fix {border:none;line-height:40px;margin:5px 0px 0px 15px;float:left;width:40px;height:40px;background:#016f15;text-align:center;}
+.on {font-weight:bold;border:1px solid white !important;}
+
+.ui-widget {}
+.ui-slider {background:#016f15;position: relative;text-align: left;}
+.ui-slider-handle {display: none;}
+.ui-slider-range {filter: inherit;}
+.ui-slider-range-min {left: 0;}
+.ui-slider-horizontal {height:18px; width:380px;margin:0px 17px;}
+.ui-corner-all {}
+.ui-widget-content {}
+.ui-widget-header {}
+/* support: IE8 - See #6727 */
+.ui-slider.ui-state-disabled .ui-slider-handle,
+.ui-slider.ui-state-disabled {filter: inherit;}
+.ui-slider-horizontal .ui-slider-handle {top:-.3em;margin-left:-.6em;}
+.ui-slider-horizontal .ui-slider-range {top:0;height:100%;}
+.ui-slider-horizontal .ui-slider-range-min {left:0;}
+.ui-slider-horizontal .ui-slider-range-max {right: 0;}
+/* Interaction states We use html here because we need a greater specificity to make sure disabled
+works properly when clicked or hovered*/
+.ui-state-default,.ui-widget-content .ui-state-default,.ui-widget-header .ui-state-default,.ui-button,
+html .ui-button.ui-state-disabled:hover,
+html .ui-button.ui-state-disabled:active {}

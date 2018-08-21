@@ -11,16 +11,21 @@
   <script>
     url = "read";
     $(document).ready(function() {
-        setInterval("ajaxd()", 1000);
+        ajaxd();
     });
 
     function ajaxd() {
       $.ajax({
         url: url,
         data : "p=HOLO",
-        success : function(data) {
-          for (val of data) {
-            $("." + val.cl).html(val.value);
+        success : function(data, status, hr) {
+          if(hr.status == 200){
+            for (val of data) {
+              $("." + val.cl).html(val.v);
+            }
+            setTimeout(ajaxd, 1000);
+          } else {
+            setTimeout(ajaxd, 5000);
           }
         }
       })
@@ -32,17 +37,17 @@
     <p class='time'></p>
     <p>&nbsp;</p>
     <p>
-      <input type='button' class='btnbig blue' value='LIGHT' onClick='location.href="light.html"'>
-      <input type='button' class='btnbig blue' value='TIMER' onClick='location.href="timer.html"'>
-      <input type='button' class='btnbig blue' value='TIME' onClick='location.href="time.html"'>
+      <input type='button' class='btnbig blue' value='LIGHT' onClick='location.href="/light.html"'>
+      <input type='button' class='btnbig blue' value='TIMER' onClick='location.href="/timer.html"'>
+      <input type='button' class='btnbig blue' value='TIME' onClick='location.href="/time.html"'>
     </p>
     <p>
-      <input type='button' class='btnbig blue' value='CO2' onClick='location.href="co2.html"'>
-      <input type='button' class='btnbig blue' value='TEMP' onClick='location.href="temp.html"'>
+      <input type='button' class='btnbig blue' value='CO2' onClick='location.href="/co2.html"'>
+      <input type='button' class='btnbig blue' value='TEMP' onClick='location.href="/temp.html"'>
       <input type='button' class='btnbig blue' value='HOME' onClick='location.href="/"'>
     </p>
     <p>
-      <input type='button' class='btnbig blue' value='FEED' onClick='location.href="feed.html"'>
+      <input type='button' class='btnbig blue' value='FEED' onClick='location.href="/feed.html"'>
     </p>
   </div>
 </body>

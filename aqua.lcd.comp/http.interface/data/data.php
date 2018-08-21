@@ -15,7 +15,19 @@ if ($keys == 'TMLO') {
     );
     die();
 }
-
+if ($keys == 'CLLO') {
+    echo json_encode (
+        array(
+            array ("id" => "cool", "value" => 10),
+            array ("id" => "warm", "value" => 20),
+            array ("id" => "yellow", "value" => 30),
+            array ("id" => "red", "value" => 40),
+            array ("id" => "green", "value" => 50),
+            array ("id" => "blue", "value" => 60)
+        )
+    );
+    die();
+}
 if ($keys == 'HOLO') {
     echo json_encode (
         array(
