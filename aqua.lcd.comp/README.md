@@ -4,6 +4,10 @@ Aquarium computer
 Properties
 ----------
 
+2018-08-21:
+	Actually I working on new shield for Arduino Mega with serial display connection, web interface with (Microsoft Metro design) Esp8266 and other new features 
+
+
 - Computer for manage aquarium lights and measurment the tempereature
 
 It is possible to set many modes of change light color in time.
