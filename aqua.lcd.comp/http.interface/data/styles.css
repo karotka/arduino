@@ -12,14 +12,14 @@ body{background:#000;font-family:Open Sans;color:white;}
 .temp{float:left;height:98px;width:257px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#9C26B0;}
 .temp #m{float:left;margin-left:10px;width:40px;}
 .temp #dg{margin:-7px 0px 0px 71px;font-size:55px;}
-.temp #t{font-size:14px;padding-left:75px;}
+.temp #tt{margin-top:-10px;font-size:14px;padding-left:75px;}
 
 .light{float:left;height:98px;width:300px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#019115;}
-.light #m{float:left;margin:15px 8px;}
+.light #m{float:left;margin:15px 4px;}
 .light #lt{font-size:30px;}
-.light #t1{font-size:12px;margin:4px;line-height:1.2;}
-.light #t1 .s1{float:left;width:105px;text-align:left;}
-.light #t1 .s2{float:right;width:105px;text-align:left;}
+.light #t1{font-size:12px;margin:6px;line-height:1.2;}
+.light #t1 .s1{float:left;width:105px;}
+.light #t1 .s2{float:right;width:105px;}
 .light span{width:80px;border-bottom:solid 2px white;display: inline-block;}
 
 .co2{float:left;height:98px;width:157px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#FEC107;}

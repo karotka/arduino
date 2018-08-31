@@ -68,12 +68,12 @@ if ($params == "HOLO") {
 if ($params == 'LILO') {
     echo json_encode (
         array(
-            array ("id" => "cool", "v" => 10),
+            array ("id" => "cool", "v" => 100),
             array ("id" => "warm", "v" => 20),
-            array ("id" => "yellow", "v" => 30),
-            array ("id" => "red", "v" => 40),
-            array ("id" => "green", "v" => 50),
-            array ("id" => "blue", "v" => 60),
+            array ("id" => "yellow", "v" => 60),
+            array ("id" => "red", "v" => 10),
+            array ("id" => "green", "v" => 10),
+            array ("id" => "blue", "v" => 10),
 
             array ("id" => "B0", "v" => 0),
             array ("id" => "B1", "v" => 0),
@@ -107,10 +107,10 @@ if ($params == "DALO") {
 if ($params == "FDLO") {
     echo json_encode (
         array(
-            array ("id" => 1, "h" => "7",  "m" => "07"),
-            array ("id" => 2, "h" => "10", "m" => "01"),
-            array ("id" => 3, "h" => "12", "m" => "02"),
-            array ("id" => 4, "h" => "15", "m" => "05")
+            array ("id" => 1, "h" => "7",  "m" => "00"),
+            array ("id" => 2, "h" => "19", "m" => "00"),
+            array ("id" => 3, "h" => "19", "m" => "00"),
+            array ("id" => 4, "h" => "19", "m" => "00")
         )
     );
 }
@@ -118,10 +118,10 @@ if ($params == "FDLO") {
 if ($params == "COLO") {
     echo json_encode (
         array(
-            array ("id" => "1", "h" => "7", "m" => "07"),
-            array ("id" => "2", "h" => "13", "m" => "03"),
-            array ("id" => "3", "h" => "15", "m" => "05"),
-            array ("id" => "4", "h" => "17", "m" => "07"),
+            array ("id" => "1", "h" => "07", "m" => "00"),
+            array ("id" => "2", "h" => "12", "m" => "00"),
+            array ("id" => "3", "h" => "13", "m" => "00"),
+            array ("id" => "4", "h" => "18", "m" => "00"),
             array ("s" => array(1, 0, 1, 0))
         )
     );
@@ -130,15 +130,15 @@ if ($params == "COLO") {
 if ($params == "TRLO") {
     echo json_encode (
         array(
-            array ("id" => "1", "h" => "7", "m" => "07"),
-            array ("id" => "2", "h" => "13", "m" => "03"),
-            array ("id" => "3", "h" => "15", "m" => "05"),
-            array ("id" => "4", "h" => "17", "m" => "07"),
-            array ("id" => "5", "h" => "18", "m" => "08"),
+            array ("id" => "1", "h" => "06", "m" => "50"),
+            array ("id" => "2", "h" => "09", "m" => "00"),
+            array ("id" => "3", "h" => "12", "m" => "00"),
+            array ("id" => "4", "h" => "13", "m" => "00"),
+            array ("id" => "5", "h" => "14", "m" => "30"),
             array ("id" => "6", "h" => "19", "m" => "09"),
             array ("id" => "7", "h" => "20", "m" => "10"),
             array ("id" => "8", "h" => "21", "m" => "11"),
-            array ("s" => array(1, 1, 1, 1, 0, 0, 0, 0))
+            array ("s" => array("D1", "D2", "N1", "D2", "N2", "OFF"))
         )
     );
 }

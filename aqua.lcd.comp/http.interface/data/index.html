@@ -47,10 +47,8 @@
 
                   if (val.id == "temp") {
                       var spl = val.v.split("-");
-                      var ht =
-                          '<div id="dg">'  + spl[0] +'\u2103</div>'+
-                          '<div id="t">T1:'+ spl[1] +'\u2103 TB:' + spl[2] + '\u2103</div>';
-                      $("#temp").html(ht);
+                      $("#dg").html(spl[0] + '\u2103');
+                      $("#tt").html("T1:" + spl[0] + '\u2103 TB:' + spl[2] + '\u2103 <br>Watter: -15mm');
                   } else
 
                   if (val.id == "co2") {
@@ -107,7 +105,10 @@
     </div>
     <div class="temp">
       <div id="m"><img width="30px" height="95px" src="https://media.karotka.cz/aqua/tm.svg"/></div>
-      <div id="temp"></div>
+      <div id="temp">
+        <div id="dg"></div>
+        <div id="tt"></div>
+      </div>
     </div>
     <div class="co2" onClick='location.href="co2.html"'>
       <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/co2.svg"/></div>
@@ -119,13 +120,13 @@
         <div id="lt" onClick="location.href='timer.html'"></div>
         <div id="t1">
           <div class="s1" onClick="location.href='light.html'">
-            K1 <span id="s1"></span><br>
-            K2 <span id="s2"></span><br>
-            K3 <span id="s3"></span></div>
+            Ch1 <span id="s1"></span><br>
+            Ch2 <span id="s2"></span><br>
+            Ch3 <span id="s3"></span></div>
           <div class="s2" onClick="location.href='light.html'">
-            K4 <span id="s4"></span><br>
-            K5 <span id="s5"></span><br>
-            K6 <span id="s6"></span></div>
+            Ch4 <span id="s4"></span><br>
+            Ch5 <span id="s5"></span><br>
+            Ch6 <span id="s6"></span></div>
           </div>
       </div>
     </div>

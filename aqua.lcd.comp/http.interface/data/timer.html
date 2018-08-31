@@ -10,15 +10,12 @@
   <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
   <script>
     url = "read.php";
-
     $(document).ready(function() {
-
-      $("#ok,#H1U,#H2U,#H3U,#H4U,#H1D,#H2D,#H3D,#H4D,#M1U,#M2U,#M3U,#M4U,#M1D,#M2D,#M3D,#M4D").click(function(event) {
+      $("#ok,#h1u,#h2u,#h3u,#h4u,#h1d,#h2d,#h3d,#h4d,#m1u,#m2u,#m3u,#m4u,#m1d,#m2d,#m3d,#m4d").click(function(event) {
         $.ajax({
           url: url,
           data : {"p" : "FDSA", "v" : event.currentTarget.id},
           success : function(data) {
-            //console.log(data.key);
             if (data.key) {
               $("#" + data.key)[0].value = data.value;
             } else {
@@ -39,7 +36,7 @@
               } else {
                 if (val.hasOwnProperty("s")) {
                   for (i = 0; i < val.s.length; i++) {
-                    $("#s" + i).html(val.s[i] == 1 ? "ON" : "OFF");
+                    $("#s" + i).html(val.s[i]);
                   }
                 }
               }
@@ -48,37 +45,37 @@
       })
 
       $( function() {
-          $("#main").tabs({"active" : 0});
+        $("#main").tabs({"active" : 0});
       });
     })
   </script>
 
 </head>
 <body>
-  <div id="main" class="ti">
+<div id="main" class="ti">
 
-    <div id="head">
-      <div id="cl" onclick="location.href='/'">
-        <img widht="25px" height="25px" src="https://media.karotka.cz/aqua/close.svg">
-      </div>
-      <div id="tb">
-        <ul>
-          <li><a href="#tabs-1">Light switch 1-4</a></li>
-          <li><a href="#tabs-2">Light switch 5-8</a></li>
-        </ul>
-      </div>
-      <div id="ok"><img widht="25px" height="25px" src="https://media.karotka.cz/aqua/ok.svg"></div>
+  <div id="head">
+    <div id="cl" onclick="location.href='/'">
+      <img widht="25px" height="25px" src="https://media.karotka.cz/aqua/close.svg">
     </div>
+    <div id="tb">
+      <ul>
+        <li><a href="#tabs-1">Light switch 1-4</a></li>
+        <li><a href="#tabs-2">Light switch 5-8</a></li>
+      </ul>
+    </div>
+    <div id="ok"><img widht="25px" height="25px" src="https://media.karotka.cz/aqua/ok.svg"></div>
+  </div>
 
   <div id="tabs-1">
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h1u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m1u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
       <div class="fix"></div>
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
       <div class="fix"></div>
     </div>
     <div id="se">
@@ -138,7 +135,7 @@
     <div id="fr">
       <div class="fixsp">&nbsp</div>
       <div class="fix" id="h5u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M5U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m5u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
       <div class="fix"></div>
       <div class="fixsp">&nbsp</div>
       <div class="fix" id="h6u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
@@ -197,9 +194,6 @@
       <div class="fix"></div>
     </div>
   </div>
-
-
-  </div>
+</div>
 </body>
-
 </html>
