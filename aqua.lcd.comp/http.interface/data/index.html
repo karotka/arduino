@@ -9,11 +9,24 @@
   <link href="styles.css" rel="stylesheet" type="text/css">
   <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
-
   <script>
     url = "read.php";
     $(document).ready(function() {
-        ajaxd();
+      ajaxd();
+
+      $("").click(function(event) {
+        $.ajax({
+          url : url,
+          data : {
+            "p" : "",
+            "v" : event.currentTarget.id
+          },
+          success : function(data, status, hr) {
+              if(hr.status == 200) {
+              }
+            }
+         })
+      });
     });
 
     function ajaxd() {
@@ -25,16 +38,18 @@
               for (val of data) {
                   if (val.id == "dt") {
                       var spl = val.v.split("-");
-                      var ht = "<div class='tm'><p class='mo'>" + spl[2] + "</p>" +
-                          "<p class='t' onclick=\"location.href='/time.html'\">" + spl[3] + "</p></div>" +
-                          "<div class='day'>" + spl[1] + "</div>" +
-                          "<div class='dow'>" + spl[0] + "</div>";
-                      $("#dt").html(ht);
+                      $(".te").html(spl[3]);
+                      $(".mo").html(spl[2]);
+                      $(".day").html(spl[1]);
+                      $(".dow").html(spl[0]);
+                      //$("#dt").html(ht);
                   } else
 
                   if (val.id == "temp") {
                       var spl = val.v.split("-");
-                      var ht = '<div id="dg">'+spl[0]+'\u2103</div><div id="t">T1:'+spl[1]+'\u2103 TB:'+spl[2]+'\u2103</div>';
+                      var ht =
+                          '<div id="dg">'  + spl[0] +'\u2103</div>'+
+                          '<div id="t">T1:'+ spl[1] +'\u2103 TB:' + spl[2] + '\u2103</div>';
                       $("#temp").html(ht);
                   } else
 
@@ -45,19 +60,7 @@
 
                   if (val.id == "light") {
                       var spl = val.v.split("-");
-                      var ht =
-                      '<div id="t" onClick="location.href=\'timer.html\'">'+spl[0]+'</div>'+
-                      '<div id="t1">'+
-                        '<div class="s1" onClick="location.href=\'light.html\'">'+
-                          'K1 <span id="s1"></span><br>' +
-                          'K2 <span id="s2"></span><br>' +
-                          'K3 <span id="s3"></span></div>'+
-                        '<div class="s2" onClick="location.href=\'light.html\'">' +
-                          'K4 <span id="s4"></span><br>' +
-                          'K5 <span id="s5"></span><br>' +
-                          'K6 <span id="s6"></span></div>'+
-                          '</div>';
-                      $("#light").html(ht);
+                      $("#lt").html(spl[0]);
                       $("#s1").css({"width":spl[1]});
                       $("#s2").css({"width":spl[2]});
                       $("#s3").css({"width":spl[3]});
@@ -77,10 +80,15 @@
                       var ht = '';
                       $("#ser").html(ht);
                   }
-            }
-            setTimeout(ajaxd, 1000);
+                  if (val.hasOwnProperty("p")) {
+                    if (val.p != "index") {
+                      window.location.href = val.p + ".html";
+                    }
+                  }
+              }
+              //setTimeout(ajaxd, 1000);
           } else {
-            setTimeout(ajaxd, 5000);
+            //setTimeout(ajaxd, 5000);
           }
         }
       })
@@ -89,25 +97,44 @@
 </head>
 <body>
   <div id='main'>
-    <div id="dt" onClick="location.href='time.html'"></div>
+    <div id="dt" onClick="location.href='time.html'">
+      <div class="tm">
+        <p class="mo"></p>
+        <p class="te"></p>
+      </div>
+      <div class="day"></div>
+      <div class="dow"></div>
+    </div>
     <div class="temp">
-      <div id="m"><img width="30px" height="95px" src="/tm.svg"/></div>
+      <div id="m"><img width="30px" height="95px" src="https://media.karotka.cz/aqua/tm.svg"/></div>
       <div id="temp"></div>
     </div>
     <div class="co2" onClick='location.href="co2.html"'>
-      <div id="m"><img width="50px" height="50px" src="/co2.svg"/></div>
+      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/co2.svg"/></div>
       <div id="co2"></div>
     </div>
     <div class="light">
-      <div id="m" onClick='location.href="timer.html"'><img width="60px" height="60px" src="/lb.svg"/></div>
-      <div id="light"></div>
+      <div id="m" onClick='location.href="timer.html"'><img width="60px" height="60px" src="https://media.karotka.cz/aqua/lb.svg"/></div>
+      <div id="light">
+        <div id="lt" onClick="location.href='timer.html'"></div>
+        <div id="t1">
+          <div class="s1" onClick="location.href='light.html'">
+            K1 <span id="s1"></span><br>
+            K2 <span id="s2"></span><br>
+            K3 <span id="s3"></span></div>
+          <div class="s2" onClick="location.href='light.html'">
+            K4 <span id="s4"></span><br>
+            K5 <span id="s5"></span><br>
+            K6 <span id="s6"></span></div>
+          </div>
+      </div>
     </div>
     <div class="feed" onClick='location.href="feed.html"'>
-      <div id="m"><img width="50px" height="50px" src="/feed.svg"/></div>
+      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/feed.svg"/></div>
       <div id="feed"></div>
     </div>
     <div class="ser">
-      <div id="m"><img width="50px" height="50px" src="/ser.svg"/></div>
+      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/ser.svg"/></div>
       <div id="ser"></div>
     </div>
   </div>

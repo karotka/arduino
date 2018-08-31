@@ -1,16 +1,14 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 <head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title></title>
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link href="styles.css" rel="stylesheet" type="text/css">
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
+  <script src="//code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
   <script>
-
     url = "read.php";
 
     $(document).ready(function() {
@@ -26,29 +24,38 @@
           }
         })
       })
-
-      $.ajax({
-        url: url,
-        data : "p=TILO",
-        success : function(data, status, hr) {
-          if(hr.status == 200) {
-            fillForm(data);
-          }
-      }});
+      ajaxd();
 
       $( function() {
           $("#main").tabs({"active" : 0});
       });
     })
 
+    function ajaxd() {
+      $.ajax({
+        url: url,
+        data : "p=TILO",
+        success : function(data, status, hr) {
+          if(hr.status == 200) {
+            fillForm(data);
+            setTimeout(ajaxd, 5000);
+
+          }
+        }});
+    }
+
     function fillForm(data) {
       var spl = data.dt.split("-");
-      $("#d").html(spl[0]);
-      $("#m").html(spl[1]);
-      $("#y").html(spl[2]);
-      $("#h").html(spl[3]);
-      $("#i").html(spl[4]);
-      $("#s").html(spl[5]);
+      $("#d").html(spl[0]+"th");
+      $("#m").html(spl[1]+"");
+      $("#y").html(spl[2]+"");
+      $("#h").html(spl[3]+"h");
+      $("#i").html(spl[4]+"m");
+      if (spl[6] == "y") {
+        $("#saved").fadeTo("fast", 1);
+        $("#saved").html("Saved OK");
+        $("#saved").fadeTo("slow", 0);
+      }
     }
   </script>
 
@@ -57,42 +64,41 @@
   <div id="main" class="dat">
 
     <div id="head">
-      <div id="cl" onclick="location.href='/index.html'">
-        <img widht="25px" height="25px" src="/close.svg">
+      <div id="cl" onclick="location.href='/'">
+        <img widht="25px" height="25px" src="https://media.karotka.cz/aqua/close.svg">
       </div>
       <div id="tb">
         <ul>
-          <li><a href="#tabs-1">Date and time set</a></li>
+          <li><a href="#tabs-1">Date and time setting</a></li>
         </ul>
       </div>
-      <div id="ok"><img widht="25px" height="25px" src="/ok.svg"></div>
+      <div id="ok"><img widht="25px" height="25px" src="https://media.karotka.cz/aqua/ok.svg"></div>
     </div>
 
-  <div id="tabs-1">
+  <div id="tta1">
     <div id="fr">
-      <div class="fixsp">&nbsp</div>
-      <div class="fix" id="HU"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="IU"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="SU"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="HU"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="IU"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
     </div>
     <div id="se">
       <div class="fixsp">Time</div>
       <div class="fix dark" id="h"></div>
       <div class="fix dark" id="i"></div>
-      <div class="fix dark" id="s"></div>
     </div>
     <div id="tr">
-      <div class="fixsp">&nbsp</div>
-      <div class="fix" id="HD"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="ID"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="SD"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="HD"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="ID"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
     </div>
 
+    <div class="clear"></div>
+
     <div id="fr">
-      <div class="fixsp">&nbsp</div>
-      <div class="fix" id="DU"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="MU"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="YU"><img widht="20px" height="20px" src="/up.svg"></div>
+      <div class="fixsp">&nbsp;</div>
+      <div class="fix" id="DU"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="MU"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="YU"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
     </div>
     <div id="se">
       <div class="fixsp">Date</div>
@@ -102,9 +108,10 @@
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="DD"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="MD"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="YD"><img widht="20px" height="20px" src="/down.svg"></div>
+      <div class="fix" id="DD"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="MD"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="YD"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div id="saved"></div>
     </div>
   </div>
 

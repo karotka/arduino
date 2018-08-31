@@ -1,16 +1,14 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 <head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title></title>
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link href="styles.css" rel="stylesheet" type="text/css">
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
+  <script src="//code.jquery.com/jquery-1.12.4.min.js" crossorigin="anonymous"></script>
+  <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js" crossorigin="anonymous"></script>
   <script>
-
     url = "read.php";
 
     $(document).ready(function() {
@@ -32,17 +30,21 @@
 
       $.ajax({
         url: url,
-        data : "p=TILO",
+        data : "p=TRLO",
         success : function(data) {
-          console.log(data);
             for (val of data) {
-              if (val.id.startsWith("m")) {
-                  $("#" + val.id).html(val.v + "m");
+              if (val.hasOwnProperty("id")) {
+                $("#m" + val.id).html(val.m + "m");
+                $("#h" + val.id).html(val.h + "h");
               } else {
-                  $("#" + val.id).html(val.v + "h");
+                if (val.hasOwnProperty("s")) {
+                  for (i = 0; i < val.s.length; i++) {
+                    $("#s" + i).html(val.s[i] == 1 ? "ON" : "OFF");
+                  }
+                }
               }
+            }
           }
-        }
       })
 
       $( function() {
@@ -56,143 +58,143 @@
   <div id="main" class="ti">
 
     <div id="head">
-      <div id="cl" onclick="location.href='/index.html'">
-        <img widht="25px" height="25px" src="/close.svg">
+      <div id="cl" onclick="location.href='/'">
+        <img widht="25px" height="25px" src="https://media.karotka.cz/aqua/close.svg">
       </div>
       <div id="tb">
         <ul>
           <li><a href="#tabs-1">Light switch 1-4</a></li>
-          <li><a href="#tabs-2">Light switch 2-8</a></li>
+          <li><a href="#tabs-2">Light switch 5-8</a></li>
         </ul>
       </div>
-      <div id="ok"><img widht="25px" height="25px" src="/ok.svg"></div>
+      <div id="ok"><img widht="25px" height="25px" src="https://media.karotka.cz/aqua/ok.svg"></div>
     </div>
 
   <div id="tabs-1">
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1U"></div>
+      <div class="fix" id="H1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="M1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H2U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M2U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1U"></div>
+      <div class="fix" id="H2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="M2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
     </div>
     <div id="se">
       <div class="fixsp">1.</div>
       <div class="fix dark" id="h1"></div>
       <div class="fix dark" id="m1"></div>
-      <div class="fix dark" id="m1"></div>
+      <div class="fix dark" id="s0"></div>
       <div class="fixsp">2.</div>
       <div class="fix dark" id="h2"></div>
       <div class="fix dark" id="m2"></div>
-      <div class="fix dark" id="m2"></div>
+      <div class="fix dark" id="s1"></div>
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h1d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m1d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H2D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M2D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M2D"></div>
+      <div class="fix" id="h2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
     </div>
 
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H3U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M3U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h3u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m3u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M4U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h4u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m4u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
     </div>
     <div id="se">
       <div class="fixsp">3.</div>
       <div class="fix dark" id="h3"></div>
       <div class="fix dark" id="m3"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="s2"></div>
       <div class="fixsp">4.</div>
       <div class="fix dark" id="h4"></div>
       <div class="fix dark" id="m4"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="s3"></div>
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H3D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M3D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h3d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m3d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M4D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h4d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m4d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
     </div>
   </div>
 
   <div id="tabs-2">
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h5u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="M5U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H2U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M2U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h6u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m6u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
     </div>
     <div id="se">
       <div class="fixsp">5.</div>
-      <div class="fix dark" id="h1"></div>
-      <div class="fix dark" id="m1"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="h5"></div>
+      <div class="fix dark" id="m5"></div>
+      <div class="fix dark" id="s4"></div>
       <div class="fixsp">6.</div>
-      <div class="fix dark" id="h2"></div>
-      <div class="fix dark" id="m2"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="h6"></div>
+      <div class="fix dark" id="m6"></div>
+      <div class="fix dark" id="s5"></div>
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h5d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m5d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H2D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M2D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h6d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m6d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
     </div>
 
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H3U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M3U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h7u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m7u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M4U"><img widht="20px" height="20px" src="/up.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h8u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m8u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix"></div>
     </div>
     <div id="se">
       <div class="fixsp">7.</div>
-      <div class="fix dark" id="h3"></div>
-      <div class="fix dark" id="m3"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="h7"></div>
+      <div class="fix dark" id="m7"></div>
+      <div class="fix dark" id="s6"></div>
       <div class="fixsp">8.</div>
-      <div class="fix dark" id="h4"></div>
-      <div class="fix dark" id="m4"></div>
-      <div class="fix dark" id="m3"></div>
+      <div class="fix dark" id="h8"></div>
+      <div class="fix dark" id="m8"></div>
+      <div class="fix dark" id="s7"></div>
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H3D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M3D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h7d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m7d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M4D"><img widht="20px" height="20px" src="/down.svg"></div>
-      <div class="fix" id="M1D"></div>
+      <div class="fix" id="h8d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m8d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix"></div>
     </div>
   </div>
 

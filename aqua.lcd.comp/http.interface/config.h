@@ -5,6 +5,41 @@
 
 #define SERIAL_READ_TIMEOUT 300
 
+enum {
+    PAGE_HOME = 0,
+    PAGE_TIME,
+    PAGE_CO2,
+    HOLO,
+    TILO,
+    COLO,
+    FDLO,
+    LILO,
+    TRLO,
+    TISA,
+    COSA
+};
+
+const char* Command[] = {
+    "",
+    "",
+    "",
+    "HOLO",
+    "TILO",
+    "COLO",
+    "FDLO",
+    "LILO",
+    "TRLO",
+    "TISA",
+    "COSA"
+};
+
+int find(char* s) {
+    for(int i = 0; Command[i]; i++) {
+        if(!strcmp(s, Command[i])) return i;
+    }
+    return -1; // -1 means "not found"
+}
+
 class Config_t {
 
 public:
@@ -44,7 +79,6 @@ public:
         //addr += EEPROM.put(addr, myInt);
         EEPROM.end();
     }
-
 };
 
 /*

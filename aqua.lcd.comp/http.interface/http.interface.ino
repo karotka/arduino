@@ -10,6 +10,8 @@
 Config_t config;
 ESP8266WebServer server(80);
 SoftwareSerial ESPserial(D7, D8); // RX | TX
+char serialRxBuffer[256];
+int command;
 
 int getlen(const char* buffer) {
     int len = 0;
@@ -42,7 +44,10 @@ int split(char* buffer, const char delimiter, char** strs, int n) {
     return split + 1;
 }
 
-inline int SERIALREAD(char* serialRxBuffer) {
+inline int SERIALREAD() {
+    for(int i = 0; i < sizeof(serialRxBuffer); ++i) {
+        serialRxBuffer[i] = (char)0;
+    }
 
     unsigned long time = millis();
     int avail;
@@ -55,8 +60,8 @@ inline int SERIALREAD(char* serialRxBuffer) {
 
     do {
         char ch = Serial.read();
-        ESPserial.print("ch:");
-        ESPserial.println(ch);
+        //ESPserial.print("ch:");
+        //ESPserial.println(ch);
 
         if (ch == '\n') {
             break;
@@ -117,6 +122,10 @@ void handleConnect() {
 }
 
 void handleRoot() {
+    char buf[5];
+    sprintf(buf, "%d\t\n", PAGE_HOME);
+    Serial.print(buf);
+
     File dataFile = SPIFFS.open("/index.html", "r");
     server.streamFile(dataFile, "text/html");
     dataFile.close();
@@ -135,6 +144,10 @@ void handleLight() {
 }
 
 void handleTime() {
+    char buf[5];
+    sprintf(buf, "%d\t\n", PAGE_TIME);
+    Serial.print(buf);
+
     File dataFile = SPIFFS.open("/time.html", "r");
     server.streamFile(dataFile, "text/html");
     dataFile.close();
@@ -217,98 +230,102 @@ void handleSaveData() {
     server.send(302, "text/plain", "");
 }
 
-String responseHolo(char* data) {
-    char *spl[2];
-    int c = split(data, '\t', spl, sizeof(spl));
-    return String(
-        "[{\"cl\":\"time\",\"v\":\"" + String(spl[1]) + "\"}," +
-        "{\"cl\":\"date\",\"v\":\"" + String(spl[0]) + "\"}," +
-        "{\"cl\":\"temp1\",\"v\":\"23.0 C\"}," +
-        "{\"cl\":\"mode\",\"v\":\"MODE: AUTO (OFF)\"}," +
-        "{\"cl\":\"co2\",\"v\":\"CO2: OFF &nbsp; TB: 26.8C\"}," +
-        "{\"cl\":\"temp2\",\"v\":\"T1: 0.0C T2: 0.0C\"}]"
-    );
-}
-
-String responseTmlo(char* data) {
-    char *spl[2];
-    int c = split(data, '\t', spl, sizeof(spl));
-    return String(
-        "[{\"id\":\"time\",\"v\":\"" + String(spl[1]) + "\"}," +
-        "{\"id\":\"date\",\"v\":\"" + String(spl[0]) + "\"}]"
-    );
-}
-
-String responseTilo(char* data) {
-    char *spl[16];
-    int c = split(data, '\t', spl, sizeof(spl));
-    return String(
-        "[{\"id\":\"t1\",\"h\":\"" + String(spl[0]) + "\"},"
-        "{\"id\":\"t2\",\"h\":\"" + String(spl[1]) + "\"},"
-        "{\"id\":\"t3\",\"h\":\"" + String(spl[2]) + "\"},"
-        "{\"id\":\"t4\",\"h\":\"" + String(spl[3]) + "\"},"
-        "{\"id\":\"t5\",\"h\":\"" + String(spl[4]) + "\"},"
-        "{\"id\":\"t6\",\"h\":\"" + String(spl[5]) + "\"},"
-        "{\"id\":\"t7\",\"h\":\"" + String(spl[6]) + "\"},"
-        "{\"id\":\"t8\",\"h\":\"" + String(spl[7]) + "\"},"
-
-        "{\"id\":\"T1MO\",\"v\":\"" + String(spl[8]) + "\"},"
-        "{\"id\":\"T2MO\",\"v\":\"" + String(spl[9]) + "\"},"
-        "{\"id\":\"T3MO\",\"v\":\"" + String(spl[10]) + "\"},"
-        "{\"id\":\"T4MO\",\"v\":\"" + String(spl[11]) + "\"},"
-        "{\"id\":\"T5MO\",\"v\":\"" + String(spl[12]) + "\"},"
-        "{\"id\":\"T6MO\",\"v\":\"" + String(spl[13]) + "\"},"
-        "{\"id\":\"T7MO\",\"v\":\"" + String(spl[14]) + "\"},"
-        "{\"id\":\"T8MO\",\"v\":\"" + String(spl[15]) + "\"}]"
-    );
-}
-
-String responseLilo(char* data) {
-    char *spl[12];
+String responseHolo() {
+    char *spl[5];
     //ESPserial.print("data:");
-    //ESPserial.println(data);
-    int c = split(data, '\t', spl, sizeof(spl));
+    //ESPserial.println();
+    int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
     return String(
-        "[{\"id\":\"cool\",\"v\":\""+ String(spl[0]) +"\"},"
-        "{\"id\":\"warm\",\"v\":\""+ String(spl[1]) +"\"},"
-        "{\"id\":\"yellow\",\"v\":\""+ String(spl[2]) +"\"},"
-        "{\"id\":\"red\",\"v\":\""+ String(spl[3]) +"\"},"
-        "{\"id\":\"green\",\"v\":\""+ String(spl[4]) +"\"},"
-        "{\"id\":\"blue\",\"v\":\""+ String(spl[5]) +"\"},"
-
-        "{\"id\":\"B0\",\"v\":\""+ String(spl[6]) +"\"},"
-        "{\"id\":\"B1\",\"v\":\""+ String(spl[7]) +"\"},"
-        "{\"id\":\"B2\",\"v\":\""+ String(spl[8]) +"\"},"
-        "{\"id\":\"B3\",\"v\":\""+ String(spl[9]) +"\"},"
-        "{\"id\":\"B4\",\"v\":\""+ String(spl[10]) +"\"},"
-        "{\"id\":\"B5\",\"v\":\""+ String(spl[11]) +"\"}]"
-        );
-}
-
-String responseLcw(char* data) {
-    char *spl[2];
-    int c = split(data, '\t', spl, sizeof(spl));
-    return String(
-        "{\"id\":\"" + String(spl[1]) +
-        "\",\"value\":\"" + String(spl[0]) + "\"}"
+        "[{\"id\":\"dt\",\"v\":\""   + String(spl[0]) + "\"}," +
+        "{\"id\":\"temp\",\"v\":\""  + String(spl[1]) + "\"}," +
+        "{\"id\":\"co2\",\"v\":\""   + String(spl[2]) + "\"}," +
+        "{\"id\":\"light\",\"v\":\"" + String(spl[3]) + "\"}," +
+        "{\"id\":\"feed\",\"v\":\""  + String(spl[4]) + "\"}," +
+        "{\"id\":\"ser\",\"v\":\"neco\"}," +
+        "{\"p\":\"index\"}]"
     );
 }
 
-String responseLight(char* data) {
-    char *spl[2];
-    int c = split(data, '\t', spl, sizeof(spl));
+String responseTilo() {
     return String(
-        "{\"id\":\"" + String(spl[1]) +
-        "\",\"value\":\"" + String(spl[0]) + "\"}"
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
     );
 }
 
-String responseTis(char* data) {
-    char *spl[2];
-    int c = split(data, '\t', spl, sizeof(spl));
+String responseColo() {
+    char *spl[12];
+    int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
     return String(
-        "{\"id\":\"" + String(spl[0]) +
-        "\",\"v\":\"" + String(spl[1]) + "\"}"
+       "[{\"id\":1, \"h\":\""+ String(spl[0]) +"\",\"m\":\"" + String(spl[1]) + "\"}," +
+       "{\"id\":2, \"h\":\""+ String(spl[2]) +"\",\"m\":\"" + String(spl[3]) + "\"}," +
+       "{\"id\":3, \"h\":\""+ String(spl[4]) +"\",\"m\":\"" + String(spl[5]) + "\"}," +
+       "{\"id\":4, \"h\":\""+ String(spl[6]) +"\",\"m\":\"" + String(spl[7]) + "\"}," +
+       "{\"s\":[\"" + String(spl[8]) + "\",\""+ String(spl[9]) + "\",\"" +
+                    String(spl[10]) + "\",\"" + String(spl[11]) + "\"]}]"
+    );
+}
+
+String responseFdlo() {
+    char *spl[8];
+    int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
+    return String(
+       "[{\"id\":1, \"h\":\""+ String(spl[0]) +"\",\"m\":\"" + String(spl[1]) + "\"}," +
+       "{\"id\":2, \"h\":\""+  String(spl[2]) +"\",\"m\":\"" + String(spl[3]) + "\"}," +
+       "{\"id\":3, \"h\":\""+  String(spl[4]) +"\",\"m\":\"" + String(spl[5]) + "\"}," +
+       "{\"id\":4, \"h\":\""+  String(spl[6]) +"\",\"m\":\"" + String(spl[7]) + "\"}]"
+    );
+}
+
+String responseLilo() {
+    char *spl[12];
+    int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
+    return String(
+        "[{\"id\":\"cool\",\"v\":\""  + String(spl[0])  +"\"}," +
+        "{\"id\":\"warm\",\"v\":\""   + String(spl[1])  +"\"}," +
+        "{\"id\":\"yellow\",\"v\":\"" + String(spl[2])  +"\"}," +
+        "{\"id\":\"red\",\"v\":\""    + String(spl[3])  +"\"}," +
+        "{\"id\":\"green\",\"v\":\""  + String(spl[4])  +"\"}," +
+        "{\"id\":\"blue\",\"v\":\""   + String(spl[5])  +"\"}," +
+        "{\"id\":\"B0\",\"v\":\""     + String(spl[6])  +"\"}," +
+        "{\"id\":\"B1\",\"v\":\""     + String(spl[7])  +"\"}," +
+        "{\"id\":\"B2\",\"v\":\""     + String(spl[8])  +"\"}," +
+        "{\"id\":\"B3\",\"v\":\""     + String(spl[9])  +"\"}," +
+        "{\"id\":\"B4\",\"v\":\""     + String(spl[10]) +"\"}," +
+        "{\"id\":\"B5\",\"v\":\""     + String(spl[11]) +"\"}]"
+    );
+}
+
+String responseTrlo() {
+    char *spl[24];
+    ESPserial.print("data:");
+    ESPserial.println(serialRxBuffer);
+    int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
+    return String(
+        "[{\"id\":1, \"h\":\""+ String(spl[0]) +"\",\"m\":\"" + String(spl[1]) + "\"}," +
+        "{\"id\":2, \"h\":\""+ String(spl[2])  +"\",\"m\":\"" + String(spl[3]) + "\"}," +
+        "{\"id\":3, \"h\":\""+ String(spl[4])  +"\",\"m\":\"" + String(spl[5]) + "\"}," +
+        "{\"id\":4, \"h\":\""+ String(spl[6])  +"\",\"m\":\"" + String(spl[7]) + "\"}," +
+        "{\"id\":5, \"h\":\""+ String(spl[8])  +"\",\"m\":\"" + String(spl[9]) + "\"}," +
+        "{\"id\":6, \"h\":\""+ String(spl[10]) +"\",\"m\":\"" + String(spl[11]) + "\"}," +
+        "{\"id\":7, \"h\":\""+ String(spl[12]) +"\",\"m\":\"" + String(spl[13]) + "\"}," +
+        "{\"id\":8, \"h\":\""+ String(spl[14]) +"\",\"m\":\"" + String(spl[15]) + "\"}," +
+        "{\"s\":[" +
+        String(spl[16]) + "," + String(spl[17]) + "," +
+        String(spl[18]) + "," + String(spl[19]) + "," +
+        String(spl[20]) + "," + String(spl[21]) + "," +
+        String(spl[22]) + "," + String(spl[23]) + "]}]"
+    );
+}
+
+String responseTisa() {
+    return String(
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
+    );
+}
+
+String responseCosa() {
+    return String(
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
     );
 }
 
@@ -316,51 +333,45 @@ void handleRead() {
     String params = server.arg("p");
     String value = server.arg("v");
 
-    Serial.print(params + '\t' + value + '\n');
-    //Serial.flush(); // wait for a serial string to be finished sending
+    command = find(const_cast<char*>(params.c_str()));
+    char buf[8];
+    sprintf(buf, "%d\t%s\t\n", command, value.c_str());
+    Serial.print(buf);
+    Serial.flush(); // wait for a serial string to be finished sending
 
-    char data[80];
-    if (!SERIALREAD(data)) {
-        server.setContentLength(2);
-        server.send(204, "application/json", "{}");
+    if (command > 2) {
+        if (!SERIALREAD()) {
+            server.setContentLength(2);
+            server.send(204, "application/json", "{}");
+        }
     }
-
-    ESPserial.print("params:");
-    ESPserial.println(params);
 
     String ret;
-    if (params == "HOLO") {
-        ret = responseHolo(data);
-    } else
-    if (params == "TMLO") {
-        ret = responseTmlo(data);
-    } else
-    if (params == "LILO") {
-        ret = responseLilo(data);
-    } else
-    if (params == "TILO") {
-        ret = responseTilo(data);
-    } else
-    if (params == "LCW") {
-        ret = responseLight(data);
-    } else
-    if (params == "LWW") {
-        ret = responseLight(data);
-    } else
-    if (params == "LYE") {
-        ret = responseLight(data);
-    } else
-    if (params == "LRE") {
-        ret = responseLight(data);
-    } else
-    if (params == "LGR") {
-        ret = responseLight(data);
-    } else
-    if (params == "LBL") {
-        ret = responseLight(data);
-    }
-    if (params == "TIS") {
-        ret = responseTis(data);
+    switch (command) {
+    case HOLO:
+        ret = responseHolo();
+        break;
+    case TILO:
+        ret = responseTilo();
+        break;
+    case COLO:
+        ret = responseColo();
+        break;
+    //case FDLO:
+    //    ret = responseFdlo();
+    //    break;
+    //case LILO:
+    //    ret = responseLilo();
+    //    break;
+    //case TRLO:
+    //    ret = responseTrlo();
+    //    break;
+    case TISA:
+        ret = responseTisa();
+        break;
+    case COSA:
+        ret = responseTisa();
+        break;
     }
 
     server.setContentLength(ret.length());
@@ -400,7 +411,7 @@ void setup() {
     server.on("/saveData", handleSaveData);
     server.on("/apmode", handleAPmode);
 
-    server.on("/read", handleRead);
+    server.on("/read.php", handleRead);
 
     server.begin();
     ESPserial.println("Server started");
