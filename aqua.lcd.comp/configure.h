@@ -54,9 +54,4 @@ enum {
     CO2_ON,
     CO2_NONE
 };
-
-char *clTime  = "{[\"cl\":\"time\",\"value\":\"%02d:%02d:%02d\"]}";
-//char *clDate  = '{["cl":"date","value":"%02d.%02d.%04d"]}';
-//char clTemp1[60] = '{["cl":"temp1","value":"%02d:%02d:%02d"]}';
-
 #endif

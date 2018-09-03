@@ -231,7 +231,7 @@ void handleSaveData() {
 }
 
 String responseHolo() {
-    char *spl[5];
+    char *spl[8];
     //ESPserial.print("data:");
     //ESPserial.println();
     int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
@@ -240,7 +240,7 @@ String responseHolo() {
         "{\"id\":\"temp\",\"v\":\""  + String(spl[1]) + "\"}," +
         "{\"id\":\"co2\",\"v\":\""   + String(spl[2]) + "\"}," +
         "{\"id\":\"light\",\"v\":\"" + String(spl[3]) + "\"}," +
-        "{\"id\":\"feed\",\"v\":\""  + String(spl[4]) + "\"}," +
+        "{\"id\":\"feed\",\"v\":[\""  + String(spl[4]) + "\", \""  + String(spl[5]) + "\", \""  + String(spl[6]) + "\", \""  + String(spl[7]) + "\"]}," +
         "{\"id\":\"ser\",\"v\":\"neco\"}," +
         "{\"p\":\"index\"}]"
     );
@@ -261,7 +261,7 @@ String responseColo() {
        "{\"id\":3, \"h\":\""+ String(spl[4]) +"\",\"m\":\"" + String(spl[5]) + "\"}," +
        "{\"id\":4, \"h\":\""+ String(spl[6]) +"\",\"m\":\"" + String(spl[7]) + "\"}," +
        "{\"s\":[\"" + String(spl[8]) + "\",\""+ String(spl[9]) + "\",\"" +
-                    String(spl[10]) + "\",\"" + String(spl[11]) + "\"]}]"
+                     String(spl[10]) + "\",\"" + String(spl[11]) + "\"]}]"
     );
 }
 
@@ -297,8 +297,8 @@ String responseLilo() {
 
 String responseTrlo() {
     char *spl[24];
-    ESPserial.print("data:");
-    ESPserial.println(serialRxBuffer);
+    //ESPserial.print("data:");
+    //ESPserial.println(serialRxBuffer);
     int c = split(serialRxBuffer, '\t', spl, sizeof(spl));
     return String(
         "[{\"id\":1, \"h\":\""+ String(spl[0]) +"\",\"m\":\"" + String(spl[1]) + "\"}," +
@@ -309,11 +309,11 @@ String responseTrlo() {
         "{\"id\":6, \"h\":\""+ String(spl[10]) +"\",\"m\":\"" + String(spl[11]) + "\"}," +
         "{\"id\":7, \"h\":\""+ String(spl[12]) +"\",\"m\":\"" + String(spl[13]) + "\"}," +
         "{\"id\":8, \"h\":\""+ String(spl[14]) +"\",\"m\":\"" + String(spl[15]) + "\"}," +
-        "{\"s\":[" +
-        String(spl[16]) + "," + String(spl[17]) + "," +
-        String(spl[18]) + "," + String(spl[19]) + "," +
-        String(spl[20]) + "," + String(spl[21]) + "," +
-        String(spl[22]) + "," + String(spl[23]) + "]}]"
+        "{\"s\":[\"" +
+        String(spl[16]) + "\",\"" + String(spl[17]) + "\",\"" +
+        String(spl[18]) + "\",\"" + String(spl[19]) + "\",\"" +
+        String(spl[20]) + "\",\"" + String(spl[21]) + "\",\"" +
+        String(spl[22]) + "\",\"" + String(spl[23]) + "\"]}]"
     );
 }
 
@@ -324,6 +324,18 @@ String responseTisa() {
 }
 
 String responseCosa() {
+    return String(
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
+    );
+}
+
+String responseFdsa() {
+    return String(
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
+    );
+}
+
+String responseTrsa() {
     return String(
         "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
     );
@@ -357,20 +369,27 @@ void handleRead() {
     case COLO:
         ret = responseColo();
         break;
-    //case FDLO:
-    //    ret = responseFdlo();
-    //    break;
-    //case LILO:
-    //    ret = responseLilo();
-    //    break;
-    //case TRLO:
-    //    ret = responseTrlo();
-    //    break;
+    case FDLO:
+        ret = responseFdlo();
+        break;
+    case LILO:
+        ret = responseLilo();
+        break;
+    case TRLO:
+        ret = responseTrlo();
+        break;
+
     case TISA:
         ret = responseTisa();
         break;
     case COSA:
-        ret = responseTisa();
+        ret = responseCosa();
+        break;
+    case FDSA:
+        ret = responseFdsa();
+        break;
+    case TRSA:
+        ret = responseFdsa();
         break;
     }
 

@@ -58,7 +58,7 @@ if ($params == "HOLO") {
             array ("id" => "temp", "v" => "23.6-22.3-34.9"),
             array ("id" => "co2",  "v" => "OFF"),
             array ("id" => "light","v" => "Automat Off-10-80-40-30-20-80"),
-            array ("id" => "feed", "v" => "7:00-19:00"),
+            array ("id" => "feed", "v" => array("07:08", "09:10", "11:12", "19:00")),
             array ("id" => "ser",  "v" => "neco"),
             array ("p" => "index")
         )
@@ -158,6 +158,24 @@ if ($params == "TISA") {
     echo json_encode (
         array("dt" => date("d-m-Y-H-i-s", $mytime). "-". $saved)
     );
+}
+
+//echo $params, $value;
+if ($params == "TRSA") {
+    $saved = "n";
+    if ($value == "ok") {
+        $saved = "y";
+    }
+    if (startsWith($value, "m")) {
+        echo json_encode (
+            array("dt" => substr($value, 0, 2). "-". "33")
+        );
+    }
+    if (startsWith($value, "s")) {
+        echo json_encode (
+            array("dt" => $value. "-M3")
+        );
+    }
 }
 
 function startsWith($haystack, $needle) {

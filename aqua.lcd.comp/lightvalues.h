@@ -11,12 +11,15 @@
 #define Y_TOUCH_AREA_MIN 36
 #define Y_TOUCH_AREA_MAX 183
 
+
 enum {
-    MODE_OFF = 0,
-    MODE_DAY1,
-    MODE_DAY2,
-    MODE_NIGHT1,
-    MODE_NIGHT2
+    TM_DAY1 = 0,
+    TM_DAY2,
+    TM_NIGHT1,
+    TM_NIGHT2,
+    TM_OFF,
+    TM_END,
+    TM_AUTO
 };
 
 #define LED_YELLOW          13  // OC0A

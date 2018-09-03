@@ -56,7 +56,7 @@ void LigthValues_t::setBlueValue(int value) {
 }
 
 void LigthValues_t::save(void) {
-    if (flag == MODE_OFF) {
+    if (flag == TM_OFF) {
         EEPROM.write(64, coolByte);
         EEPROM.write(65, warmByte);
         EEPROM.write(66, yellowByte);
@@ -65,7 +65,7 @@ void LigthValues_t::save(void) {
         EEPROM.write(69, blueByte);
     }
 
-    if (flag == MODE_DAY1) {
+    if (flag == TM_DAY1) {
         EEPROM.write(70, coolByte);
         EEPROM.write(71, warmByte);
         EEPROM.write(72, yellowByte);
@@ -74,7 +74,7 @@ void LigthValues_t::save(void) {
         EEPROM.write(75, blueByte);
     }
 
-    if (flag == MODE_DAY2) {
+    if (flag == TM_DAY2) {
         EEPROM.write(76, coolByte);
         EEPROM.write(77, warmByte);
         EEPROM.write(78, yellowByte);
@@ -83,7 +83,7 @@ void LigthValues_t::save(void) {
         EEPROM.write(81, blueByte);
     }
 
-    if (flag == MODE_NIGHT1) {
+    if (flag == TM_NIGHT1) {
         EEPROM.write(82, coolByte);
         EEPROM.write(83, warmByte);
         EEPROM.write(84, yellowByte);
@@ -92,7 +92,7 @@ void LigthValues_t::save(void) {
         EEPROM.write(87, blueByte);
     }
 
-    if (flag == MODE_NIGHT2) {
+    if (flag == TM_NIGHT2) {
         EEPROM.write(88, coolByte);
         EEPROM.write(89, warmByte);
         EEPROM.write(90, yellowByte);
@@ -103,7 +103,7 @@ void LigthValues_t::save(void) {
 }
 
 void LigthValues_t::load(void) {
-    if (flag == MODE_OFF) {
+    if (flag == TM_OFF) {
         coolByte   = EEPROM.read(64);
         warmByte   = EEPROM.read(65);
         yellowByte = EEPROM.read(66);
@@ -112,7 +112,7 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(69);
     }
 
-    if (flag == MODE_DAY1) {
+    if (flag == TM_DAY1) {
         coolByte   = EEPROM.read(70);
         warmByte   = EEPROM.read(71);
         yellowByte = EEPROM.read(72);
@@ -121,7 +121,7 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(75);
     }
 
-    if (flag == MODE_DAY2) {
+    if (flag == TM_DAY2) {
         coolByte   = EEPROM.read(76);
         warmByte   = EEPROM.read(77);
         yellowByte = EEPROM.read(78);
@@ -130,7 +130,7 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(81);
     }
 
-    if (flag == MODE_NIGHT1) {
+    if (flag == TM_NIGHT1) {
         coolByte   = EEPROM.read(82);
         warmByte   = EEPROM.read(83);
         yellowByte = EEPROM.read(84);
@@ -139,7 +139,7 @@ void LigthValues_t::load(void) {
         blueByte   = EEPROM.read(87);
     }
 
-    if (flag == MODE_NIGHT2) {
+    if (flag == TM_NIGHT2) {
         coolByte   = EEPROM.read(88);
         warmByte   = EEPROM.read(89);
         yellowByte = EEPROM.read(90);

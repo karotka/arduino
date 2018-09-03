@@ -2,19 +2,19 @@
 body{background:#000;font-family:Open Sans;color:white;}
 #main{width:480px;height:320px;border:1px solid #fdfdfd;}
 
-#dt{float:left;height:98px;width:200px;color:white;margin:7px 0px 0px 7px;background-color:#2A128D;font-size:14px;}
+#dt{float:left;height:98px;width:200px;margin:7px 0px 0px 7px;background-color:#2A128D;font-size:14px;}
 #dt .tm{float:left;margin:14px;}
 #dt .te{margin-top:4px;}
 #dt .mo{font-size:20px;}
 #dt .day{margin-top:-8px;font-size:55px;}
 #dt .dow{padding-left:120px;}
 
-.temp{float:left;height:98px;width:257px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#9C26B0;}
+.temp{float:left;height:98px;width:257px;font-size:48px;margin:7px 0px 0px 7px;background-color:#9C26B0;}
 .temp #m{float:left;margin-left:10px;width:40px;}
 .temp #dg{margin:-7px 0px 0px 71px;font-size:55px;}
 .temp #tt{margin-top:-10px;font-size:14px;padding-left:75px;}
 
-.light{float:left;height:98px;width:300px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#019115;}
+.light{float:left;height:98px;width:300px;font-size:48px;margin:7px 0px 0px 7px;background-color:#019115;}
 .light #m{float:left;margin:15px 4px;}
 .light #lt{font-size:30px;}
 .light #t1{font-size:12px;margin:6px;line-height:1.2;}
@@ -22,17 +22,17 @@ body{background:#000;font-family:Open Sans;color:white;}
 .light #t1 .s2{float:right;width:105px;}
 .light span{width:80px;border-bottom:solid 2px white;display: inline-block;}
 
-.co2{float:left;height:98px;width:157px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#FEC107;}
+.co2{float:left;height:98px;width:157px;font-size:48px;margin:7px 0px 0px 7px;background-color:#FEC107;}
 .co2 #m{float:left;margin:17px;width:50px;}
 .co2 #t{font-size:30px;margin:30px 12px;}
 
-.ser{float:left;height:98px;width:228px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#E91D62;}
+.serlast{background-color:#E91D62;}
+.ser{float:left;height:98px;width:257px;font-size:48px;margin:7px 0px 0px 7px;background-color:#808184;}
 .ser #m{float:left;margin:17px;width:50px;}
 
-.feed{float:left;height:98px;width:228px;color:white;font-size:48px;margin:7px 0px 0px 7px;background-color:#02A8F4;}
+.feed{float:left;height:98px;width:200px;font-size:48px;margin:7px 0px 0px 7px;background-color:#02A8F4;}
 .feed #m{float:left;margin:17px;width:50px;}
-.feed #t{font-size:14px;padding:13px 0px 0px 95px;}
-.feed #t p{text-align:left;}
+.feed #ft{font-size:14px;padding:10px 0px 0px 90px;}
 
 #head #cl {width:55px;float:left;padding:7px 0px 0px 8px;}
 #head #tb {width:370px;height:40px;float:left;}
@@ -102,7 +102,7 @@ body{background:#000;font-family:Open Sans;color:white;}
 .lisl .amount {float:right;margin:-33px 0px;font-size:12px;}
 .libt {float:left;width:60px;margin-top:2px;}
 .lig .fix {border:none;line-height:40px;margin:5px 0px 0px 15px;float:left;width:40px;height:40px;background:#016f15;text-align:center;}
-.on {font-weight:bold;border:1px solid white !important;}
+.on {font-weight:bold;border:1px solid white;}
 
 .ui-widget {}
 .ui-slider {background:#016f15;position: relative;text-align: left;}

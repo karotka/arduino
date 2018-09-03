@@ -11,15 +11,30 @@
   <script>
     url = "read.php";
     $(document).ready(function() {
-      $("#ok,#h1u,#h2u,#h3u,#h4u,#h1d,#h2d,#h3d,#h4d,#m1u,#m2u,#m3u,#m4u,#m1d,#m2d,#m3d,#m4d").click(function(event) {
+      $("#ok,#h1u,#h2u,#h3u,#h4u,#h5u,#h6u,#h7u,#h8u,#h1d,#h2d,#h3d,#h4d,#h5d,#h6d,#h7d,#h8d,#m1u,#m2u,#m3u,#m4u,#m5u,#m6u,#m7u,#m8u,#m1d,#m2d,#m3d,#m4d,#m5d,#m6d,#m7d,#m8d,#s0,#s1,#s2,#s3,#s4,#s5,#s6,#s7").click(function(event) {
         $.ajax({
           url: url,
-          data : {"p" : "FDSA", "v" : event.currentTarget.id},
-          success : function(data) {
-            if (data.key) {
-              $("#" + data.key)[0].value = data.value;
-            } else {
-              $("#" + data.id).html(data.hour + "h:" + data.min + "m");
+          data: {
+            "p": "TRSA",
+            "v": event.currentTarget.id
+          },
+          success: function(data, status, hr) {
+            if (hr.status == 200) {
+              var spl = data.dt.split("-");
+              if (spl[0].startsWith("m")) {
+                $("#" + spl[0]).html(spl[1] + "m");
+              }
+              if (spl[0].startsWith("h")) {
+                $("#" + spl[0]).html(spl[1] + "h");
+              }
+              if (spl[0].startsWith("s")) {
+                $("#" + spl[0]).html(spl[1]);
+              }
+              if (data.dt == "y") {
+                $("#saved").fadeTo("fast", 1);
+                $("#saved").html("Saved OK");
+                $("#saved").fadeTo("slow", 0);
+              }
             }
           }
         })
@@ -27,28 +42,30 @@
 
       $.ajax({
         url: url,
-        data : "p=TRLO",
-        success : function(data) {
-            for (val of data) {
-              if (val.hasOwnProperty("id")) {
-                $("#m" + val.id).html(val.m + "m");
-                $("#h" + val.id).html(val.h + "h");
-              } else {
-                if (val.hasOwnProperty("s")) {
-                  for (i = 0; i < val.s.length; i++) {
-                    $("#s" + i).html(val.s[i]);
-                  }
+        data: "p=TRLO",
+        success: function(data) {
+          for (val of data) {
+            if (val.hasOwnProperty("id")) {
+              $("#m" + val.id).html(val.m + "m");
+              $("#h" + val.id).html(val.h + "h");
+            } else {
+              if (val.hasOwnProperty("s")) {
+                for (i = 0; i < val.s.length; i++) {
+                  $("#s" + i).html(val.s[i]);
                 }
               }
             }
           }
+        }
       })
 
-      $( function() {
-        $("#main").tabs({"active" : 0});
+      $(function() {
+        $("#main").tabs({
+          "active": 0
+        });
       });
     })
-  </script>
+</script>
 
 </head>
 <body>
@@ -94,8 +111,8 @@
       <div class="fix" id="m1d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
       <div class="fix"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="h2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
-      <div class="fix" id="m2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="h2d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m2d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
       <div class="fix"></div>
     </div>
 
@@ -193,6 +210,7 @@
       <div class="fix" id="m8d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
       <div class="fix"></div>
     </div>
+    <div id="saved"></div>
   </div>
 </div>
 </body>

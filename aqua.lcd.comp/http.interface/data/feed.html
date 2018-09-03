@@ -13,11 +13,25 @@
 
     $(document).ready(function() {
 
-      $("#ok,#H1U,#H2U,#H3U,#H4U,#H1D,#H2D,#H3D,#H4D,#M1U,#M2U,#M3U,#M4U,#M1D,#M2D,#M3D,#M4D").click(       function(event) {
+      $("#ok,#h1u,#h2u,#h3u,#h4u,#h1d,#h2d,#h3d,#h4d,#m1u,#m2u,#m3u,#m4u,#m1d,#m2d,#m3d,#m4d").click(       function(event) {
         $.ajax({
           url: url,
           data : {"p" : "FDSA", "v" : event.currentTarget.id},
-          success : function(data) {
+          success : function(data, status, hr) {
+            if(hr.status == 200) {
+              var spl = data.dt.split("-");
+              if (spl[0].startsWith("m")) {
+                $("#"+spl[0]).html(spl[1] + "m");
+              }
+              if (spl[0].startsWith("h")) {
+                $("#"+spl[0]).html(spl[1] + "h");
+              }
+              if (data.dt == "y") {
+                $("#saved").fadeTo("fast", 1);
+                $("#saved").html("Saved OK");
+                $("#saved").fadeTo("slow", 0);
+              }
+            }
             //console.log(data.key);
             if (data.key) {
               $("#" + data.key)[0].value = data.value;
@@ -28,16 +42,18 @@
         })
       })
 
-      $.ajax({
-        url: url,
-        data : "p=FDLO",
-        success : function(data) {
-          for (val of data) {
-            $("#m" + val.id).html(val.m + "m");
-            $("#h" + val.id).html(val.h + "h");
-          }
+  $.ajax({
+    url: url,
+    data : "p=FDLO",
+    success : function(theDirectoryEntry) {
+      for (val of theDirectoryEntry) {
+        if (val.hasOwnProperty("id")) {
+          $("#m" + val.id).html(val.m + "m");
+          $("#h" + val.id).html(val.h + "h");
         }
-      })
+      }
+    }
+  })
 
       $(function() {
         $("#main").tabs({"active" : 0});
@@ -64,11 +80,11 @@
   <div id="fea1">
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M1U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h1u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m1u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M2U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m2u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
     </div>
     <div id="se">
       <div class="fixsp">1.</div>
@@ -80,20 +96,20 @@
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H1D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
-      <div class="fix" id="M1D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="h1d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m1d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H2D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
-      <div class="fix" id="M2D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="h2d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m2d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
     </div>
 
     <div id="fr">
       <div class="fixsp">&nbsp</div>
-      <div class="fix" id="H3U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M3U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h3u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m3u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
-      <div class="fix" id="M4U"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="h4u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
+      <div class="fix" id="m4u"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/up.svg"></div>
     </div>
     <div id="se">
       <div class="fixsp">3.</div>
@@ -105,11 +121,12 @@
     </div>
     <div id="tr">
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H3D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
-      <div class="fix" id="M3D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="h3d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m3d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
       <div class="fixsp">&nbsp;</div>
-      <div class="fix" id="H4D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
-      <div class="fix" id="M4D"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="h4d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div class="fix" id="m4d"><img widht="20px" height="20px" src="https://media.karotka.cz/aqua/down.svg"></div>
+      <div id="saved"></div>
     </div>
   </div>
 

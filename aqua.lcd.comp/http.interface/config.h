@@ -16,7 +16,9 @@ enum {
     LILO,
     TRLO,
     TISA,
-    COSA
+    COSA,
+    FDSA,
+    TRSA
 };
 
 const char* Command[] = {
@@ -30,7 +32,9 @@ const char* Command[] = {
     "LILO",
     "TRLO",
     "TISA",
-    "COSA"
+    "COSA",
+    "FDSA",
+    "TRSA"
 };
 
 int find(char* s) {

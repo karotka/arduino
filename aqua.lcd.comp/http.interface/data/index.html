@@ -16,77 +16,87 @@
 
       $("").click(function(event) {
         $.ajax({
-          url : url,
-          data : {
-            "p" : "",
-            "v" : event.currentTarget.id
+          url: url,
+          data: {
+            "p": "",
+            "v": event.currentTarget.id
           },
-          success : function(data, status, hr) {
-              if(hr.status == 200) {
-              }
-            }
-         })
+          success: function(data, status, hr) {
+            if (hr.status == 200) {}
+          }
+        })
       });
     });
 
     function ajaxd() {
       $.ajax({
         url: url,
-        data : "p=HOLO",
-        success : function(data, status, hr) {
-          if(hr.status == 200) {
-              for (val of data) {
-                  if (val.id == "dt") {
-                      var spl = val.v.split("-");
-                      $(".te").html(spl[3]);
-                      $(".mo").html(spl[2]);
-                      $(".day").html(spl[1]);
-                      $(".dow").html(spl[0]);
-                      //$("#dt").html(ht);
-                  } else
+        data: "p=HOLO",
+        success: function(data, status, hr) {
+          if (hr.status == 200) {
+            for (val of data) {
+              if (val.id == "dt") {
+                var spl = val.v.split("-");
+                $(".te").html(spl[3]);
+                $(".mo").html(spl[2]);
+                $(".day").html(spl[1]);
+                $(".dow").html(spl[0]);
+              } else
 
-                  if (val.id == "temp") {
-                      var spl = val.v.split("-");
-                      $("#dg").html(spl[0] + '\u2103');
-                      $("#tt").html("T1:" + spl[0] + '\u2103 TB:' + spl[2] + '\u2103 <br>Watter: -15mm');
-                  } else
+              if (val.id == "temp") {
+                var spl = val.v.split(":");
+                $("#dg").html(spl[0] + '\u2103');
+                $("#tt").html("T1:" + spl[1] + '\u2103 TB:' + spl[2] + '\u2103 <br>Watter: -15mm');
+              } else
 
-                  if (val.id == "co2") {
-                      var ht = '<div id="t">'+val.v+'</div>';
-                      $("#co2").html(ht);
-                  } else
+              if (val.id == "co2") {
+                var ht = '<div id="t">' + val.v + '</div>';
+                $("#co2").html(ht);
+              } else
 
-                  if (val.id == "light") {
-                      var spl = val.v.split("-");
-                      $("#lt").html(spl[0]);
-                      $("#s1").css({"width":spl[1]});
-                      $("#s2").css({"width":spl[2]});
-                      $("#s3").css({"width":spl[3]});
-                      $("#s4").css({"width":spl[4]});
-                      $("#s5").css({"width":spl[5]});
-                      $("#s6").css({"width":spl[6]});
-                  } else
+              if (val.id == "light") {
+                var spl = val.v.split("-");
+                $("#lt").html(spl[0]);
+                $("#s1").css({
+                  "width": spl[1]
+                });
+                $("#s2").css({
+                  "width": spl[2]
+                });
+                $("#s3").css({
+                  "width": spl[3]
+                });
+                $("#s4").css({
+                  "width": spl[4]
+                });
+                $("#s5").css({
+                  "width": spl[5]
+                });
+                $("#s6").css({
+                  "width": spl[6]
+                });
+              } else
 
-                  if (val.id == "feed") {
-                      var spl = val.v.split("-");
-                      var ht = '<div id="t"><p>First: ' + spl[0] + '</p><p>Second: ' + spl[1]+ '</p><p>Third: ' + spl[1]+ '</p><p>Fourth: ' + spl[1]+ '</p></div>';
-                      $("#feed").html(ht);
-                  } else
+              if (val.id == "feed") {
+                for (i = 0; i < val.v.length; i++) {
+                  $("#ft" + i).html(i + 1 + ". &nbsp;" + val.v[i]);
+                }
+              } else
 
-                  if (val.id == "ser") {
-                      var spl = val.v.split("-");
-                      var ht = '';
-                      $("#ser").html(ht);
-                  }
-                  if (val.hasOwnProperty("p")) {
-                    if (val.p != "index") {
-                      window.location.href = val.p + ".html";
-                    }
-                  }
+              if (val.id == "ser") {
+                var spl = val.v.split("-");
+                var ht = '';
+                $("#ser").html(ht);
               }
-              //setTimeout(ajaxd, 1000);
+              if (val.hasOwnProperty("p")) {
+                if (val.p != "index") {
+                  window.location.href = val.p + ".html";
+                }
+              }
+            }
+            setTimeout(ajaxd, 1000);
           } else {
-            //setTimeout(ajaxd, 5000);
+            setTimeout(ajaxd, 5000);
           }
         }
       })
@@ -132,7 +142,14 @@
     </div>
     <div class="feed" onClick='location.href="feed.html"'>
       <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/feed.svg"/></div>
-      <div id="feed"></div>
+      <div id="feed">
+        <div id="ft">
+          <p id="ft0"></p>
+          <p id="ft1"></p>
+          <p id="ft2"></p>
+          <p id="ft3"></p>
+        </div>
+      </div>
     </div>
     <div class="ser">
       <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/ser.svg"/></div>
