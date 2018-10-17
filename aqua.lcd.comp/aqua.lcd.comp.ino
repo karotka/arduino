@@ -729,6 +729,41 @@ void serialInterface() {
         }
         break;
 
+
+    case LISE:
+        if (strcmp(value, "b0") == 0) { // set light to day 1
+            switchMode = TM_DAY1;
+            actualLightValues->save();
+            actualLightValues = &day1Values;
+        } else
+        if (strcmp(value, "b1") == 0) {
+            switchMode = TM_DAY2;
+            actualLightValues->save();
+            actualLightValues = &day2Values;
+        } else
+        if (strcmp(value, "b2") == 0) {
+            switchMode = TM_NIGHT1;
+            actualLightValues->save();
+            actualLightValues = &night1Values;
+        } else
+        if (strcmp(value, "b3") == 0) {
+            switchMode = TM_NIGHT1;
+            actualLightValues->save();
+            actualLightValues = &night2Values;
+        } else
+        if (strcmp(value, "b4") == 0) {
+            switchMode = TM_NIGHT2;
+            actualLightValues->save();
+            actualLightValues = &offValues;
+        } else
+        if (strcmp(value, "b5") == 0) { // set light mode to AUTO
+            switchMode = TM_AUTO;
+            actualLightValues->save();
+            EEPROM.write(30, switchMode);
+        }
+        sprintf(ret, "y\n");
+        break;
+
     }
 
     if (needResp) {
@@ -750,12 +785,21 @@ void serialInterface() {
 }
 
 void loop() {
-    now = RTC.now();
 
+    // read time only 3 times per second
+    if (i2cReadTimeCounter > 50) {
+        now = RTC.now();
+        i2cReadTimeCounter = 0;
+    }
+
+    // if serial receive command was received
+    // call serialInterface, parse and return data back
     if (RECVCOMPL) {
         serialInterface();
     }
 
+    // read temperature sensors aproximatelly
+    // one times per one second
     if (temperatureReadTimeCounter > 430) {
         if (temperatureSenzorStatus[0] == 1) {
             t0.readTemperature();

@@ -18,7 +18,8 @@ enum {
     TISA,
     COSA,
     FDSA,
-    TRSA
+    TRSA,
+    LISE   // light set
 };
 
 const char* Command[] = {
@@ -34,7 +35,8 @@ const char* Command[] = {
     "TISA",
     "COSA",
     "FDSA",
-    "TRSA"
+    "TRSA",
+    "LISE"
 };
 
 int find(char* s) {

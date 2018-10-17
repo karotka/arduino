@@ -44,7 +44,7 @@ int split(char* buffer, const char delimiter, char** strs, int n) {
     return split + 1;
 }
 
-inline int SERIALREAD() {
+int SERIALREAD() {
     for(int i = 0; i < sizeof(serialRxBuffer); ++i) {
         serialRxBuffer[i] = (char)0;
     }
@@ -286,12 +286,12 @@ String responseLilo() {
         "{\"id\":\"red\",\"v\":\""    + String(spl[3])  +"\"}," +
         "{\"id\":\"green\",\"v\":\""  + String(spl[4])  +"\"}," +
         "{\"id\":\"blue\",\"v\":\""   + String(spl[5])  +"\"}," +
-        "{\"id\":\"B0\",\"v\":\""     + String(spl[6])  +"\"}," +
-        "{\"id\":\"B1\",\"v\":\""     + String(spl[7])  +"\"}," +
-        "{\"id\":\"B2\",\"v\":\""     + String(spl[8])  +"\"}," +
-        "{\"id\":\"B3\",\"v\":\""     + String(spl[9])  +"\"}," +
-        "{\"id\":\"B4\",\"v\":\""     + String(spl[10]) +"\"}," +
-        "{\"id\":\"B5\",\"v\":\""     + String(spl[11]) +"\"}]"
+        "{\"id\":\"ch0\",\"v\":\""     + String(spl[6])  +"\"}," +
+        "{\"id\":\"ch1\",\"v\":\""     + String(spl[7])  +"\"}," +
+        "{\"id\":\"ch2\",\"v\":\""     + String(spl[8])  +"\"}," +
+        "{\"id\":\"ch3\",\"v\":\""     + String(spl[9])  +"\"}," +
+        "{\"id\":\"ch4\",\"v\":\""     + String(spl[10]) +"\"}," +
+        "{\"id\":\"ch5\",\"v\":\""     + String(spl[11]) +"\"}]"
     );
 }
 
@@ -336,6 +336,12 @@ String responseFdsa() {
 }
 
 String responseTrsa() {
+    return String(
+        "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
+    );
+}
+
+String responseLise() {
     return String(
         "{\"dt\":\"" + String(serialRxBuffer) + "\"}"
     );
@@ -390,6 +396,9 @@ void handleRead() {
         break;
     case TRSA:
         ret = responseFdsa();
+        break;
+    case LISE:
+        ret = responseLise();
         break;
     }
 

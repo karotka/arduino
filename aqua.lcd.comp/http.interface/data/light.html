@@ -12,70 +12,71 @@
   var url = "read.php";
 
   $(document).ready(function() {
-    $("#cool,#warm,#yellow,#red,#green,#blue").slider({
+    $("#ch0,#ch1,#ch2,#ch3,#ch4,#ch5").slider({
       orientation: "horizontal",
       range: "min",
       max: 100
     });
 
-    $("#cool").slider({
+    $("#ch0").slider({
     slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LCW", "v": JSON.stringify(ui.value)}})
-        $("#cool").children(".amount").remove();
-        $("#cool").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch0").children(".amount").remove();
+        $("#ch0").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
-    $("#warm").slider({
+    $("#ch1").slider({
       slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LWW", "v" : JSON.stringify(ui.value)}})
-        $("#warm").children(".amount").remove();
-        $("#warm").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch1").children(".amount").remove();
+        $("#ch1").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
-    $("#yellow").slider({
+    $("#ch2").slider({
       slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LYE", "v" : JSON.stringify(ui.value)}})
-        $("#yellow").children(".amount").remove();
-        $("#yellow").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch2").children(".amount").remove();
+        $("#ch2").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
-    $("#red").slider({
+    $("#ch3").slider({
       slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LRE", "v" : JSON.stringify(ui.value)}})
-        $("#red").children(".amount").remove();
-        $("#red").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch3").children(".amount").remove();
+        $("#ch3").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
-    $("#green").slider({
+    $("#ch4").slider({
       slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LGR", "v" : JSON.stringify(ui.value)}})
-        $("#green").children(".amount").remove();
-        $("#green").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch4").children(".amount").remove();
+        $("#ch4").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
-    $("#blue").slider({
+    $("#ch5").slider({
       slide: function(event, ui) {
         $.ajax({
           url: url,
             data : {"p" : "LBL", "v" : JSON.stringify(ui.value)}})
-        $("#blue").children(".amount").remove();
-        $("#blue").append("<span class='amount'>"+ ui.value +"%</span>");
+        $("#ch5").children(".amount").remove();
+        $("#ch5").append("<span class='amount'>"+ ui.value +"%</span>");
     }})
 
-    var btns = "#B0, #B1, #B2, #B3, #B4, #B5";
+    var btns = "#b0,#b1,#b2,#b3,#b4,#b5";
     $(btns).click(function(event) {
       $.ajax({
         url: url,
-        data : {"p" : "LISA", "v" : event.target.id},
-        success : function(data, status, hr) {
+        data : {"p" : "LISE", "v" : event.target.id},
+          success : function(data, status, hr) {
+              console.info(data.id);
           if(hr.status == 200) {
-            if (data.id == "B5") {
-              setAutoMode(data);
+            if (data.id == "b5") {
+                setAutoMode(data);
             } else {
               var el = $("#"+data.id)[0];
               if (el.className == "fix") {
@@ -97,21 +98,21 @@
   });
 
   function setAutoMode(data) {
-    var el = $("#B5")[0];
+    var el = $("#b5")[0];
     if (el.className == "fix") {
       el.className = "fix on";
-      $("#B4").hide();
-      $("#B3").hide();
-      $("#B2").hide();
-      $("#B1").hide();
-      $("#B0").hide();
+      $("#b4").hide();
+      $("#b3").hide();
+      $("#b2").hide();
+      $("#b1").hide();
+      $("#b0").hide();
     } else {
       el.className = "fix";
-      $("#B4").show();
-      $("#B3").show();
-      $("#B2").show();
-      $("#B1").show();
-      $("#B0").show();
+      $("#b4").show();
+      $("#b3").show();
+      $("#b2").show();
+      $("#b1").show();
+      $("#b0").show();
     }
   }
 
@@ -122,10 +123,10 @@
       success : function(data, status, hr) {
       if(hr.status == 200) {
         for (val of data) {
-          if (val.id.startsWith("B")) {
+          if (val.id.startsWith("b")) {
             var el =  $("#" + val.id)[0];
             if (val.v) {
-                if (val.id == "B5") {
+                if (val.id == "b5") {
                     setAutoMode(val);
                  } else {
                    if (val.v) {
@@ -166,25 +167,25 @@
     <div id="tabs-1">
       <div class="lisl">
         <div class="lbl">Channel 1</div>
-        <div id="cool"></div>
+        <div id="ch0"></div>
         <div class="lbl">Channel 2</div>
-        <div id="warm"></div>
+        <div id="ch1"></div>
         <div class="lbl">Channel 3</div>
-        <div id="yellow"></div>
+        <div id="ch2"></div>
         <div class="lbl">Channel 4</div>
-        <div id="red"></div>
+        <div id="ch3"></div>
         <div class="lbl">Channel 5</div>
-        <div id="green"></div>
+        <div id="ch4"></div>
         <div class="lbl">Channel 6</div>
-        <div id="blue"></div>
+        <div id="ch5"></div>
       </div>
       <div class="libt">
-        <div class="fix" id="B5">AUT</div>
-        <div class="fix" id="B0">D1</div>
-        <div class="fix" id="B1">D2</div>
-        <div class="fix" id="B2">N1</div>
-        <div class="fix" id="B3">N2</div>
-        <div class="fix" id="B4">OFF</div>
+        <div class="fix" id="b5">AUT</div>
+        <div class="fix" id="b0">D1</div>
+        <div class="fix" id="b1">D2</div>
+        <div class="fix" id="b2">N1</div>
+        <div class="fix" id="b3">N2</div>
+        <div class="fix" id="b4">OFF</div>
       </div>
     </div>
   </div>

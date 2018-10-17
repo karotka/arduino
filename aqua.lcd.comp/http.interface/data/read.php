@@ -42,7 +42,7 @@ $params = get($_GET["p"]);
 $value  = get($_GET["v"], "");
 
 
-if ($params == "LISA") {
+if ($params == "LISE") {
     echo json_encode (
         array("id" => $value)
     );
@@ -55,7 +55,7 @@ if ($params == "HOLO") {
     echo json_encode (
         array(
             array ("id" => "dt",   "v" => date("l-d-M Y-H:i:s", $mytime)),
-            array ("id" => "temp", "v" => "23.6-22.3-34.9"),
+            array ("id" => "temp", "v" => "23.6:22.3:34.9"),
             array ("id" => "co2",  "v" => "OFF"),
             array ("id" => "light","v" => "Automat Off-10-80-40-30-20-80"),
             array ("id" => "feed", "v" => array("07:08", "09:10", "11:12", "19:00")),
@@ -68,19 +68,19 @@ if ($params == "HOLO") {
 if ($params == 'LILO') {
     echo json_encode (
         array(
-            array ("id" => "cool", "v" => 100),
-            array ("id" => "warm", "v" => 20),
-            array ("id" => "yellow", "v" => 60),
-            array ("id" => "red", "v" => 10),
-            array ("id" => "green", "v" => 10),
-            array ("id" => "blue", "v" => 10),
+            array ("id" => "ch0", "v" => 100),
+            array ("id" => "ch1", "v" => 20),
+            array ("id" => "ch2", "v" => 60),
+            array ("id" => "ch3", "v" => 10),
+            array ("id" => "ch4", "v" => 10),
+            array ("id" => "ch5", "v" => 50),
 
-            array ("id" => "B0", "v" => 0),
-            array ("id" => "B1", "v" => 0),
-            array ("id" => "B2", "v" => 0),
-            array ("id" => "B3", "v" => 1),
-            array ("id" => "B4", "v" => 0),
-            array ("id" => "B5", "v" => 0)
+            array ("id" => "b0", "v" => 0),
+            array ("id" => "b1", "v" => 0),
+            array ("id" => "b2", "v" => 0),
+            array ("id" => "b3", "v" => 1),
+            array ("id" => "b4", "v" => 0),
+            array ("id" => "b5", "v" => 0)
 
         )
     );
