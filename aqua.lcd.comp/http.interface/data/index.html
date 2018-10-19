@@ -26,6 +26,10 @@
           }
         })
       });
+
+      //var marginRight = $('.co2').width()
+      //$('.temp.colspan').css('margin-right', 0 - marginRight + 'px').show();
+
     });
 
     function ajaxd() {
@@ -58,22 +62,22 @@
                 var spl = val.v.split("-");
                 $("#lt").html(spl[0]);
                 $("#s1").css({
-                  "width": spl[1]
+                  "width": spl[1] + "%"
                 });
                 $("#s2").css({
-                  "width": spl[2]
+                  "width": spl[2] + "%"
                 });
                 $("#s3").css({
-                  "width": spl[3]
+                  "width": spl[3] + "%"
                 });
                 $("#s4").css({
-                  "width": spl[4]
+                  "width": spl[4] + "%"
                 });
                 $("#s5").css({
-                  "width": spl[5]
+                  "width": spl[5] + "%"
                 });
                 $("#s6").css({
-                  "width": spl[6]
+                  "width": spl[6] + "%"
                 });
               } else
 
@@ -88,75 +92,92 @@
                 var ht = '';
                 $("#ser").html(ht);
               }
-              if (val.hasOwnProperty("p")) {
+
+                if (val.hasOwnProperty("p")) {
                 if (val.p != "index") {
                   window.location.href = val.p + ".html";
                 }
               }
             }
-            setTimeout(ajaxd, 1000);
+//            setTimeout(ajaxd, 1000);
           } else {
             setTimeout(ajaxd, 5000);
           }
         }
       })
     }
+
   </script>
 </head>
 <body>
-  <div id='main'>
-    <div id="dt" onClick="location.href='time.html'">
-      <div class="tm">
-        <p class="mo"></p>
-        <p class="te"></p>
-      </div>
-      <div class="day"></div>
-      <div class="dow"></div>
-    </div>
-    <div class="temp">
-      <div id="m"><img width="30px" height="95px" src="https://media.karotka.cz/aqua/tm.svg"/></div>
-      <div id="temp">
-        <div id="dg"></div>
-        <div id="tt"></div>
-      </div>
-    </div>
-    <div class="co2" onClick='location.href="co2.html"'>
-      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/co2.svg"/></div>
-      <div id="co2"></div>
-    </div>
-    <div class="light">
-      <div id="m" onClick='location.href="timer.html"'><img width="60px" height="60px" src="https://media.karotka.cz/aqua/lb.svg"/></div>
-      <div id="light">
-        <div id="lt" onClick="location.href='timer.html'"></div>
-        <div id="t1">
-          <div class="s1" onClick="location.href='light.html'">
-            Ch1 <span id="s1"></span><br>
-            Ch2 <span id="s2"></span><br>
-            Ch3 <span id="s3"></span></div>
-          <div class="s2" onClick="location.href='light.html'">
-            Ch4 <span id="s4"></span><br>
-            Ch5 <span id="s5"></span><br>
-            Ch6 <span id="s6"></span></div>
-          </div>
-      </div>
-    </div>
-    <div class="feed" onClick='location.href="feed.html"'>
-      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/feed.svg"/></div>
-      <div id="feed">
-        <div id="ft">
-          <p id="ft0"></p>
-          <p id="ft1"></p>
-          <p id="ft2"></p>
-          <p id="ft3"></p>
+  <div id="main">
+
+    <div class="tblRow">
+      <div class="temp">
+        <div id="m"><img height="80em" src="https://media.karotka.cz/aqua/tm.svg"/></div>
+        <div id="t">
+          <div id="dg"></div>
+          <div id="tt"></div>
         </div>
       </div>
     </div>
-    <div class="ser">
-      <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/ser.svg"/></div>
-      <div id="ser"></div>
+
+    <div class="tblRow">
+      <div class="dt" onClick="location.href='time.html'">
+        <div class="tm">
+          <p class="mo"></p>
+          <p class="te"></p>
+        </div>
+        <div class="day"></div>
+        <div class="dow"></div>
+      </div>
+
+      <div class="co2" onClick='location.href="co2.html"'>
+        <div id="m"><img width="50em" src="https://media.karotka.cz/aqua/co2.svg"/></div>
+        <div id="co2"></div>
+      </div>
     </div>
+
+    <div class="tblRow">
+      <div class="light">
+        <div id="m" onClick='location.href="timer.html"'><img width="40em" src="https://media.karotka.cz/aqua/lb.svg"/></div>
+        <div id="light">
+          <div id="lt" onClick="location.href='timer.html'"></div>
+          <div id="t1">
+            <div class="s1" onClick="location.href='light.html'">
+              Ch1 <span id="s1"></span><br>
+              Ch2 <span id="s2"></span><br>
+              Ch3 <span id="s3"></span></div>
+            <div class="s2" onClick="location.href='light.html'">
+              Ch4 <span id="s4"></span><br>
+              Ch5 <span id="s5"></span><br>
+              Ch6 <span id="s6"></span></div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tblRow">
+      <div class="feed" onClick='location.href="feed.html"'>
+        <div id="m"><img width="80px" height="50px" src="https://media.karotka.cz/aqua/feed.svg"/></div>
+        <div id="feed">
+          <div id="ft">
+            <p id="ft0"></p>
+            <p id="ft1"></p>
+            <p id="ft2"></p>
+            <p id="ft3"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ser">
+        <div id="m"><img width="50px" height="50px" src="https://media.karotka.cz/aqua/ser.svg"/></div>
+        <div id="ser"></div>
+      </div>
+
+    </div>
+
   </div>
 </body>
 
 </html>
-
