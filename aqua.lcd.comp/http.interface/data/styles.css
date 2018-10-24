@@ -1,6 +1,6 @@
 *{margin:0;padding:0;}
 body{background:#000;font-family:Open Sans;color:white;}
-#main{border:1px solid #fdfdfd;font-size:20px;padding:0.2em;display:block;}
+#main{font-size:20px;height:100vh;}
 
 .tblRow {display:flex;flex-direction:row;}
 .tblRow > div {flex:1 1 auto;}
@@ -12,12 +12,12 @@ body{background:#000;font-family:Open Sans;color:white;}
 .temp #tt{width:100%;padding:0 1em 0 0em;}
 .temp #t{padding:0 2em 0 4em;}
 
-.dt{margin-right:0.2em;padding: 0.5em;display:table-cell;background-color:#2A128D;}
+.dt{margin-right:0.2em;padding:0.5em;display:table-cell;background-color:#2A128D;}
 .dt .tm{float:left;margin:0.2em;}
 .dt .te{margin-top:0.3em;}
 .dt .mo{}
-.dt .day{font-size:2.5em;}
-.dt .dow{}
+.dt .day{font-size:2.6em;}
+.dt .dow{text-align:right;}
 
 .co2{display:flex;background-color:#FEC107;}
 .co2 #m{margin:0.75em;width:1.5em;margin:1.4em 0.7em 0 0.5em}
@@ -55,10 +55,11 @@ body{background:#000;font-family:Open Sans;color:white;}
 #se .fix {margin:1px 4px 0px 4px;float:left;width:2.6em;height:2.5em;text-align:center;vertical-align: middle;line-height:50px;}
 #se .fixsp {line-height:2.6em;}
 #tr {display:table;table-layout: fixed;}
-#tr .fix {margin:0.1em 0.35em 0 0.1em;float:left;width:2.6em;text-align:center;}
+#tr .fix {margin:0.1em 0.2em 0 0.2em;float:left;width:2.6em;text-align:center;}
 .fixsp1 {margin:4px 4px 0px 4px;float:left;width:2.6em;text-align:center;}
 .fixsp {float:left;width:1.3em;height:1em;}
 
+#tabs-1 {margin:0.4em;}
 #tta1 {margin:auto;width:85%;}
 #fea1 {margin:auto;width: 95%;}
 
