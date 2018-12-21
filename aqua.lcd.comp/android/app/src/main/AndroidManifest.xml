@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <meta-data android:value="cz.karotka.aqua.prefs" android:name="PREFS_FILENAME"></meta-data>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -23,5 +25,6 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"></activity>
     </application>
+
 
 </manifest>

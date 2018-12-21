@@ -1,4 +1,4 @@
-UPLOAD_PORT = /dev/tty.wchusbserial141240
+UPLOAD_PORT = /dev/tty.wchusbserial1410
 #UPLOAD_PORT = /dev/tty.wchusbserial1430
 #UPLOAD_PORT = /dev/tty.SLAB_USBtoUART
 UPLOAD_SPEED = 230400#460800

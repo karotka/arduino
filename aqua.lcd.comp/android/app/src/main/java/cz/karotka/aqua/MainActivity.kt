@@ -1,34 +1,24 @@
 package cz.karotka.aqua
 
 import android.content.Context
-import kotlinx.android.synthetic.main.activity_main.*
+import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.os.Build
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.app.ActionBar
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.webkit.WebSettings
 import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.net.http.SslError
-import android.webkit.SslErrorHandler
-import android.content.Intent
-import android.content.SharedPreferences
-import android.net.Proxy.getHost
-import android.net.Uri
-import android.util.Log
 import android.widget.ImageButton
-import cz.karotka.aqua.SSLTolerentWebViewClient
-import cz.karotka.aqua.ConfigActivity
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var btn: ImageButton? = null
-    private val PREFS_FILENAME = "cz.karotka.aqua.prefs"
-    var prefs: SharedPreferences? = null
-    val TAG = "MainActivity"
+    val PREFS_FILENAME = "cz.karotka.aqua.prefs"
 
+    var btn: ImageButton? = null
+    var prefs: SharedPreferences? = null
     var proto: String? = null
     var address: String? = null
     var port: String? = null
@@ -63,8 +53,8 @@ class MainActivity : AppCompatActivity() {
         val prefs = this.getSharedPreferences(PREFS_FILENAME,
                 Context.MODE_PRIVATE)
 
-        proto = prefs!!.getString("Proto", "https")
-        address = prefs.getString("Address", "10.0.68.112")
+        proto = prefs.getString("Proto", "https")
+        address = prefs.getString("Address", "192.168.0.111")
         port = prefs.getString("port", "")
 
         var url = proto + "://" + address

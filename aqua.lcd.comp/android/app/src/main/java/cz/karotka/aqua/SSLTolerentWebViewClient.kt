@@ -5,8 +5,6 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
-
-
 // SSL Error Tolerant Web View Client
 open class SSLTolerentWebViewClient : WebViewClient() {
 

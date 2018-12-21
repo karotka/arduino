@@ -4,18 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
 public class ConfigActivity extends Activity {
 
+    public static final String PREFS_FILENAME = "cz.karotka.aqua.prefs";
     SharedPreferences sharedpreferences;
+
     TextView proto;
     TextView address;
     TextView port;
-
-    public static final String PREFS_FILENAME = "cz.karotka.aqua.prefs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
