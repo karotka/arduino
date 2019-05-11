@@ -8,10 +8,10 @@
 class WifiConfig {
 
 public:
-    char wifiEssid[20] = "";
-    char wifiPass[20] = "tajnehe";
-    char wifiIp[16] = "172.16.0.110";
-    char wifiGateway[16] = "172.16.0.1";
+    char wifiEssid[20] = "KWIFI";
+    char wifiPass[20] = "Heslicko12";
+    char wifiIp[16] = "192.168.0.111";
+    char wifiGateway[16] = "192.168.0.1";
     char wifiSubnet[16] = "255.255.255.0";
     int line = 0;
 
@@ -84,7 +84,7 @@ public:
             EEPROM.put(addr, hour);
             addr += sizeof(hour);
             EEPROM.put(addr, minute);
-            addr += sizeof(hour);
+            addr += sizeof(minute);
             EEPROM.put(addr, temperature);
         } else
         if (flag == 7) {
@@ -171,7 +171,7 @@ private:
     void checkNan(float arr[]) {
         for (int i = 0; i < 7; i++) {
             if (isnan(arr[i])) {
-                arr[i] = 10;
+                arr[i] = 20;
             }
         }
     }
