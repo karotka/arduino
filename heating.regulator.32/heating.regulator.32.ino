@@ -18,7 +18,6 @@ volatile int page;
 XPT2046_Touchscreen ts(T_CS, T_IRQ);
 
 DHT dht(DHTPIN, DHTTYPE);
-//Temperature temperature(dht);
 
 RTC_DS3231 rtc;
 Adafruit_GFX_Button buttons[15];
@@ -32,9 +31,11 @@ DateTime now;
 volatile unsigned int returnHomeCounter = 0;
 volatile unsigned int temperatureCounter = 0;
 volatile unsigned int readCounter = 0;
+volatile unsigned int sleepCounter = 0;
 
-bool holliday = false;
-bool manually = false;
+boolean wake = false;
+boolean holliday = false;
+boolean manually = false;
 
 float requiredTemp = 23.0;
 float setHeatTemp = 20.0;
@@ -50,6 +51,83 @@ int heatRowBasePos = 100;
 
 int textPosition = 0;
 char *textBuffer;
+
+
+void checkHeat() {
+    now = rtc.now();
+    temperatureC = dht.readTemperature();
+
+    int pressedTime, nextPressedTime, actualTime;
+    float pressedTemp;
+    actualTime = now.minute() + (now.hour() * 60);
+
+    int dow = now.dayOfTheWeek() - 1 == 0 ? 7 : now.dayOfTheWeek() - 1;
+    actualDayHeatValues.flag = dow;
+    actualDayHeatValues.load();
+
+#ifdef DEBUG
+    printf("ActualT:%d, DOW:%d \n", actualTime, dow );
+#endif
+
+    for(uint8_t i = 0; i < 6; i++) {
+        uint8_t j;
+        i == 5 ? j = 0 : j = i + 1;
+
+        pressedTime = actualDayHeatValues.minute[i] + (actualDayHeatValues.hour[i] * 60);
+        nextPressedTime = actualDayHeatValues.minute[j] +
+            (actualDayHeatValues.hour[j] * 60) + (j == 0 ? 1400 : 0);
+        pressedTemp = actualDayHeatValues.temperature[i];
+
+        if (pressedTime <= actualTime &&
+            actualTime < nextPressedTime) {
+            requiredTemp = pressedTemp;
+            if (pressedTemp > temperatureC) {
+#ifdef DEBUG
+                printf("PressedTime:%d NextPressedTime:%d PressedTemp:%f \n",
+                    pressedTime, nextPressedTime, pressedTemp);
+#endif
+                digitalWrite(2, HIGH);
+            }
+            break;
+        } else {
+            digitalWrite(2, LOW);
+        }
+    }
+}
+
+void deepSleep() {
+    printf("I'm going to deep sleep ... \n");
+    esp_sleep_enable_timer_wakeup(10000 * DEEP_SLEEP_MS);
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_36, 0);
+    mySleep(1000);
+    esp_deep_sleep_start();
+}
+
+void wakeupReason() {
+    esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
+
+    switch(wakeupReason) {
+    case ESP_SLEEP_WAKEUP_EXT0:
+        page = PAGE_HOME;
+        drawHome();
+        printf("Wakeup caused by external signal using RTC_IO \n");
+    break;
+    case ESP_SLEEP_WAKEUP_TIMER:
+        ledcWrite(PWM_CHA1, 0);
+        printf("Wakeup caused by timer \n");
+        checkHeat();
+        deepSleep();
+    break;
+    }
+}
+
+void dimmDisplay() {
+    int v0 = analogRead(ADC_PIN0);
+    ledcWrite(PWM_CHA1, 4096 - v0);
+#ifdef DEBUG
+    printf("Temp: %.2f, PWM dimmer: %d \n", temperatureC, v0);
+#endif
+}
 
 boolean isTouched(uint16_t *x, uint16_t *y) {
     boolean touched = ts.touched();
@@ -67,12 +145,21 @@ boolean isTouched(uint16_t *x, uint16_t *y) {
         *y = map(p.x, coords[3], coords[2], 0, tft.height());
 
 #ifdef DEBUG
-        tft.drawPixel(*x, *y, ILI9341_WHITE);
+        tft.drawPixel(*x, *y, WHITE);
         printf("Real> X:%d, Y:%d, Z:%d Ln:%d\n", *x, *y, p.z, __LINE__);
 #endif
 
-        if (p.z > 100 && p.z < 2500) return true;
-        else return false;
+        if (p.z > 100 && p.z < 2500) {
+            if (sleepCounter > BLACK_SCREEN_MS) {
+                tft.sleep(false);
+                dimmDisplay();
+                mySleep(1000);
+                sleepCounter = 0;
+                return false;
+            }
+            sleepCounter = 0;
+            return true;
+        } else return false;
     }
 }
 
@@ -97,64 +184,28 @@ void wifiConnect() {
     while (WiFi.status() != WL_CONNECTED) {
         //delay(250);
         if (status) {
-            tft.drawBitmap(138, 165, 35, 35, wifi, ILI9341_BLUE);
+            tft.drawBitmap(138, 165, 35, 35, wifi, BLUE);
         } else {
-            tft.drawBitmap(138, 165, 35, 35, wifi, ILI9341_NAVY);
+            tft.drawBitmap(138, 165, 35, 35, wifi, NAVY);
         }
         status = !status;
     }
-    tft.drawBitmap(138, 165, 35, 35, wifi, ILI9341_BLUE);
-}
-
-void checkHeat() {
-
-    int pressedTime, nextPressedTime, actualTime;
-    float pressedTemp;
-    actualTime = now.minute() + (now.hour() * 60);
-
-    int dow = now.dayOfTheWeek() - 1 == 0 ? 7 : now.dayOfTheWeek() - 1;
-    actualDayHeatValues.flag = dow;
-    actualDayHeatValues.load();
-
-#ifdef DEBUG
-    printf("ActualT:%d, DOW:%d \n", actualTime, dow );
-#endif
-
-    for(uint8_t i = 0; i < 6; i++) {
-        uint8_t j;
-        i == 5 ? j = 0 : j = i + 1;
-
-        pressedTime = actualDayHeatValues.minute[i] + (actualDayHeatValues.hour[i] * 60);
-        nextPressedTime = actualDayHeatValues.minute[j] + (actualDayHeatValues.hour[j] * 60);
-        pressedTemp = actualDayHeatValues.temperature[i];
-
-        printf("PressedTime:%d NextPressedTime:%d PressedTemp:%f \n",
-               pressedTime, nextPressedTime, pressedTemp);
-
-        if (pressedTime <= actualTime &&
-            actualTime < nextPressedTime &&
-            pressedTemp > temperatureC) {
-            digitalWrite(2, HIGH);
-            break;
-        } else {
-            digitalWrite(2, LOW);
-        }
-    }
+    tft.drawBitmap(138, 165, 35, 35, wifi, BLUE);
 }
 
 void drawBorder() {
-    tft.drawLine(0, 3, 240, 3,     ILI9341_DARKGREY);
-    tft.drawLine(0, 3, 0, 320,     ILI9341_DARKGREY);
-    tft.drawLine(0, 319,  240, 319,ILI9341_DARKGREY);
-    tft.drawLine(239, 319, 239, 3, ILI9341_DARKGREY); // DARKGREY
+    tft.drawLine(0, 3, 240, 3,     DARKGREY);
+    tft.drawLine(0, 3, 0, 320,     DARKGREY);
+    tft.drawLine(0, 319,  240, 319,DARKGREY);
+    tft.drawLine(239, 319, 239, 3, DARKGREY); // DARKGREY
 }
 
 void drawSettingScreen() {
-    tft.fillScreen(ILI9341_BLACK); //Set Background Color with BLACK
+    tft.fillScreen(BACK_COLOR); //Set Background Color with BLACK
 
     drawBorder();
 
-    tft.setTextColor (ILI9341_YELLOW, ILI9341_BLACK);
+    tft.setTextColor (YELLOW, BLACK);
 
     tft.setCursor (6, 0);
     tft.setTextSize (1);
@@ -176,7 +227,7 @@ void drawSettingScreen() {
     tft.print("SUBNET");
 
     for (int i = 38; i < 167; i = i + 32) {
-        tft.drawLine(6, i, 232, i, ILI9341_DARKGREY);
+        tft.drawLine(6, i, 232, i, DARKGREY);
     }
 
     tft.setTextSize (2);
@@ -201,15 +252,15 @@ void drawSettingScreen() {
     textBuffer = wifiConfig.text[0];
 
     buttons[8].initButton(&tft, 100, 183, 60, 27,
-                          ILI9341_YELLOW, ILI9341_BLUE, ILI9341_BLACK, (char*)"CON", 2);
+                          YELLOW, BLUE, BLACK, (char*)"CON", 2);
     buttons[8].drawButton();
 
     buttons[9].initButton(&tft, 34, 183, 60, 27,
-                          ILI9341_YELLOW, ILI9341_BLUE, ILI9341_BLACK, (char*)"BACK", 2);
+                          YELLOW, BLUE, BLACK, (char*)"BACK", 2);
     buttons[9].drawButton();
 
     buttons[10].initButton(&tft, 207, 183, 60, 27,
-                          ILI9341_YELLOW, ILI9341_RED, ILI9341_WHITE, (char*)"SAVE", 2);
+                          YELLOW, RED, WHITE, (char*)"SAVE", 2);
     buttons[10].drawButton();
 
     MakeKB_Button(KB);
@@ -217,77 +268,77 @@ void drawSettingScreen() {
 
 void drawSetHeatScreenBtns(Adafruit_GFX_Button buttons[]) {
     buttons[11].initButton(&tft, 24, 37, 30, 43,
-                          ILI9341_WHITE, ILI9341_BLACK, ILI9341_WHITE, (char*)"-", 3);
+                          WHITE, BLACK, WHITE, (char*)"-", 3);
     buttons[11].drawButton();
 
     buttons[12].initButton(&tft, 165, 37, 30, 43,
-                          ILI9341_WHITE, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 3);
+                          WHITE, BLACK, WHITE, (char*)"+", 3);
     buttons[12].drawButton();
 
     buttons[13].initButton(&tft, 24, 85, 30, 43,
-                          ILI9341_WHITE, ILI9341_BLACK, ILI9341_WHITE, (char*)"-", 3);
+                          WHITE, BLACK, WHITE, (char*)"-", 3);
     buttons[13].drawButton();
 
     buttons[14].initButton(&tft, 165, 85, 30, 43,
-                          ILI9341_WHITE, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 3);
+                          WHITE, BLACK, WHITE, (char*)"+", 3);
     buttons[14].drawButton();
 }
 
 void drawSetHeatScreen() {
 
-    tft.fillScreen(ILI9341_BLACK); //Set Background Color with BLACK
+    tft.fillScreen(BACK_COLOR); //Set Background Color with BLACK
 
     drawBorder();
     drawSetHeatScreenBtns(buttons);
 
-    tft.setTextColor (ILI9341_YELLOW, ILI9341_BLACK);
+    tft.setTextColor (YELLOW, BLACK);
 
     tft.setCursor (6, 0);
     tft.setTextSize (1);
     tft.print("HEAT TIMER SETTING");
 
     buttons[0].initButton(&tft, 214, 25, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Mo", 2);
+                          YELLOW, BLACK, RED, (char*)"Mo", 2);
     buttons[0].drawButton();
 
     buttons[1].initButton(&tft, 214, 63, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Tu", 2);
+                          YELLOW, BLACK, RED, (char*)"Tu", 2);
     buttons[1].drawButton();
 
     buttons[2].initButton(&tft, 214, 101, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"We", 2);
+                          YELLOW, BLACK, RED, (char*)"We", 2);
     buttons[2].drawButton();
 
     buttons[3].initButton(&tft, 214, 139, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Th", 2);
+                          YELLOW, BLACK, RED, (char*)"Th", 2);
     buttons[3].drawButton();
 
     buttons[4].initButton(&tft, 214, 177, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Fr", 2);
+                          YELLOW, BLACK, RED, (char*)"Fr", 2);
     buttons[4].drawButton();
 
     buttons[5].initButton(&tft, 214, 215, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Sa", 2);
+                          YELLOW, BLACK, RED, (char*)"Sa", 2);
     buttons[5].drawButton();
 
     buttons[6].initButton(&tft, 214, 253, 44, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Su", 2);
+                          YELLOW, BLACK, RED, (char*)"Su", 2);
     buttons[6].drawButton();
 
     buttons[7].initButton(&tft, 33, 297, 55, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"Wod", 2);
+                          YELLOW, BLACK, RED, (char*)"Wod", 2);
     //buttons[7].drawButton();
 
     buttons[8].initButton(&tft, 90, 297, 55, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_RED, (char*)"WeD", 2);
+                          YELLOW, BLACK, RED, (char*)"WeD", 2);
     //buttons[8].drawButton();
 
     buttons[9].initButton(&tft, 34, 297, 60, 37,
-                          ILI9341_YELLOW, ILI9341_BLUE, ILI9341_BLACK, (char*)"HOME", 2);
+                          YELLOW, BLUE, BLACK, (char*)"HOME", 2);
     buttons[9].drawButton();
 
     buttons[10].initButton(&tft, 207, 297, 60, 37,
-                          ILI9341_YELLOW, ILI9341_RED, ILI9341_WHITE, (char*)"SAVE", 2);
+                          YELLOW, RED, WHITE, (char*)"SAVE", 2);
     buttons[10].drawButton();
 
     buttons[hourHeatValueIndex].drawButton(true);
@@ -299,7 +350,7 @@ void drawSetHeatScreen() {
 void drawSetDateAndTime() {
     char str[11];
 
-    tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    tft.setTextColor(WHITE, BLACK);
 
     tft.setTextSize (3);
     tft.setCursor (60, 72);
@@ -318,11 +369,11 @@ void drawSetDateAndTime() {
 }
 
 void drawSetTimeScreen() {
-    tft.fillScreen(ILI9341_BLACK); //Set Background Color with BLACK
+    tft.fillScreen(BACK_COLOR); //Set Background Color with BLACK
 
     drawBorder();
 
-    tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+    tft.setTextColor(YELLOW, BLACK);
 
     tft.setCursor (6, 0);
     tft.setTextSize (1);
@@ -331,51 +382,51 @@ void drawSetTimeScreen() {
     drawSetDateAndTime();
 
     buttons[0].initButton(&tft, 75, 45, 50, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 2);
+                          YELLOW, BLACK, WHITE, (char*)"+", 2);
     buttons[0].drawButton();
 
     buttons[1].initButton(&tft, 150, 45, 50, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 2);
+                          YELLOW, BLACK, WHITE, (char*)"+", 2);
     buttons[1].drawButton();
 
 
     buttons[4].initButton(&tft, 55, 130, 55, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 2);
+                          YELLOW, BLACK, WHITE, (char*)"+", 2);
     buttons[4].drawButton();
 
     buttons[5].initButton(&tft, 118, 130, 55, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 2);
+                          YELLOW, BLACK, WHITE, (char*)"+", 2);
     buttons[5].drawButton();
 
     buttons[6].initButton(&tft, 181, 130, 55, 37,
-                          ILI9341_YELLOW, ILI9341_BLACK, ILI9341_WHITE, (char*)"+", 2);
+                          YELLOW, BLACK, WHITE, (char*)"+", 2);
     buttons[6].drawButton();
 
 
     buttons[10].initButton(&tft, 207, 297, 60, 37,
-                           ILI9341_YELLOW, ILI9341_RED, ILI9341_WHITE, (char*)"SAVE", 2);
+                           YELLOW, RED, WHITE, (char*)"SAVE", 2);
     buttons[10].drawButton();
 
     buttons[11].initButton(&tft, 34, 297, 60, 37,
-                          ILI9341_YELLOW, ILI9341_BLUE, ILI9341_BLACK, (char*)"HOME", 2);
+                          YELLOW, BLUE, BLACK, (char*)"HOME", 2);
     buttons[11].drawButton();
 }
 
 void drawHome() {
 
-    tft.fillScreen(ILI9341_BLACK); //Set Background Color with BLACK
+    tft.fillScreen(BACK_COLOR); //Set Background Color with BLACK
 
     //Design Interface (lines)
     drawBorder();
 
-    tft.drawLine(148, 3,   148, 80,  ILI9341_DARKGREY);
-    tft.drawLine(158, 152, 158, 220, ILI9341_DARKGREY);
+    tft.drawLine(148, 3,   148, 80,  DARKGREY);
+    tft.drawLine(158, 152, 158, 220, DARKGREY);
 
-    tft.drawLine(1, 80, 240, 80,   ILI9341_DARKGREY);
-    tft.drawLine(1, 152, 240, 152, ILI9341_DARKGREY);
-    tft.drawLine(1, 220, 240, 220, ILI9341_DARKGREY);
+    tft.drawLine(1, 80, 240, 80,   DARKGREY);
+    tft.drawLine(1, 152, 240, 152, DARKGREY);
+    tft.drawLine(1, 220, 240, 220, DARKGREY);
 
-    tft.setTextColor (ILI9341_YELLOW, ILI9341_BLACK);
+    tft.setTextColor (YELLOW, BLACK);
     tft.setTextSize (1);
 
     tft.setCursor(6, 0);
@@ -404,6 +455,10 @@ void myTimer0() {
     temperatureCounter++;
     readCounter++;
 
+    if (sleepCounter < BLACK_SCREEN_MS + 2) {
+        sleepCounter++;
+    }
+
     // return home
     if (returnHomeCounter > 1000) {
         returnHomeCounter = 0;
@@ -415,13 +470,14 @@ void myTimer0() {
 
 void setup() {
 #ifdef DEBUG
-    Serial.begin(115200);
+    //Serial.begin(115200);
 #endif
+    Serial.begin(115200);
 
     dht.begin();
 
     tft.begin();
-    tft.fillScreen(ILI9341_BLACK);
+    tft.fillScreen(BACK_COLOR);
     tft.setRotation(2);
 
     ts.begin();  // Must be done before setting rotation
@@ -430,9 +486,12 @@ void setup() {
     ledcSetup(PWM_CHA1, PWM_FREQ, PWM_RES);
     ledcAttachPin(PWM_PIN0, 0);
 
+    pinMode(2, OUTPUT);
+
+    wakeupReason();
+
     timer0.attach(0.01, myTimer0);
 
-    pinMode(2, OUTPUT);
     //page = PAGE_SET_TIME;
     //drawSetTimeScreen();
     //drawSetHeatScreen();
@@ -501,7 +560,7 @@ void updateHeatRow(int index) {
     char str[16];
 
     tft.setTextSize(2);
-    tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    tft.setTextColor(WHITE, BLACK);
     tft.setCursor (8, heatRowPos);
 
     sprintf(str, "%d. %02d:%02d %.1f", index + 1,
@@ -516,7 +575,7 @@ void drawHeatValues() {
 
     char str[16];
     tft.setTextSize (2);
-    tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+    tft.setTextColor(WHITE, BLACK);
     for (int i = 0; i < 6; i++) {
         updateHeatRow(i);
     }
@@ -525,8 +584,8 @@ void drawHeatValues() {
 bool blink = false;;
 
 void printBuffer() {
-    tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-    tft.fillRect(5, 18 + 32 * wifiConfig.line, 230, 20, ILI9341_BLACK);
+    tft.setTextColor(WHITE, BLACK);
+    tft.fillRect(5, 18 + 32 * wifiConfig.line, 230, 20, BLACK);
     tft.setTextSize(2);
     tft.setCursor(6, 22 + 32 * wifiConfig.line);
     tft.print(textBuffer);
@@ -549,11 +608,18 @@ void loop() {
             checkHeat();
         }
 
-        int v0 = analogRead(ADC_PIN0);
-        ledcWrite(PWM_CHA1, 4096 - v0);
+        if (sleepCounter > BLACK_SCREEN_MS) {
+            ledcWrite(PWM_CHA1, 0);
+            //tft.sleep(true);
+            deepSleep();
+        } else {
+            dimmDisplay();
+        }
+
 #ifdef DEBUG
-        printf("Temp: %.2f, PWM dimmer: %d \n", temperatureC, v0);
+        printf("Sleep conter: %d \n", sleepCounter);
 #endif
+
     }
 
     switch (page) {
@@ -623,18 +689,18 @@ void loop() {
 
             // for all buttons
             int pos = 141;
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 6; i++) {
                 // if one was touched
                 if (touchX > 6 && touchX < 180 && touchY < pos - 1 && touchY > 125) {
                     // delete all previous
                     int pos1 = 141;
                     for (int j = 0; j < 7; j++) {
-                        tft.drawLine(8, pos1 - 25, 170, pos1 - 25, ILI9341_BLACK);
+                        tft.drawLine(8, pos1 - 25, 170, pos1 - 25, BLACK);
                         pos1 = pos1 + 25;
                     }
                     // and draw new line
                     hourHeatValueIndex = i;
-                    tft.drawLine(8, pos, 170, pos, ILI9341_DARKGREY);
+                    tft.drawLine(8, pos, 170, pos, YELLOW);
                     // do not continue
                     break;
                 }
@@ -643,7 +709,7 @@ void loop() {
 
         } // end isTouching()
 
-        tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+        tft.setTextColor(WHITE, BLACK);
         tft.setTextSize(3);
         tft.setCursor (45, 30);
         sprintf(str, "%02d:%02d",
@@ -658,7 +724,7 @@ void loop() {
     }
     break;
 
-    case PAGE_HOME:
+    default:
 
         char strTime[11];
 
@@ -689,7 +755,7 @@ void loop() {
                 drawSetTimeScreen();
                 break;
             } else
-            if (touchX > 100 && touchX < 135 && touchY > 280 && touchY < 315) {
+            if (touchX > 104 && touchX < 140 && touchY > 280 && touchY < 315) {
                 manually = !manually;
             } else
             if (touchX > 200 && touchX < 235 && touchY > 280 && touchY < 315) {
@@ -699,24 +765,24 @@ void loop() {
             }
         }
 
-        tft.setTextColor(ILI9341_RED, ILI9341_BLACK);
+        tft.setTextColor(RED, BLACK);
         tft.setTextSize(5);
         tft.setCursor(15, 24);
         tft.print(temperatureC, 1);
 
-        tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+        tft.setTextColor(GREEN, BLACK);
         tft.setTextSize(4);
         tft.setCursor(160, 27);
         tft.print((int)humidity);
         tft.print("%");
 
         tft.setTextSize(5);
-        tft.setTextColor(ILI9341_YELLOW, ILI9341_BLACK);
+        tft.setTextColor(YELLOW, BLACK);
         tft.setCursor(7, 170);
         tft.print(" --.-");
 
         tft.setTextSize(4);
-        tft.setTextColor(ILI9341_GREEN, ILI9341_BLACK);
+        tft.setTextColor(GREEN, BLACK);
         tft.setCursor(175, 175);
         tft.print((int)heatIndex);
 
@@ -725,46 +791,45 @@ void loop() {
         if (manually) {
             if (requiredTemp > temperatureC + HYSTERESIS) {
                 digitalWrite(2, HIGH);
-                tft.drawBitmap(10, 280, 35, 35, flame, ILI9341_RED);
+                tft.drawBitmap(10, 280, 35, 35, flame, RED);
             } else
             if (manually && requiredTemp <= temperatureC) {
                 digitalWrite(2, LOW);
-                tft.drawBitmap(10, 280, 35, 35, flame, ILI9341_BLUE);
+                tft.drawBitmap(10, 280, 35, 35, flame, BLUE);
             }
         } else {
             if (digitalRead(2) == HIGH) {
-                tft.drawBitmap(10, 280, 35, 35, flame, ILI9341_RED);
+                tft.drawBitmap(10, 280, 35, 35, flame, RED);
             } else {
-                tft.drawBitmap(10, 280, 35, 35, flame, ILI9341_BLUE);
+                tft.drawBitmap(10, 280, 35, 35, flame, BLUE);
             }
         }
 
         if (holliday) {
-            tft.drawBitmap(55, 280, 35, 35, plane, ILI9341_RED);
+            tft.drawBitmap(57, 280, 35, 35, plane, RED);
         } else {
-            tft.drawBitmap(55, 280, 35, 35, plane, ILI9341_BLUE);
+            tft.drawBitmap(57, 280, 35, 35, plane, BLUE);
         }
 
         if (manually) {
-            tft.drawBitmap(100, 280, 35, 35, manual, ILI9341_BLUE);
+            tft.drawBitmap(104, 280, 35, 35, manual, BLUE);
         } else {
-            //requiredTemp =
-            tft.drawBitmap(100, 280, 35, 35, automatic, ILI9341_RED);
+            tft.drawBitmap(104, 280, 35, 35, automatic, RED);
         }
 
         if (WiFi.status() == WL_CONNECTED) {
-            tft.drawBitmap(145, 280, 35, 35, wifi, ILI9341_BLUE);
+            tft.drawBitmap(151, 280, 35, 35, wifi, RED);
         } else {
-            tft.drawBitmap(145, 280, 35, 35, wifi, ILI9341_DARKGREY);
+            tft.drawBitmap(151, 280, 35, 35, wifi, DARKGREY);
         }
-        tft.drawBitmap(200, 280, 35, 35, settings, ILI9341_BLUE);
+        tft.drawBitmap(200, 280, 35, 35, settings, BLUE);
 
         tft.setCursor(60, 100);
         tft.setTextSize(5);
         sprintf(strTime, "%.1f", requiredTemp);
         tft.print(strTime);
 
-        tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+        tft.setTextColor(WHITE, BLACK);
         tft.setTextSize(6);
         if (manually) {
             tft.setCursor(8, 98);
@@ -772,10 +837,9 @@ void loop() {
             tft.setCursor(190, 98);
             tft.print("+");
         } else {
-            tft.setCursor(8, 98);
-            tft.print(" ");
             tft.setCursor(190, 98);
             tft.print(" ");
+            tft.drawBitmap(8, 98, 35, 35, lock, RED);
         }
     break;
 
@@ -821,7 +885,7 @@ void loop() {
             if (isTouched(&touchX, &touchY)) {
                 returnHomeCounter = 0;
 #ifdef DEBUG
-                tft.drawPixel(touchX, touchY, ILI9341_WHITE);
+                tft.drawPixel(touchX, touchY, WHITE);
 #endif
                 if (buttons[9].contains(touchX, touchY)) {
                     returnHome();
@@ -877,10 +941,10 @@ void loop() {
 
             if (blink) {
                 tft.drawLine(6 + (12 * textPosition), 6 + 32 * (wifiConfig.line + 1),
-                            18 + (12 * textPosition), 6 + 32 * (wifiConfig.line + 1), ILI9341_WHITE);
+                            18 + (12 * textPosition), 6 + 32 * (wifiConfig.line + 1), WHITE);
             } else {
                 tft.drawLine(6, 6 + 32 * (wifiConfig.line + 1),
-                             232, 6 + 32 * (wifiConfig.line + 1), ILI9341_DARKGREY);
+                             232, 6 + 32 * (wifiConfig.line + 1), DARKGREY);
             }
             blink = !blink;
 

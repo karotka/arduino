@@ -12,9 +12,9 @@
 
 #define Height 199
 
-#define TextColor ILI9341_WHITE // white
-#define TextBackColor ILI9341_BLACK // red
-#define TFTBackground ILI9341_BLACK
+#define TextColor WHITE // white
+#define TextBackColor BACK_COLOR // red
+#define TFTBackground BACK_COLOR
 
 const char KB[3][13] PROGMEM = {
     {0, 13, 10, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'},
@@ -43,7 +43,7 @@ byte TouchButton(int x, int y, int w, int h, uint16_t touchX, uint16_t touchY) {
 
 void drawButton(int x, int y, int w, int h) {
     // white
-    tft.drawRect(x, y, w, h, ILI9341_YELLOW);// outter button color
+    tft.drawRect(x, y, w, h, YELLOW);// outter button color
 }
 
 void MakeKB_Button(const char type[][13]) {
@@ -111,20 +111,20 @@ boolean getKeyPress(int *ch, uint16_t touchX, uint16_t touchY) {
     if (special != lastSp || shift != lastSh) {
         if (special) {
             if (shift) {
-                tft.fillRect(4, Height, 233, 110, ILI9341_BLACK);
+                tft.fillRect(4, Height, 233, 110, BACK_COLOR);
                 MakeKB_Button(KB_SymKeys);
             } else {
-                tft.fillRect(4, Height, 233, 110, ILI9341_BLACK);
+                tft.fillRect(4, Height, 233, 110, BACK_COLOR);
                 MakeKB_Button(KB_NumKeys);
             }
         } else {
-            tft.fillRect(4, Height, 233, 110, ILI9341_BLACK);
+            tft.fillRect(4, Height, 233, 110, BACK_COLOR);
             MakeKB_Button(KB);
             tft.setTextColor(TextColor, TextBackColor);
         }
 
         if (special)
-            tft.setTextColor(ILI9341_RED, TextBackColor);
+            tft.setTextColor(RED, TextBackColor);
         else
             tft.setTextColor(TextColor, TextBackColor);
 
@@ -132,7 +132,7 @@ boolean getKeyPress(int *ch, uint16_t touchX, uint16_t touchY) {
         tft.print(F("SP"));
 
         if (shift)
-            tft.setTextColor(ILI9341_RED, TextBackColor);
+            tft.setTextColor(RED, TextBackColor);
         else
             tft.setTextColor(TextColor, TextBackColor);
 
