@@ -3,32 +3,40 @@
 
 #include <IPAddress.h>
 #include <Adafruit_ILI9341.h>
+#include <Adafruit_ILI9486_STM32.h>
 
-//#define DEBUG
+#define DEBUG
+#define EEPROM_SIZE 1024
 
 IPAddress wifiIp;
 IPAddress wifiGateway;
 IPAddress wifiSubnet;
 
+#define WIFI_CONNECT_TIMEOUT 100 // 10s
+
 #define DHTPIN 27
 #define DHTTYPE DHT22
 
 #define HYSTERESIS 0.2
-#define BLACK_SCREEN_MS 2000   // one per x ms
-#define DEEP_SLEEP_MS   3000   // one per x ms
+#define BLACK_SCREEN_MS    6000   // black screen and sleep after x ms
+#define DEEP_SLEEP_MS      3000   // not implemented
+#define WAKEUP_TIMER_MS    2000   // wake up one per x ms
 #define TEMP_READ_INTERVAL 150 // one per x ms
 
 #define ADC_PIN0 33
 #define PWM_FREQ 5000
 #define PWM_CHA1 0
 #define PWM_RES  12 // Resolution 8, 10, 12, 15 bit
-#define PWM_PIN0 13
+#define PWM_PIN0 13 // LED PWM
 
+#define RELAY_PIN0 2
+#define RELAY_PIN1 4
 enum {
     PAGE_HOME = 0, // default
     PAGE_SET_HEAT,
     PAGE_SET_TIME,
-    PAGE_SETTING,
+    PAGE_SETTING_WIFI,
+    PAGE_SETTINGS,
     PAGE_DEBUG
 };
 
@@ -46,8 +54,10 @@ const int coords[] =
 //#define TFT_CLK  18
 //#define TFT_MISO 19
 //#define TFT_LED  36
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
+//Adafruit_ILI9486_STM32 tft;
 
-/*
+// Real color
 #define WHITE ILI9341_WHITE
 #define YELLOW ILI9341_YELLOW
 #define GREEN ILI9341_GREEN
@@ -57,8 +67,10 @@ const int coords[] =
 #define DARKGREY ILI9341_DARKGREY
 #define BLACK ILI9341_BLACK
 #define BACK_COLOR BLACK
-*/
 
+
+// Black and white
+/*
 #define WHITE 0xFFFF
 #define YELLOW 0xD6BA
 #define GREEN 0xA534
@@ -68,12 +80,9 @@ const int coords[] =
 #define DARKGREY 0x5AEB
 #define BLACK 0x0000
 #define BACK_COLOR BLACK
-
-
-Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
+*/
 
 void removeSpaces(char *str) {
-    char *cpy = str;
     int y = 0;
     for (int i = 0; str[i] != '\0'; i++) {
         if (str[i] == ' ') continue;
@@ -82,7 +91,15 @@ void removeSpaces(char *str) {
         }
     }
     str[y] = '\0';
-    //printf("CHR: <%s> \n", str);
+}
+
+void trim(char * cpy) {
+    int l = strlen(cpy);
+    char *s = cpy;
+    while(isspace(s[l - 1])) --l;
+    while(* s && isspace(* s)) ++s, --l;
+    strncpy(cpy, s, l);
+    cpy[l] = '\0';
 }
 
 void mySleep(const int interval) {

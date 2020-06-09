@@ -3,7 +3,7 @@
 from __future__ import print_function
 from PIL import Image
 
-i = Image.open("lock.gif")
+i = Image.open("battery.gif")
 ix, iy = i.size
 p = i.load()
 
