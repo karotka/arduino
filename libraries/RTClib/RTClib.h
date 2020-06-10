@@ -109,6 +109,7 @@ class RTC_DS3231 {
 public:
     boolean begin(void);
     static void adjust(const DateTime& dt);
+    static void adjust(const NewTime& dt);
     bool lostPower(void);
     static DateTime now();
     static Ds3231SqwPinMode readSqwPinMode();

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cz.karotka.aqua.ConfigActivity">
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="173dp"
+        android:layout_marginTop="135dp"
+        android:onClick="Save"
+        android:text="Save" />
+
+    <EditText
+        android:id="@+id/proto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="57dp"
+        android:hint="https"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/port"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="248dp"
+        android:layout_marginTop="57dp"
+        android:digits="0123456789"
+        android:hint="80"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="105dp"
+        android:layout_marginTop="57dp"
+        android:hint="domain.or.ip.addr"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="25dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/proto"
+        android:layout_marginStart="-1dp"
+        android:layout_marginBottom="-103dp"
+        android:layout_toEndOf="@+id/proto"
+        android:enabled="false"
+        android:ems="10"
+        android:inputType="textNoSuggestions"
+        android:text="://" />
+
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="12dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/proto"
+        android:layout_marginStart="153dp"
+        android:layout_marginBottom="-103dp"
+        android:layout_toEndOf="@+id/proto"
+        android:ems="10"
+        android:enabled="false"
+        android:inputType="textNoSuggestions"
+        android:text=":" />
+
+</RelativeLayout>

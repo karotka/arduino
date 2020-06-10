@@ -175,8 +175,15 @@ DateTime::DateTime (const __FlashStringHelper* date, const __FlashStringHelper* 
 }
 
 uint8_t DateTime::dayOfTheWeek() const {
-    uint16_t day = date2days(yOff, m, d);
-    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+    //uint16_t day = date2days(yOff, m, d);
+    //return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+
+//byte DayOfWeek(int y, byte m, byte d) {   // y > 1752, 1 <= m <= 12
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+
+    int y = yOff;
+    y -= m < 3;
+    return ((y + y/4 - y/100 + y/400 + t[m-1] + d) % 7) + 1; // 01 - 07, 01 = Sunday
 }
 
 uint32_t DateTime::unixtime(void) const {
@@ -474,6 +481,23 @@ void RTC_DS3231::adjust(const DateTime& dt) {
   write_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG, statreg);
 }
 
+void RTC_DS3231::adjust(const NewTime& dt) {
+  Wire.beginTransmission(DS3231_ADDRESS);
+  Wire._I2C_WRITE((byte)0); // start at location 0
+  Wire._I2C_WRITE(bin2bcd(dt.second));
+  Wire._I2C_WRITE(bin2bcd(dt.minute));
+  Wire._I2C_WRITE(bin2bcd(dt.hour));
+  Wire._I2C_WRITE(bin2bcd(0));
+  Wire._I2C_WRITE(bin2bcd(dt.day));
+  Wire._I2C_WRITE(bin2bcd(dt.month));
+  Wire._I2C_WRITE(bin2bcd(dt.year - 2000));
+  Wire.endTransmission();
+
+  uint8_t statreg = read_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG);
+  statreg &= ~0x80; // flip OSF bit
+  write_i2c_register(DS3231_ADDRESS, DS3231_STATUSREG, statreg);
+}
+
 DateTime RTC_DS3231::now() {
   Wire.beginTransmission(DS3231_ADDRESS);
   Wire._I2C_WRITE((byte)0);
@@ -483,6 +507,7 @@ DateTime RTC_DS3231::now() {
   uint8_t ss = bcd2bin(Wire._I2C_READ() & 0x7F);
   uint8_t mm = bcd2bin(Wire._I2C_READ());
   uint8_t hh = bcd2bin(Wire._I2C_READ());
+
   Wire._I2C_READ();
   uint8_t d = bcd2bin(Wire._I2C_READ());
   uint8_t m = bcd2bin(Wire._I2C_READ());
