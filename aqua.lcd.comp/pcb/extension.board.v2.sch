@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.3.0">
+<eagle version="9.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="25" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -16248,7 +16249,9 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="VALUE" x="27.94" y="82.55" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="30.48" y="85.979" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="12VIN" gate="-1" x="116.84" y="119.38"/>
+<instance part="12VIN" gate="-1" x="116.84" y="119.38" smashed="yes">
+<attribute name="NAME" x="115.57" y="120.269" size="1.778" layer="95" rot="R180"/>
+</instance>
 <instance part="12VIN" gate="-2" x="48.895" y="113.665" smashed="yes" rot="R270">
 <attribute name="VALUE" x="51.435" y="113.665" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="52.07" y="117.094" size="1.778" layer="95" rot="R180"/>
@@ -16257,7 +16260,10 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="78.74" y="29.21" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="86.36" y="19.05" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="GND" gate="G$1" x="114.3" y="25.4" rot="R90"/>
+<instance part="GND" gate="G$1" x="114.3" y="25.4" smashed="yes" rot="R90">
+<attribute name="NAME" x="108.585" y="19.05" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="119.38" y="19.05" size="1.778" layer="96" rot="R90"/>
+</instance>
 <instance part="R1" gate="G$1" x="26.035" y="67.31" smashed="yes">
 <attribute name="NAME" x="27.94" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="22.225" y="64.008" size="1.778" layer="96"/>
@@ -16277,8 +16283,12 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="35.56" y="54.8386" size="1.778" layer="95"/>
 <attribute name="VALUE" x="42.545" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND2" gate="1" x="46.355" y="108.585" rot="R270"/>
-<instance part="GND1" gate="1" x="45.72" y="59.69"/>
+<instance part="GND2" gate="1" x="46.355" y="108.585" smashed="yes" rot="R270">
+<attribute name="VALUE" x="43.815" y="111.125" size="1.778" layer="96" rot="R270"/>
+</instance>
+<instance part="GND1" gate="1" x="45.72" y="59.69" smashed="yes">
+<attribute name="VALUE" x="43.18" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="R2" gate="G$1" x="58.42" y="67.31" smashed="yes">
 <attribute name="NAME" x="60.325" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="54.61" y="64.008" size="1.778" layer="96"/>
@@ -16298,7 +16308,9 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="67.945" y="54.8386" size="1.778" layer="95"/>
 <attribute name="VALUE" x="74.93" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND3" gate="1" x="78.105" y="59.69"/>
+<instance part="GND3" gate="1" x="78.105" y="59.69" smashed="yes">
+<attribute name="VALUE" x="75.565" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="R3" gate="G$1" x="90.17" y="67.31" smashed="yes">
 <attribute name="NAME" x="92.075" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="88.265" y="64.008" size="1.778" layer="96"/>
@@ -16318,7 +16330,9 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="99.695" y="55.4736" size="1.778" layer="95"/>
 <attribute name="VALUE" x="106.68" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND4" gate="1" x="109.855" y="59.69"/>
+<instance part="GND4" gate="1" x="109.855" y="59.69" smashed="yes">
+<attribute name="VALUE" x="107.315" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="T7" gate="G$1" x="128.905" y="74.93" smashed="yes" rot="MR90">
 <attribute name="NAME" x="125.73" y="74.295" size="1.778" layer="95" rot="MR0"/>
 <attribute name="VALUE" x="140.0175" y="82.2325" size="1.778" layer="96" rot="MR0"/>
@@ -16334,7 +16348,9 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="130.175" y="54.8386" size="1.778" layer="95"/>
 <attribute name="VALUE" x="138.43" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND5" gate="1" x="141.605" y="59.69"/>
+<instance part="GND5" gate="1" x="141.605" y="59.69" smashed="yes">
+<attribute name="VALUE" x="139.065" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="R5" gate="G$1" x="153.67" y="67.31" smashed="yes">
 <attribute name="NAME" x="154.94" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="151.765" y="64.008" size="1.778" layer="96"/>
@@ -16354,7 +16370,9 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="162.56" y="54.8386" size="1.778" layer="95"/>
 <attribute name="VALUE" x="170.18" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND6" gate="1" x="173.355" y="59.69"/>
+<instance part="GND6" gate="1" x="173.355" y="59.69" smashed="yes">
+<attribute name="VALUE" x="170.815" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="R6" gate="G$1" x="186.055" y="67.31" smashed="yes">
 <attribute name="NAME" x="187.96" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="184.15" y="64.008" size="1.778" layer="96"/>
@@ -16374,12 +16392,16 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="194.31" y="55.4736" size="1.778" layer="95"/>
 <attribute name="VALUE" x="202.565" y="54.483" size="1.778" layer="96"/>
 </instance>
-<instance part="GND7" gate="1" x="205.74" y="59.69"/>
+<instance part="GND7" gate="1" x="205.74" y="59.69" smashed="yes">
+<attribute name="VALUE" x="203.2" y="57.15" size="1.778" layer="96"/>
+</instance>
 <instance part="JP1" gate="G$1" x="96.52" y="0" smashed="yes" rot="R270">
 <attribute name="NAME" x="113.03" y="-1.27" size="1.778" layer="95"/>
 <attribute name="VALUE" x="76.2" y="6.35" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="GND8" gate="1" x="144.78" y="106.68"/>
+<instance part="GND8" gate="1" x="144.78" y="106.68" smashed="yes">
+<attribute name="VALUE" x="142.24" y="104.14" size="1.778" layer="96"/>
+</instance>
 <instance part="C1" gate="G$1" x="134.62" y="114.3" smashed="yes">
 <attribute name="NAME" x="127.889" y="111.8616" size="1.778" layer="95"/>
 <attribute name="VALUE" x="136.271" y="115.6716" size="1.778" layer="96"/>
@@ -16388,10 +16410,19 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="167.005" y="111.8616" size="1.778" layer="95"/>
 <attribute name="VALUE" x="174.371" y="115.6716" size="1.778" layer="96"/>
 </instance>
-<instance part="GND9" gate="1" x="134.62" y="106.68"/>
-<instance part="GND10" gate="1" x="172.72" y="106.68"/>
-<instance part="D1" gate="G$1" x="127" y="119.38"/>
-<instance part="GND11" gate="1" x="154.94" y="106.68"/>
+<instance part="GND9" gate="1" x="134.62" y="106.68" smashed="yes">
+<attribute name="VALUE" x="132.08" y="104.14" size="1.778" layer="96"/>
+</instance>
+<instance part="GND10" gate="1" x="172.72" y="106.68" smashed="yes">
+<attribute name="VALUE" x="170.18" y="104.14" size="1.778" layer="96"/>
+</instance>
+<instance part="D1" gate="G$1" x="127" y="119.38" smashed="yes">
+<attribute name="NAME" x="129.54" y="119.8626" size="1.778" layer="95"/>
+<attribute name="VALUE" x="129.54" y="117.0686" size="1.778" layer="96"/>
+</instance>
+<instance part="GND11" gate="1" x="154.94" y="106.68" smashed="yes">
+<attribute name="VALUE" x="152.4" y="104.14" size="1.778" layer="96"/>
+</instance>
 <instance part="IC1" gate="G$1" x="154.94" y="116.84" smashed="yes">
 <attribute name="NAME" x="149.86" y="124.46" size="1.778" layer="95"/>
 <attribute name="VALUE" x="149.86" y="127" size="1.778" layer="96"/>
@@ -16403,13 +16434,19 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="189.23" y="111.76" size="1.778" layer="95"/>
 <attribute name="VALUE" x="190.5" y="109.22" size="1.778" layer="96"/>
 </instance>
-<instance part="GND12" gate="1" x="187.96" y="106.68"/>
+<instance part="GND12" gate="1" x="187.96" y="106.68" smashed="yes">
+<attribute name="VALUE" x="185.42" y="104.14" size="1.778" layer="96"/>
+</instance>
 <instance part="JP3" gate="A" x="96.52" y="25.4" smashed="yes" rot="R90">
 <attribute name="NAME" x="104.14" y="17.78" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="106.68" y="19.05" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="SUPPLY8" gate="G$1" x="137.795" y="34.29"/>
-<instance part="GND13" gate="1" x="137.795" y="-0.635"/>
+<instance part="SUPPLY8" gate="G$1" x="23.495" y="133.35" smashed="yes">
+<attribute name="VALUE" x="21.59" y="136.525" size="1.778" layer="96"/>
+</instance>
+<instance part="GND13" gate="1" x="23.495" y="98.425" smashed="yes">
+<attribute name="VALUE" x="20.955" y="95.885" size="1.778" layer="96"/>
+</instance>
 <instance part="230V" gate="-1" x="61.595" y="116.205" smashed="yes" rot="R270">
 <attribute name="NAME" x="67.945" y="120.269" size="1.778" layer="95" rot="R180"/>
 </instance>
@@ -16417,17 +16454,26 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="VALUE" x="59.055" y="116.205" size="1.778" layer="96" rot="R270"/>
 <attribute name="NAME" x="59.055" y="120.269" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="OUT230V" gate="-1" x="66.675" y="98.425" rot="R180"/>
+<instance part="OUT230V" gate="-1" x="66.675" y="98.425" smashed="yes" rot="R180">
+<attribute name="NAME" x="67.945" y="97.536" size="1.778" layer="95"/>
+</instance>
 <instance part="OUT230V" gate="-2" x="69.215" y="116.205" smashed="yes" rot="R270">
 <attribute name="NAME" x="83.185" y="120.269" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="OUT230V" gate="-3" x="46.355" y="98.425"/>
-<instance part="RELE" gate="1" x="137.795" y="25.4" smashed="yes">
-<attribute name="VALUE" x="120.65" y="28.321" size="1.778" layer="96"/>
-<attribute name="PART" x="139.065" y="28.575" size="1.778" layer="95"/>
+<instance part="OUT230V" gate="-3" x="46.355" y="98.425" smashed="yes">
+<attribute name="VALUE" x="46.355" y="100.965" size="1.778" layer="96"/>
+<attribute name="NAME" x="45.085" y="99.314" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="RELE" gate="2" x="56.515" y="103.505" rot="R180"/>
-<instance part="GND14" gate="1" x="200.66" y="106.68"/>
+<instance part="RELE" gate="1" x="23.495" y="124.46" smashed="yes">
+<attribute name="VALUE" x="6.35" y="127.381" size="1.778" layer="96"/>
+<attribute name="PART" x="24.765" y="127.635" size="1.778" layer="95"/>
+</instance>
+<instance part="RELE" gate="2" x="56.515" y="103.505" smashed="yes" rot="R180">
+<attribute name="PART" x="53.975" y="103.505" size="1.778" layer="95" rot="R180"/>
+</instance>
+<instance part="GND14" gate="1" x="200.66" y="106.68" smashed="yes">
+<attribute name="VALUE" x="198.12" y="104.14" size="1.778" layer="96"/>
+</instance>
 <instance part="C2" gate="G$1" x="144.78" y="114.3" smashed="yes">
 <attribute name="NAME" x="138.684" y="112.141" size="1.778" layer="95"/>
 <attribute name="VALUE" x="146.304" y="108.966" size="1.778" layer="96"/>
@@ -16436,15 +16482,17 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="202.184" y="114.681" size="1.778" layer="95"/>
 <attribute name="VALUE" x="202.184" y="109.601" size="1.778" layer="96"/>
 </instance>
-<instance part="T13" gate="G$1" x="135.255" y="13.335" smashed="yes">
-<attribute name="NAME" x="139.065" y="15.875" size="1.778" layer="95"/>
-<attribute name="VALUE" x="139.065" y="12.7" size="1.778" layer="96"/>
+<instance part="T13" gate="G$1" x="20.955" y="112.395" smashed="yes">
+<attribute name="NAME" x="24.765" y="114.935" size="1.778" layer="95"/>
+<attribute name="VALUE" x="24.765" y="111.76" size="1.778" layer="96"/>
 </instance>
 <instance part="R14" gate="G$1" x="161.925" y="16.51" smashed="yes" rot="R270">
 <attribute name="NAME" x="160.4264" y="14.605" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="158.623" y="23.495" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="GND15" gate="1" x="194.31" y="20.955"/>
+<instance part="GND15" gate="1" x="194.31" y="20.955" smashed="yes">
+<attribute name="VALUE" x="191.77" y="18.415" size="1.778" layer="96"/>
+</instance>
 <instance part="R15" gate="G$1" x="166.37" y="16.51" smashed="yes" rot="R270">
 <attribute name="NAME" x="164.8714" y="14.605" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="163.068" y="23.495" size="1.778" layer="96" rot="R270"/>
@@ -16453,14 +16501,34 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="123.825" y="70.8914" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="120.015" y="64.008" size="1.778" layer="96"/>
 </instance>
-<instance part="TE1" gate="-1" x="196.85" y="33.655"/>
-<instance part="TE1" gate="-2" x="180.975" y="22.86"/>
-<instance part="TE2" gate="-1" x="196.85" y="31.115"/>
-<instance part="TE2" gate="-2" x="180.975" y="25.4"/>
-<instance part="TE4" gate="-1" x="196.85" y="28.575"/>
-<instance part="TE4" gate="-2" x="180.975" y="27.94"/>
-<instance part="TE3" gate="-1" x="196.85" y="26.035"/>
-<instance part="TE3" gate="-2" x="180.975" y="30.48"/>
+<instance part="TE1" gate="-1" x="196.85" y="33.655" smashed="yes">
+<attribute name="NAME" x="199.39" y="32.893" size="1.524" layer="95"/>
+<attribute name="VALUE" x="196.088" y="35.052" size="1.778" layer="96"/>
+</instance>
+<instance part="TE1" gate="-2" x="180.975" y="22.86" smashed="yes">
+<attribute name="NAME" x="183.515" y="22.098" size="1.524" layer="95"/>
+</instance>
+<instance part="TE2" gate="-1" x="196.85" y="31.115" smashed="yes">
+<attribute name="NAME" x="199.39" y="30.353" size="1.524" layer="95"/>
+<attribute name="VALUE" x="196.088" y="32.512" size="1.778" layer="96"/>
+</instance>
+<instance part="TE2" gate="-2" x="180.975" y="25.4" smashed="yes">
+<attribute name="NAME" x="183.515" y="24.638" size="1.524" layer="95"/>
+</instance>
+<instance part="TE4" gate="-1" x="196.85" y="28.575" smashed="yes">
+<attribute name="NAME" x="199.39" y="27.813" size="1.524" layer="95"/>
+<attribute name="VALUE" x="196.088" y="29.972" size="1.778" layer="96"/>
+</instance>
+<instance part="TE4" gate="-2" x="180.975" y="27.94" smashed="yes">
+<attribute name="NAME" x="183.515" y="27.178" size="1.524" layer="95"/>
+</instance>
+<instance part="TE3" gate="-1" x="196.85" y="26.035" smashed="yes">
+<attribute name="NAME" x="199.39" y="25.273" size="1.524" layer="95"/>
+<attribute name="VALUE" x="196.088" y="27.432" size="1.778" layer="96"/>
+</instance>
+<instance part="TE3" gate="-2" x="180.975" y="30.48" smashed="yes">
+<attribute name="NAME" x="183.515" y="29.718" size="1.524" layer="95"/>
+</instance>
 <instance part="R16" gate="G$1" x="170.815" y="16.51" smashed="yes" rot="R270">
 <attribute name="NAME" x="169.3164" y="14.605" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="167.513" y="23.495" size="1.778" layer="96" rot="R270"/>
@@ -16473,7 +16541,10 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="56.515" y="3.81" size="1.778" layer="95"/>
 <attribute name="VALUE" x="30.48" y="11.43" size="1.778" layer="96" rot="R270"/>
 </instance>
-<instance part="D2" gate="G$1" x="128.905" y="25.4" rot="R90"/>
+<instance part="D2" gate="G$1" x="14.605" y="124.46" smashed="yes" rot="R90">
+<attribute name="NAME" x="14.1224" y="127" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="16.9164" y="127" size="1.778" layer="96" rot="R90"/>
+</instance>
 <instance part="JP4" gate="A" x="99.06" y="41.91" smashed="yes" rot="R90">
 <attribute name="NAME" x="111.76" y="30.48" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="109.22" y="35.56" size="1.778" layer="96" rot="R90"/>
@@ -16482,9 +16553,17 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <attribute name="NAME" x="111.76" y="39.37" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="109.22" y="27.305" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="JP6" gate="A" x="151.13" y="22.86" rot="R180"/>
-<instance part="GND16" gate="1" x="158.75" y="-0.635"/>
-<instance part="R13" gate="G$1" x="127.635" y="13.335"/>
+<instance part="JP6" gate="A" x="151.13" y="22.86" smashed="yes" rot="R180">
+<attribute name="NAME" x="157.48" y="9.525" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="157.48" y="35.56" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="GND16" gate="1" x="158.75" y="-0.635" smashed="yes">
+<attribute name="VALUE" x="156.21" y="-3.175" size="1.778" layer="96"/>
+</instance>
+<instance part="R13" gate="G$1" x="13.335" y="112.395" smashed="yes">
+<attribute name="NAME" x="9.525" y="113.8936" size="1.778" layer="95"/>
+<attribute name="VALUE" x="9.525" y="109.093" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -16653,7 +16732,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 </segment>
 <segment>
 <pinref part="GND13" gate="1" pin="GND"/>
-<wire x1="137.795" y1="1.905" x2="137.795" y2="8.255" width="0.1524" layer="91"/>
+<wire x1="23.495" y1="100.965" x2="23.495" y2="107.315" width="0.1524" layer="91"/>
 <pinref part="T13" gate="G$1" pin="E"/>
 </segment>
 <segment>
@@ -16743,7 +16822,7 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <pinref part="JP1" gate="G$1" pin="12"/>
 </segment>
 <segment>
-<wire x1="122.555" y1="13.335" x2="118.745" y2="13.335" width="0.1524" layer="91"/>
+<wire x1="8.255" y1="112.395" x2="4.445" y2="112.395" width="0.1524" layer="91"/>
 <pinref part="R13" gate="G$1" pin="1"/>
 </segment>
 </net>
@@ -16929,12 +17008,12 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 <segment>
 <pinref part="SUPPLY8" gate="G$1" pin="VCC"/>
 <pinref part="RELE" gate="1" pin="1"/>
-<wire x1="137.795" y1="31.75" x2="137.795" y2="31.115" width="0.1524" layer="91"/>
+<wire x1="23.495" y1="130.81" x2="23.495" y2="130.175" width="0.1524" layer="91"/>
 <pinref part="D2" gate="G$1" pin="C"/>
-<wire x1="137.795" y1="31.115" x2="137.795" y2="30.48" width="0.1524" layer="91"/>
-<wire x1="137.795" y1="31.115" x2="128.905" y2="31.115" width="0.1524" layer="91"/>
-<wire x1="128.905" y1="31.115" x2="128.905" y2="27.94" width="0.1524" layer="91"/>
-<junction x="137.795" y="31.115"/>
+<wire x1="23.495" y1="130.175" x2="23.495" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="23.495" y1="130.175" x2="14.605" y2="130.175" width="0.1524" layer="91"/>
+<wire x1="14.605" y1="130.175" x2="14.605" y2="127" width="0.1524" layer="91"/>
+<junction x="23.495" y="130.175"/>
 </segment>
 </net>
 <net name="VIN" class="1">
@@ -17059,14 +17138,14 @@ wire to board 2.54 mm (.1 inch) pitch header</description>
 </net>
 <net name="N$41" class="0">
 <segment>
-<wire x1="137.795" y1="20.32" x2="137.795" y2="19.685" width="0.1524" layer="91"/>
+<wire x1="23.495" y1="119.38" x2="23.495" y2="118.745" width="0.1524" layer="91"/>
 <pinref part="RELE" gate="1" pin="2"/>
 <pinref part="T13" gate="G$1" pin="C"/>
 <pinref part="D2" gate="G$1" pin="A"/>
-<wire x1="137.795" y1="19.685" x2="137.795" y2="18.415" width="0.1524" layer="91"/>
-<wire x1="128.905" y1="22.86" x2="128.905" y2="19.685" width="0.1524" layer="91"/>
-<wire x1="128.905" y1="19.685" x2="137.795" y2="19.685" width="0.1524" layer="91"/>
-<junction x="137.795" y="19.685"/>
+<wire x1="23.495" y1="118.745" x2="23.495" y2="117.475" width="0.1524" layer="91"/>
+<wire x1="14.605" y1="121.92" x2="14.605" y2="118.745" width="0.1524" layer="91"/>
+<wire x1="14.605" y1="118.745" x2="23.495" y2="118.745" width="0.1524" layer="91"/>
+<junction x="23.495" y="118.745"/>
 </segment>
 </net>
 <net name="N$1" class="0">

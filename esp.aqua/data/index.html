@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <form action='/saveIndex' method='post'>
+
+    <span>
+      <label for='time' class='lbl'>Date a time</label>
+      <div><input id='date' name='date' type='text' value=''></div>
+      <div><input id='time' name='time' type='text' value=''></div>
+    </span>
+
+    <span>
+      <p class='lab'>Timer</p>
+        <div>1. <input type="time" id="t0" name="t0" min="0:00" max="23:59" required></div>
+        <div>2. <input type="time" id="t1" name="t1" min="0:00" max="23:59" required></div>
+        <div>3. <input type="time" id="t2" name="t2" min="0:00" max="23:59" required></div>
+        <div>4. <input type="time" id="t3" name="t3" min="0:00" max="23:59" required></div>
+        <div>5. <input type="time" id="t4" name="t4" min="0:00" max="23:59" required></div>
+        <div>6. <input type="time" id="t5" name="t5" min="0:00" max="23:59" required></div>
+    </span>
+
+    <span>
+      <label for='ch' class='lbl'>Channels</label>
+      <p><input type="range" id='ch0' name='ch1' min="0" max="1023"></p>
+      <p><input type="range" id='ch1' name='ch2' min="0" max="1023"></p>
+      <p><input type="range" id='ch2' name='ch3' min="0" max="1023"></p>
+      <p><input type="range" id='ch3' name='ch4' min="0" max="1023"></p>
+    </span>
+
+    <div>
+      <input type='button' id='s1' value='Save'>
+    </div>
+
+  </form>
+<script>
+var gEl = function(id) {return document.getElementById(id); }
+var selTimer = 0;
+var stSel = "border-bottom:2px solid #ff3300;";
+var stNor = "border-bottom:2px solid #4F84C4;";
+var el = gEl("t" + selTimer).style=stSel;
+var timerData;
+
+var req = new XMLHttpRequest();
+req.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        timerData = JSON.parse(this.responseText);
+        for (i = 0; i < 6; i++) {
+            gEl("t" + i).value =
+                timerData.timer[i].th.toString().padStart("2", "0") + ":" +
+                timerData.timer[i].tm.toString().padStart("2", "0");
+        }
+        for(i = 0; i < 4; i++) {
+            var el = gEl("ch" + i).value = timerData.timer[selTimer].tv[i];
+        }
+    }
+};
+req.open("GET", "/timerData", true);
+req.send();
+
+var req1 = new XMLHttpRequest();
+req1.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var js = JSON.parse(this.responseText);
+        gEl("time").value = js.time;
+        gEl("date").value = js.date;
+    }
+};
+
+setInterval(
+    function() {
+        req1.open("GET", "/time", true);
+        req1.send();
+}, 5000);
+
+var tClk = function(el) {
+    selTimer = el.target.id.substr(-1);
+    for(i = 0; i < 6; i++) {
+        var el = gEl("t" + i).style=stNor;
+    }
+    var el = gEl("t" + selTimer).style=stSel;
+    for(i = 0; i < 4; i++) {
+        var el = gEl("ch" + i).value = timerData.timer[selTimer].tv[i];
+    }
+}
+
+var chCh = function(el) {
+    var index = el.target.id.substr(-1);
+    timerData.timer[selTimer].tv[index]=el.target.value;
+}
+
+var saveIndex = function() {
+    for (i = 0; i < timerData.timer.length; i++) {
+        var v = gEl("t" + i).value.split(":");
+        timerData.timer[i].th = parseInt(v[0]);
+        timerData.timer[i].tm = parseInt(v[1]);
+
+    }
+    for (i = 0; i < timerData.timer[selTimer].tv.length; i++) {
+        var v = gEl("ch" + i).value;
+        timerData.timer[selTimer].tv[i] = parseInt(v);
+    }
+
+    var data = JSON.stringify(timerData);
+    console.log(data);
+    req.open("POST", "/saveTimer", true);
+    req.setRequestHeader('Content-Type', 'text/json');
+    req.send(data);
+};
+
+for (i = 0; i < 6; i++) {
+    gEl("t" + i).addEventListener("click", tClk);
+}
+
+for (i = 0; i < 4; i++) {
+    gEl("ch" + i).addEventListener("change", chCh);
+}
+
+gEl("s1").addEventListener("click", saveIndex);
+</script>
+</body>
+</html>

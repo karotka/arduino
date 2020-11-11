@@ -61,7 +61,8 @@ class MainActivity : AppCompatActivity() {
         if (!port.equals("")) {
             url += "" + port
         } else {}
-        url += "/index.html"
+        url += "/"
+        //url += "/index.html"
         open(url)
 
     }

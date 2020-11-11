@@ -36,27 +36,13 @@ XPT2046_Touchscreen touch(1, 0);
 //BearSSL::ESP8266WebServerSecure server(443);
 ESP8266WebServer serverHTTP(80);
 
-void setup() {
-    Serial.begin(115200);
+void displayOff() {
+    digitalWrite(LED, LOW);
+}
 
-    pinMode(LED, OUTPUT);
+void displayOn() {
     digitalWrite(LED, HIGH);
-
-    // Setup the LCD
-    lcd.InitLCD (0);
-    lcd.setFont(BigFont);
-
-    touch.begin();  // Must be done before setting rotation
-    touch.setRotation(1);
-    drawHome();
-
-    //SPIFFS.begin();
-    //wifiConnect();
-
-    //server.on("/read.php", handleSet);
-    //server.begin();
-
-    timer0.attach(1, timerLed);
+    counterLed = 0;
 }
 
 /*
@@ -93,22 +79,6 @@ void timerLed() {
     }
 }
 
-void displayOff() {
-    digitalWrite(LED, LOW);
-}
-
-void displayOn() {
-    digitalWrite(LED, HIGH);
-    counterLed = 0;
-}
-
-void drawHome() {
-    lcd.clrScr();
-    lcd.setBackColor(0, 0, 0);
-    lcd.setColor (80, 80, 80);
-    lcd.drawLine(0, 279, 240, 279);
-    drawBulb();
-}
 
 void drawBulb() {
     if (lightState == 0) {
@@ -123,6 +93,15 @@ void drawBulb() {
     }
 }
 
+void drawHome() {
+    lcd.clrScr();
+    lcd.setBackColor(0, 0, 0);
+    lcd.setColor (80, 80, 80);
+    lcd.drawLine(0, 279, 240, 279);
+    drawBulb();
+}
+
+
 uint16_t getX(TS_Point p) {
     return map(p.y, 240, 3823, 240, 0);
 }
@@ -131,9 +110,33 @@ uint16_t getY(TS_Point p) {
     return map(p.x, 345, 3870, 320, 0);
 }
 
+void setup() {
+    Serial.begin(115200);
+
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, HIGH);
+
+    // Setup the LCD
+    lcd.InitLCD (0);
+    lcd.setFont(BigFont);
+
+    touch.begin();  // Must be done before setting rotation
+    touch.setRotation(1);
+    drawHome();
+
+    //SPIFFS.begin();
+    //wifiConnect();
+
+    //server.on("/read.php", handleSet);
+    //server.begin();
+
+    timer0.attach(1, timerLed);
+}
+
+
 uint16_t x, y, lastX = 0;
 void loop () {
-
+    /*
     if (touch.touched()) {
         TS_Point p = touch.getPoint();
         x = getX(p);
@@ -167,4 +170,5 @@ void loop () {
         //lcd.print(str, LEFT, 10);
         //Serial.print(", x = ");Serial.print(p.x);Serial.print(", y = ");Serial.println(p.y);
     }
+    */
 }
