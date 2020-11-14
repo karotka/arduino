@@ -3,8 +3,8 @@
 
 #include "EEPROM.h"
 
-int CS = D8;
-byte POT_ADDRESS = 0x11;
+#define EEPROM_SIZE 512
+
 
 class Config_t {
 
@@ -26,7 +26,6 @@ public:
     void load() {
         apMode = EEPROM.read(0);
 
-        EEPROM.begin(512);
         int addr = 1;
 
         uint8_t first = EEPROM.read(addr); addr = 0 + sizeof(first);
@@ -36,12 +35,10 @@ public:
         IPAddress ip(first, second, third, fourtht);
 
         EEPROM.commit();
-        EEPROM.end();
     }
 
     void save() {
-        EEPROM.begin(512);
-        int addr = 0;
+        int addr = 1;
         //addr += EEPROM.put(addr, myInt);
         EEPROM.end();
     }

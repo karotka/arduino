@@ -30,12 +30,12 @@ typedef struct {
 } period;
 
 period timer[6] = {
-    {7, 0,  {0, 0, 0, 0}},
-    {12, 0, {500, 0, 0, 0}},
-    {13, 0, {0, 0, 0, 0}},
-    {18, 0, {700, 0, 0, 0}},
-    {19, 0, {900, 0, 0, 0}},
-    {20, 0, {1023, 0, 0, 0}}
+    {7, 0,  {1023, 0, 0, 0}},
+    {12, 0, {600, 0, 0, 0}},
+    {13, 0, {1023, 0, 0, 0}},
+    {18, 0, {500, 0, 0, 0}},
+    {19, 0, {100, 0, 0, 0}},
+    {20, 0, {0, 0, 0, 0}}
 };
 
 int pwm_values[17] = {0};
@@ -43,6 +43,23 @@ int pwm_values[17] = {0};
 void anWrite(uint8_t pin, int value) {
     pwm_values[pin] = value;
     analogWrite(pin, 1023 - value);
+}
+
+void EEPROM_saveTimer() {
+    int address = 18;
+    Serial.println(address);
+    EEPROM.put(address, timer);
+    address += sizeof(timer);
+    Serial.println(address);
+    EEPROM.commit();
+}
+
+void EEPROM_loadTimer() {
+    int address = 18;
+    EEPROM.get(address, timer);
+    address += sizeof(timer);
+    Serial.println(address); //162
+    EEPROM.commit();
 }
 
 void handleSaveTimer() {
@@ -59,6 +76,7 @@ void handleSaveTimer() {
             }
         }
     }
+    EEPROM_saveTimer();
     server.send(200, "text/plain", "OK");
 }
 
@@ -134,7 +152,7 @@ void wifiConnect() {
 }
 
 void wifiAp() {
-    IPAddress apIp(10, 0, 0, 1);
+    IPAddress apIp(192, 168, 10, 1);
     //WiFi.softAPConfig(IPAddress(10, 0, 0, 10),
     //                  IPAddress(10, 0, 0, 1),
     //                  IPAddress(255, 255, 255, 0));
@@ -165,7 +183,6 @@ void handleRoot() {
 
 String getTime() {
     char str[3];
-    //ct = rtc.GetDateTime();
 
     String ret =
         "{\"time\":\"" + String(ct.Hour()) + ":";
@@ -271,7 +288,7 @@ void handleSaveData() {
 void handleValue() {
     unsigned int channel1 = server.arg("v").toInt();
 
-    analogWrite(PWM_PIN, channel1);
+    anWrite(PWM_PIN, channel1);
 
     server.send(200, "text/plain", "OK");
 }
@@ -282,6 +299,7 @@ void timer0run() {
 }
 
 void setup() {
+
     Serial.begin(115200);
     delay(10);
 
@@ -312,16 +330,15 @@ void setup() {
     server.begin();
     Serial.println("Server started");
 
+    Serial.println("Read eeprom: ");
+    EEPROM.begin(EEPROM_SIZE);
+    EEPROM_loadTimer();
+
     pinMode(13, OUTPUT); // D7
     pinMode(12, OUTPUT); // D6
     pinMode(14, OUTPUT); // D5
     pinMode(16, OUTPUT); // D0
     analogWriteFreq(5000);
-
-    analogWrite(12, 500);
-    analogWrite(14, 555);
-    analogWrite(16, 700);
-
 
     rtc.Begin();
 
@@ -337,7 +354,7 @@ void loop() {
         timerCouterRtc = 0;
         ct = rtc.GetDateTime();
     }
-    if (timerCouterDimmer > 10) {
+    if (timerCouterDimmer > 1) {
         timerCouterDimmer = 0;
         checkTimer();
     }
