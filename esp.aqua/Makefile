@@ -1,6 +1,5 @@
-UPLOAD_PORT = /dev/tty.wchusbserial14110
-#UPLOAD_PORT = /dev/tty.SLAB_USBtoUART
-#UPLOAD_SPEED = 460800
+UPLOAD_PORT = /dev/tty.usbserial-14130
+UPLOAD_SPEED = 460800
 BOARD=d1_mini
 BUILD_DIR=build
 VERBOSE=1

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <form action='/timesave' method='post'>
+    <span>
+      <label for='d' class='lbl'>Date</label>
+      <input id='d' name='d' type='date' maxlength='20' value=''>
+    </span>
+    <span>
+      <label for='t' class='lbl'>Time</label>
+      <input id='t' name='t' maxlength='20' type='time' value=''>
+    </span>
+    <div>
+      <input type='submit' value='Save'>
+      <input type='button' onclick='location.href="/"' value='Back'>
+    </div>
+  </form>
+<script>
+var gEl = function(id) {return document.getElementById(id);}
+var req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var js = JSON.parse(this.responseText);
+        gEl("t").value = js.time.split(":")[0].padStart("2", "0") + ":" + js.time.split(":")[1].padStart("2", "0");
+        var d = js.date.split(".");
+        gEl("d").value = d[2] + "-" + d[1].padStart("2", "0") + "-" + d[0].padStart("2", "0");
+    }
+};
+req.open("GET", "/time", true);
+req.send();
+</script>
+</body>
+</html>

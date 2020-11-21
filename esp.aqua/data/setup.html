@@ -9,11 +9,11 @@
   <form action='/saveData' method='post'>
     <span>
       <label for='ssid' class='lbl'>SSID</label>
-      <input id='ssid' name='ssid' type='text' value=''>
+      <input id='ssid' name='ssid' type='text' maxlength='20' value=''>
     </span>
     <span>
       <label for='password' class='lbl'>Password</label>
-      <input id='password' name='password' type='text' value=''>
+      <input id='password' name='password' maxlength='20' type='text' value=''>
     </span>
     <span>
       <label for='ip' class='lbl'>IP</label>
@@ -27,10 +27,15 @@
       <label for='nmask' class='lbl'>Netmask</label>
       <input id='subnet' name='subnet' type='text' value=''>
     </span>
+    <span>
+      <label for='ds' class='lbl'>Timer speed</label>
+      <input id='ds' name='ds' maxlength='20' type='text' value=''>
+    </span>
     <div>
       <input type='submit' value='Save'>
       <input type='button' id='btn1' value='Connect'>
       <input type='button' id='btn2' value='AP mode'>
+      <input type='button' onclick='location.href="/"' value='Back'>
     </div>
   </form>
 <script>
@@ -46,6 +51,7 @@ req.onreadystatechange = function() {
         document.getElementById("subnet").value = js.subnet;
         document.getElementById("ssid").value = js.ssid;
         document.getElementById("password").value = js.password;
+        document.getElementById("ds").value = js.ds;
     }
 };
 req.open("GET", "/setupData", true);

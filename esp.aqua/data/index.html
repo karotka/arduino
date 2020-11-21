@@ -9,7 +9,7 @@
   <form action='/saveIndex' method='post'>
 
     <span>
-      <label for='time' class='lbl'>Date a time</label>
+      <label for='time' onclick='location.href="/timeset"' class='lbl'>Date a time</label>
       <div><input id='date' name='date' type='text' value=''></div>
       <div><input id='time' name='time' type='text' value=''></div>
     </span>
@@ -34,6 +34,7 @@
 
     <div>
       <input type='button' id='s1' value='Save'>
+      <input type='button' id='s2' value='Automat'>
     </div>
 
   </form>
@@ -48,6 +49,7 @@ var timerData;
 var req = new XMLHttpRequest();
 req.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
+        console.log("Response: " + this.responseText);
         timerData = JSON.parse(this.responseText);
         for (i = 0; i < 6; i++) {
             gEl("t" + i).value =
@@ -93,6 +95,17 @@ var chCh = function(el) {
     timerData.timer[selTimer].tv[index]=el.target.value;
 }
 
+var toggleAutMan = function() {
+    if (gEl('s2').value == "Automat") {
+        gEl('s2').value = "Manual";
+        req.open("GET", "/toggleAut?v=0", false);
+    } else {
+        gEl('s2').value = "Automat";
+        req.open("GET", "/toggleAut?v=1", false);
+    }
+    req.send();
+}
+
 var saveIndex = function() {
     for (i = 0; i < timerData.timer.length; i++) {
         var v = gEl("t" + i).value.split(":");
@@ -121,6 +134,7 @@ for (i = 0; i < 4; i++) {
 }
 
 gEl("s1").addEventListener("click", saveIndex);
+gEl("s2").addEventListener("click", toggleAutMan);
 </script>
 </body>
 </html>

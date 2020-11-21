@@ -13,15 +13,15 @@ Config_t config;
 ESP8266WebServer server(80);
 RtcDS3231<TwoWire> rtc(Wire);
 RtcDateTime ct;
-
-volatile int timerCouterRtc = 0;
-volatile int timerCouterDimmer = 0;
-volatile bool switchProcess = false;
-
-int finalPWMvalue;
 Ticker timer0;
 
-const int PWM_PIN = 13; // 12 D6, 13 D7, 14 D5, 16 D0
+volatile unsigned int timerCouterRtc = 0;
+volatile unsigned int timerCouterDimmer = 0;
+volatile unsigned int status;
+volatile bool switchProcess = false;
+
+//const int PWM_PIN = 13; // 12 D6, 13 D7, 14 D5, 16 D0
+const int pwmPins[4] = {13, 12, 14, 16};
 
 typedef struct {
     int hour;
@@ -47,10 +47,10 @@ void anWrite(uint8_t pin, int value) {
 
 void EEPROM_saveTimer() {
     int address = 18;
-    Serial.println(address);
+    //Serial.println(address);
     EEPROM.put(address, timer);
     address += sizeof(timer);
-    Serial.println(address);
+    //Serial.println(address);
     EEPROM.commit();
 }
 
@@ -58,7 +58,7 @@ void EEPROM_loadTimer() {
     int address = 18;
     EEPROM.get(address, timer);
     address += sizeof(timer);
-    Serial.println(address); //162
+    //Serial.println(address); //162
     EEPROM.commit();
 }
 
@@ -80,11 +80,12 @@ void handleSaveTimer() {
     server.send(200, "text/plain", "OK");
 }
 
-void switchLight(uint8_t index) {
+void switchLight(uint8_t index, uint8_t i) {
 
-    finalPWMvalue = timer[index].value[0];
+    int finalPWMvalue = timer[index].value[i];
+    int pwmPin = pwmPins[i];
 
-    if (pwm_values[PWM_PIN] == finalPWMvalue) {
+    if (pwm_values[pwmPin] == finalPWMvalue) {
         switchProcess = false;
         return;
     } else {
@@ -93,13 +94,19 @@ void switchLight(uint8_t index) {
 
     if (switchProcess) {
         // then --
-        if (pwm_values[PWM_PIN] > finalPWMvalue) {
-            anWrite(PWM_PIN, --pwm_values[PWM_PIN]);
+        if (pwm_values[pwmPin] > finalPWMvalue) {
+            anWrite(pwmPin, --pwm_values[pwmPin]);
         // then ++
         } else
-        if (pwm_values[PWM_PIN] < finalPWMvalue) {
-            anWrite(PWM_PIN, ++pwm_values[PWM_PIN]);
+        if (pwm_values[pwmPin] < finalPWMvalue) {
+            anWrite(pwmPin, ++pwm_values[pwmPin]);
         }
+    }
+}
+
+void switchLights(uint8_t index) {
+    for (int i = 0; i < 4; i++) {
+        switchLight(index, i);
     }
 }
 
@@ -115,8 +122,11 @@ void checkTimer() {
         minutes     = timer[i].minute + (timer[i].hour * 60);
         nextMinutes = timer[i].minute + (timer[j].hour * 60) + (i==5 ? 1400 : 0);
 
+        //Serial.print("minute:");Serial.println(minutes);
+        //Serial.print("Next minute:");Serial.println(nextMinutes);
+        //Serial.print("Real minute:");Serial.println(realMinute);
         if (minutes <= realMinute && realMinute < nextMinutes) {
-            switchLight(i);
+            switchLights(i);
             break;
         }
     }
@@ -124,10 +134,14 @@ void checkTimer() {
 
 void wifiConnect() {
 
+    config.load();
+
     // Connect to WiFi network
     //Serial.println("");
     //Serial.print("Connecting to: ");
     //Serial.print(config.ssid);
+    //Serial.println(config.ssid);
+    //Serial.println(config.ip);
 
     WiFi.config(config.ip, config.gateway, config.subnet);
     WiFi.mode(WIFI_STA);
@@ -141,14 +155,13 @@ void wifiConnect() {
         else digitalWrite(LED_BUILTIN, LOW);
         st = !st;
     }
-    /*
-    Serial.println("");
-    Serial.print("WiFi connected: ");
-    Serial.print("http://");
-    Serial.print(WiFi.localIP().toString());
-    Serial.println("/");
-    */
+    //Serial.println("");
+    //Serial.print("WiFi connected: ");
+    //Serial.print("http://");
+    //Serial.print(WiFi.localIP().toString());
+    //Serial.println("/");
     digitalWrite(LED_BUILTIN, LOW);
+    anWrite(LED_BUILTIN, 100);
 }
 
 void wifiAp() {
@@ -160,10 +173,10 @@ void wifiAp() {
     //WiFi.mode(WIFI_AP_STA);
 
     delay(500);
-    Serial.println("Setting AP");
-    Serial.println(WiFi.softAPIP());
-    Serial.print("Server MAC address: ");
-    Serial.println(WiFi.softAPmacAddress());
+    //Serial.println("Setting AP");
+    //Serial.println(WiFi.softAPIP());
+    //Serial.print("Server MAC address: ");
+    //Serial.println(WiFi.softAPmacAddress());
 }
 
 void handleConnect() {
@@ -250,13 +263,39 @@ void handleSetup() {
     dataFile.close();
 }
 
+void handleTimeSet() {
+    File dataFile = SPIFFS.open("/timeset.html", "r");
+    server.streamFile(dataFile, "text/html");
+    dataFile.close();
+}
+
+void handleTimeSave() {
+    String date = server.arg("d");
+    String time = server.arg("t");
+
+    RtcDateTime currentTime =
+        RtcDateTime(
+                    date.substring(2, 4).toInt(),
+                    date.substring(5, 7).toInt(),
+                    date.substring(8, 10).toInt(),
+                    time.substring(0, 2).toInt(),
+                    time.substring(3, 5).toInt(), 0);
+    rtc.SetDateTime(currentTime);
+
+    server.sendHeader("Location", String("/"), true);
+    server.send(302, "text/plain", "");
+}
+
 void handleSetupData() {
+    config.load();
+
     String ret =
         "{\"ip\" : \""      + config.ip.toString() + "\","
         "\"gateway\" : \""  + config.gateway.toString() + "\","
         "\"subnet\" : \""   + config.subnet.toString() + "\","
         "\"ssid\" : \""     + config.ssid + "\","
-        "\"password\" : \"" + config.password + "\"}";
+        "\"password\" : \"" + config.password + "\","
+        "\"ds\" : "         + config.dimmerSpeed + "}";
 
     server.setContentLength(ret.length());
     server.send(200, "text/json", ret);
@@ -277,19 +316,25 @@ void handleSaveData() {
 
     config.ssid = server.arg("ssid");
     config.password = server.arg("password");
+    config.dimmerSpeed = server.arg("ds").toInt();
 
-    delay(500);
+    config.save();
 
     server.sendHeader("Location", String("/setup"), true);
     server.send(302, "text/plain", "");
-
 }
 
 void handleValue() {
-    unsigned int channel1 = server.arg("v").toInt();
+    unsigned int channel = server.arg("c").toInt();
+    unsigned int value = server.arg("v").toInt();
 
-    anWrite(PWM_PIN, channel1);
+    anWrite(channel, value);
 
+    server.send(200, "text/plain", "OK");
+}
+
+void toggleAut() {
+    status = server.arg("v").toInt();
     server.send(200, "text/plain", "OK");
 }
 
@@ -307,11 +352,11 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
 
-    if (config.apMode) {
-        wifiAp();
-    } else {
+    //if (config.apMode) {
+    //    wifiAp();
+    //} else {
         wifiConnect();
-    }
+        //}
 
     // Start the server
     server.on("/", handleRoot);
@@ -324,13 +369,16 @@ void setup() {
     server.on("/setupData", handleSetupData);
     server.on("/saveData", handleSaveData);
     server.on("/handleValue", handleValue);
+    server.on("/toggleAut", toggleAut);
+    server.on("/timeset", handleTimeSet);
+    server.on("/timesave", handleTimeSave);
 
     server.on("/apmode", handleAPmode);
 
     server.begin();
-    Serial.println("Server started");
+    //Serial.println("Server started");
 
-    Serial.println("Read eeprom: ");
+    //Serial.println("Read eeprom: ");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM_loadTimer();
 
@@ -338,23 +386,21 @@ void setup() {
     pinMode(12, OUTPUT); // D6
     pinMode(14, OUTPUT); // D5
     pinMode(16, OUTPUT); // D0
-    analogWriteFreq(5000);
+    analogWriteFreq(200);
 
     rtc.Begin();
 
-    timer0.attach(0.1, timer0run);
-    //RtcDateTime currentTime = RtcDateTime(20, 11, 6, 19, 40, 0);
-    //rtc.SetDateTime(currentTime);
+    timer0.attach(0.01, timer0run);
 }
 
 void loop() {
     server.handleClient();
 
-    if (timerCouterRtc > 3) {
+    if (timerCouterRtc > 30) {
         timerCouterRtc = 0;
         ct = rtc.GetDateTime();
     }
-    if (timerCouterDimmer > 1) {
+    if (timerCouterDimmer > config.dimmerSpeed) {
         timerCouterDimmer = 0;
         checkTimer();
     }
