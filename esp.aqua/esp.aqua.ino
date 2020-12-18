@@ -349,8 +349,21 @@ void setup() {
     delay(10);
 
     SPIFFS.begin();
+
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
+
+    pinMode(13, OUTPUT); // D7
+    pinMode(12, OUTPUT); // D6
+    pinMode(14, OUTPUT); // D5
+    pinMode(16, OUTPUT); // D0
+
+    analogWriteFreq(200);
+
+    anWrite(13, 1023);
+    anWrite(12, 1023);
+    anWrite(14, 1023);
+    anWrite(16, 1023);
 
     //if (config.apMode) {
     //    wifiAp();
@@ -381,12 +394,6 @@ void setup() {
     //Serial.println("Read eeprom: ");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM_loadTimer();
-
-    pinMode(13, OUTPUT); // D7
-    pinMode(12, OUTPUT); // D6
-    pinMode(14, OUTPUT); // D5
-    pinMode(16, OUTPUT); // D0
-    analogWriteFreq(200);
 
     rtc.Begin();
 
