@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="nstyle.css">
+</head>
+<body>
+  <form action='/saveNetworkData' method='post'>
+    <div id="menu" class="menu">Network configuration
+    </div>
+    <div>
+      <label for='ssid'>SSID</label>
+      <input id='ssid' name='ssid' type='text' maxlength='20' value=''>
+    </div>
+    <div>
+      <label for='password'>Password</label>
+      <input id='password' name='password' maxlength='20' type='text' value=''>
+    </div>
+    <div>
+      <label for='dhcp' class='switch'>DHCP</label>
+      <input id="dhcp" name="dhcp" class="cb" type="checkbox" value="1">
+    </div>
+    <div>
+      <label for='ip'>IP</label>
+      <input id='ip' name='ip' type='text' value='' maxlength='15'>
+    </div>
+    <div>
+      <label for='gateway'>Gateway</label>
+      <input id='gateway' name='gateway' type='text' value='' maxlength='15'>
+    </div>
+    <div>
+      <label for='subnet'>Netmask</label>
+      <input id='subnet' name='subnet' type='text' value='' maxlength='15'>
+    </div>
+    <div class="btn">
+      <input type='submit' value='Save'>
+      <input type='button' id='btn1' value='Connect'>
+      <input type='button' id='btn2' value='AP mode'>
+      <input type='button' onclick='location.href="/"' value='Back'>
+    </div>
+  </form>
+<script>
+document.getElementById("btn1").addEventListener("click", btn1Click);
+document.getElementById("btn2").addEventListener("click", btn2Click);
+
+var req = new XMLHttpRequest();
+req.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+        var js = JSON.parse(this.responseText);
+        document.getElementById("ip").value = js.ip;
+        document.getElementById("gateway").value = js.gateway;
+        document.getElementById("subnet").value = js.subnet;
+        document.getElementById("ssid").value = js.ssid;
+        document.getElementById("password").value = js.password;
+        if (js.dhcp == "1") {
+            document.getElementById("dhcp").checked = true;
+        } else {
+            document.getElementById("dhcp").checked = false;
+        }
+        document.getElementById("menu").innerHTML =
+            document.getElementById("menu").innerHTML + " (" + js.localIp + ")";
+    }
+};
+req.open("GET", "/networkData", true);
+req.send();
+
+function btn1Click() {
+    window.location.href = "/connect";
+}
+function btn2Click() {
+    window.location.href = "/apmode";
+}
+</script>
+</body>
+</html>
