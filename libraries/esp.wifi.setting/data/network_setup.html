@@ -36,13 +36,11 @@
     <div class="btn">
       <input type='submit' value='Save'>
       <input type='button' id='btn1' value='Connect'>
-      <input type='button' id='btn2' value='AP mode'>
       <input type='button' onclick='location.href="/"' value='Back'>
     </div>
   </form>
 <script>
 document.getElementById("btn1").addEventListener("click", btn1Click);
-document.getElementById("btn2").addEventListener("click", btn2Click);
 
 var req = new XMLHttpRequest();
 req.onreadystatechange = function() {
@@ -67,9 +65,6 @@ req.send();
 
 function btn1Click() {
     window.location.href = "/connect";
-}
-function btn2Click() {
-    window.location.href = "/apmode";
 }
 </script>
 </body>

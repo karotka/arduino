@@ -7,7 +7,7 @@ FLASH_DEF=4M1M
 FS_TYPE=spiffs
 FS_DIR=datafs
 
-$(shell minify data/nstyle.css > datafs/nstyle.css)
-$(shell minify data/network_setup.html > datafs/network_setup.html)
+$(shell minify ../esp.wifi.setting/data/nstyle.css > datafs/nstyle.css)
+$(shell minify ../esp.wifi.setting/data/network_setup.html > datafs/network_setup.html)
 
 include /Users/karotka/Arduino/make.esp/makeEspArduino.mk

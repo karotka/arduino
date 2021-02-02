@@ -1,14 +1,15 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef CONFIG_WIFI_H
+#define CONFIG_WIFI_H
 
-#include "EEPROM.h"
+#define DEBUG 1
+
+#include <EEPROM.h>
 #include <CRC32.h>
 #include <debugutil.h>
 
-
 #define EEPROM_SIZE 512
 
-CRC32 crc32;
+extern CRC32 crc32;
 
 class ConfigWifi_t {
 
@@ -31,8 +32,8 @@ public:
     uint8_t gatewaySize;
     uint8_t subnetSize;
 
-    void save() {
-        SLOG("---------- Save ----------");
+    uint16_t save() {
+        SLOG("\n---------- Save ----------");
 
         checksum = CRC32::calculate(
             (ssid + password + ip + gateway + subnet).c_str(),
@@ -79,10 +80,12 @@ public:
         SLOGF("PUT subnet: <%s> at %d", subnet.c_str(), addr);
 
         EEPROM.commit();
+
+        return addr;
     }
 
-    void load() {
-        SLOG("---------- LOAD ----------");
+    uint16_t load() {
+        SLOGLN("\n---------- LOAD ----------");
 
         EEPROM.get(0, checksum);
         SLOGF("Load CRC from EEPROM: %lu", checksum);
@@ -130,13 +133,15 @@ public:
 
         SLOGF("Load CRC: %lu Calc: %lu", checksumLo, checksum);
 
+        // set default values
         if (checksumLo != checksum) {
-            ssid = "KWIFI";
-            password = "Heslicko12";
+            ssid = "*****";
+            password = "*******";
             ip = gateway = subnet = "";
             SLOGF("ssid: %s", ssid.c_str());
             SLOGF("pass: %s", password.c_str());
         }
+        return addr;
     }
 
     int writeString(char add, String data) {
@@ -161,6 +166,5 @@ public:
         return String(data);
     }
 };
-
 
 #endif
